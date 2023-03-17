@@ -1,0 +1,10 @@
+"SpriteCard"
+{
+	"$baseTexture" "Effects\AnimatedSpirit01/animated_spirit01"
+	$translucent 1
+	$additive 1
+	$overbrightfactor 2
+	$vertexalpha 1
+	$vertexcolor 1
+}
+

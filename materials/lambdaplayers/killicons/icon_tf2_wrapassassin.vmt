@@ -1,0 +1,9 @@
+UnlitGeneric
+{
+	"$basetexture" "lambdaplayers\killicons\icon_tf2_wrapassassin"
+	"$vertexcolor" 		1
+	"$vertexalpha" 		1
+	"$nolod" 			1
+	"$additive"			1 // hldm style!
+}
+

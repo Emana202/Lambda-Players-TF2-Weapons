@@ -1,0 +1,9 @@
+"Spritecard"
+{
+	//"srgb?$overbrightfactor" "1.5"
+	"$baseTexture" "Effects\AnimatedDiscoBall/animated_discoball"
+	$translucent 1
+	"$addself" "0"
+	$DEPTHBLEND 0
+}
+
