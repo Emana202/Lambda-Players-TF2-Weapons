@@ -23,15 +23,6 @@ local dmgTraceTbl = {
     mask = ( MASK_SOLID + CONTENTS_HITBOX ),
 }
 
-local function KillSounds( wepent ) 
-    wepent:StopSound( "lambdaplayers/weapons/tf2/flamethrower/flame_thrower_pilot.mp3" )
-    wepent:StopSound( "lambdaplayers/weapons/tf2/flamethrower/flame_thrower_start.wav" )
-    wepent:StopSound( "lambdaplayers/weapons/tf2/flamethrower/flame_thrower_end.mp3" )
-    
-    if wepent.l_FireLoopSound then wepent.l_FireLoopSound:Stop(); wepent.l_FireLoopSound = nil end 
-    if wepent.l_FireCritSound then wepent.l_FireCritSound:Stop(); wepent.l_FireCritSound = nil end 
-end
-
 local function OnFlameThink( self )
     if CurTime() >= self.l_RemoveTime then
         self:Remove()
@@ -165,8 +156,8 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent:SetWeaponAttribute( "DamageType", ( DMG_IGNITE + DMG_PREVENT_PHYSICS_FORCE ) )
 
             wepent.l_IsCritical = true
-            wepent.l_FireLoopSound = CreateSound( wepent, "lambdaplayers/weapons/tf2/flamethrower/flame_thrower_loop.wav" )
-            wepent.l_FireCritSound = CreateSound( wepent, "lambdaplayers/weapons/tf2/crits/crit_shoot_loop.wav" )
+            wepent.l_FireLoopSound = LAMBDA_TF2:CreateSound( wepent, "lambdaplayers/weapons/tf2/flamethrower/flame_thrower_loop.wav" )
+            wepent.l_FireCritSound = LAMBDA_TF2:CreateSound( wepent, "lambdaplayers/weapons/tf2/crits/crit_shoot_loop.wav" )
             wepent.l_FireState = 0
             wepent.l_NextFireStateUpdateT = CurTime()
             
@@ -176,7 +167,6 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
 
             wepent.l_ActiveFlames = 0
 
-            wepent:CallOnRemove( "LambdaTF2_Flamethrower_StopSound" .. wepent:EntIndex(), KillSounds )
             wepent:EmitSound( "lambdaplayers/weapons/tf2/flamethrower/flame_thrower_pilot.mp3", 60 )
             wepent:EmitSound( "lambdaplayers/weapons/tf2/draw_primary.mp3", 74, 100, 0.5 )
         end,
@@ -260,7 +250,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
                             flameEnt:SetNoDraw( true )
                             flameEnt:DrawShadow( false )
 
-                            flameEnt:SetSaveValue( "m_takedamage", 0 )
+                            LAMBDA_TF2:TakeNoDamage( flameEnt )
                             flameEnt:SetSolid( SOLID_NONE )
                             flameEnt:SetSolidFlags( FSOLID_NOT_SOLID )
                             flameEnt:SetCollisionGroup( COLLISION_GROUP_NONE )
@@ -269,8 +259,6 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
 
                             local boxSize = Vector( 12, 12, 12 )
                             flameEnt:SetCollisionBounds( -boxSize, boxSize )
-
-
 
                             flameEnt.l_InitialPos = srcPos
                             flameEnt.l_PreviousPos = flameEnt.l_InitialPos
@@ -295,11 +283,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         end,
 
         OnHolster = function( self, wepent )
-            wepent:StopSound( "lambdaplayers/weapons/tf2/flamethrower/flame_thrower_pilot.mp3" )
-            wepent:StopSound( "lambdaplayers/weapons/tf2/flamethrower/flame_thrower_start.wav" )
-            wepent:StopSound( "lambdaplayers/weapons/tf2/flamethrower/flame_thrower_end.mp3" )
             LAMBDA_TF2:StopParticlesNamed( wepent, "flamethrower" )
-
             if wepent.l_FireLoopSound then wepent.l_FireLoopSound:Stop(); wepent.l_FireLoopSound = nil end 
             if wepent.l_FireCritSound then wepent.l_FireCritSound:Stop(); wepent.l_FireCritSound = nil end 
         end,

@@ -35,12 +35,12 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
 
         OnAttack = function( self, wepent, target )
             if LAMBDA_TF2:WeaponAttack( self, wepent, target ) and self.l_Clip > 0 then
-                self:SimpleWeaponTimer( 0.4, function()
+                self:SimpleWeaponTimer( 0.266, function()
                     wepent:EmitSound( "lambdaplayers/weapons/tf2/shotgun/shotgun_cock_back.mp3", 70 )
-                    LAMBDA_TF2:CreateShellEject( wepent, "ShotgunShellEject" )
                 end )
-                self:SimpleWeaponTimer( 0.55, function()
+                self:SimpleWeaponTimer( 0.416, function()
                     wepent:EmitSound( "lambdaplayers/weapons/tf2/shotgun/shotgun_cock_forward.mp3", 70 )
+                    LAMBDA_TF2:CreateShellEject( wepent, "ShotgunShellEject" )
                 end )
             end
 
@@ -51,18 +51,14 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             self:RemoveGesture( ACT_HL2MP_GESTURE_RELOAD_AR2 )
             local reloadLayer = self:AddGesture( ACT_HL2MP_GESTURE_RELOAD_AR2 )
 
-            local wasEmpty = ( self.l_Clip == 0 )
-
             self:SetIsReloading( true )
             self:Thread( function()
-                if wasEmpty then 
-                    wepent:EmitSound( "lambdaplayers/weapons/tf2/shotgun/shotgun_cock_back.mp3", 70 )
-                    LAMBDA_TF2:CreateShellEject( wepent, "ShotgunShellEject" )
-                end
-                coroutine_wait( 0.44 )
+                coroutine_wait( 0.4 )
 
+                local interupted = false
                 while ( self.l_Clip < self.l_MaxClip ) do
-                    if self.l_Clip > 0 and random( 1, 2 ) == 1 and self:InCombat() and self:IsInRange( self:GetEnemy(), 512 ) and self:CanSee( self:GetEnemy() ) then break end 
+                    interupted = ( self.l_Clip > 0 and random( 1, 2 ) == 1 and self:InCombat() and self:IsInRange( self:GetEnemy(), 512 ) and self:CanSee( self:GetEnemy() ) )
+                    if interupted then break end
 
                     if !self:IsValidLayer( reloadLayer ) then
                         reloadLayer = self:AddGesture( ACT_HL2MP_GESTURE_RELOAD_AR2 )
@@ -72,16 +68,36 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
                     
                     self.l_Clip = self.l_Clip + 1
                     wepent:EmitSound( "lambdaplayers/weapons/tf2/shotgun/shotgun_reload.mp3", 70 )
-                    coroutine_wait( 0.51 )
+                    coroutine_wait( 0.5 )
                 end
 
-                if wasEmpty then 
-                    wepent:EmitSound( "lambdaplayers/weapons/tf2/shotgun/shotgun_cock_forward.mp3", 70 )
+                if !interupted then
+                    local cockBack, cockForward
+                    local randEnd = random( 1, 4 )
+                    if randEnd == 1 then
+                        cockBack = ( 12 / 35 )
+                        cockForward = ( 17 / 35 )
+                    elseif randEnd == 2 then
+                        cockBack = ( 10 / 35 )
+                        cockForward = ( 15 / 35 )
+                    elseif randEnd == 3 then
+                        cockBack = ( 12 / 30 )
+                        cockForward = ( 16 / 30 )
+                    else
+                        cockBack = ( 7 / 30 )
+                        cockForward = ( 11 / 30 )
+                    end
+
+                    self:SimpleWeaponTimer( cockBack, function()
+                        wepent:EmitSound( "lambdaplayers/weapons/tf2/shotgun/shotgun_cock_back.mp3", 70 )
+                    end )
+                    self:SimpleWeaponTimer( cockForward, function()
+                        wepent:EmitSound( "lambdaplayers/weapons/tf2/shotgun/shotgun_cock_forward.mp3", 70 )
+                    end )
                 end
 
                 self:RemoveGesture( ACT_HL2MP_GESTURE_RELOAD_AR2 )
                 self:SetIsReloading( false )
-            
             end, "TF2_ShotgunReload" )
 
             return true

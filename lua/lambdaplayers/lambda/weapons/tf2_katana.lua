@@ -57,7 +57,11 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         end,
 
         OnDeath = function( self, wepent )
-            wepent:SetSkin( 0 )
+            self:SimpleWeaponTimer( 0.1, function() wepent:SetSkin( 0 ) end, true )
+        end,
+        
+        OnDrop = function( self, wepent, cs_prop )
+            cs_prop:SetSkin( wepent:GetSkin() )
         end,
 
 		OnAttack = function( self, wepent, target )

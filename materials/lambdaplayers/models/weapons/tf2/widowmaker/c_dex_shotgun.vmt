@@ -1,0 +1,16 @@
+"VertexLitGeneric"
+{
+	"$basetexture" "lambdaplayers\models\weapons\tf2\widowmaker/c_dex_shotgun"
+
+	"$phong" "1"
+	"$phongexponent" "15"
+	"$phongboost" "1.3"	
+	"$lightwarptexture" "lambdaplayers\models\weapons\tf2\shared/weapon_lightwarp"
+	"$phongfresnelranges"	"[1.5 .5 3]"
+
+	"$basemapalphaphongmask" "1"
+	
+	"$rimlight" "1"						
+	"$rimlightexponent" "20"				
+	"$rimlightboost" ".25"
+}

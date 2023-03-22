@@ -43,8 +43,12 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         
         OnDeath = function( self, wepent )
             wepent.l_TF_Detonated = false
-		    wepent:SetBodygroup( 1, 0 )
+            self:SimpleWeaponTimer( 0.1, function() wepent:SetBodygroup( 1, 0 ) end, true )
 		end,
+        
+        OnDrop = function( self, wepent, cs_prop )
+            cs_prop:SetBodygroup( 1, wepent:GetBodygroup( 1 ) )
+        end,
 
         OnAttack = function( self, wepent, target )
             LAMBDA_TF2:WeaponAttack( self, wepent, target )

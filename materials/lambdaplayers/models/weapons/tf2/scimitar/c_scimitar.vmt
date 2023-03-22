@@ -1,0 +1,11 @@
+"VertexLitGeneric"
+{
+	"$basetexture"	"lambdaplayers\models\weapons\tf2\scimitar\c_scimitar"
+	"$basemapalphaphongmask" "1"
+	"$phong" "1"
+	"$phongexponent" "10"
+	"$phongboost" "5"	
+	"$phongfresnelranges"	"[.25 .5 1]"
+	
+	"$lightwarptexture" "lambdaplayers\models\weapons\tf2\ambassador/c_ambassador_lightwarp"
+}

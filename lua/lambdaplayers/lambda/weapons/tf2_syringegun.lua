@@ -115,6 +115,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             syringe:SetSolid( SOLID_BBOX )
             syringe:SetMoveType( MOVETYPE_FLYGRAVITY )
             syringe:SetVelocity( spawnAng:Forward() * 990 )
+            LAMBDA_TF2:TakeNoDamage( syringe )
 
             local plyColor = self:GetPlyColor()
             net.Start( "lambdaplayers_serversideragdollplycolor" )

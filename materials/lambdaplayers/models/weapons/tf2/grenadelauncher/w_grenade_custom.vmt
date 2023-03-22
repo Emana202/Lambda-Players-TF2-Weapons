@@ -1,0 +1,30 @@
+"VertexLitGeneric"
+{
+	"$baseTexture" "lambdaplayers\models\weapons\tf2\grenadelauncher/w_grenade_custom"
+	"$selfillum" "1"
+
+	"$phong" "1"
+	"$phongexponent" "35"
+	"$phongboost" "5"	
+	"$lightwarptexture" "lambdaplayers\models\weapons\tf2\shared\weapon_lightwarp"
+	"$phongfresnelranges" "[0.25 0.5 1]"
+
+	"$blendtintbybasealpha" "1"
+ 	"$blendtintcoloroverbase" "0"
+
+	"Proxies"
+	{
+		"PlayerColor"
+		{
+			resultVar	$color2
+			default	0.23 0.35 0.41
+		}
+		"Sine"
+		{
+			"resultVar" $selfillumtint
+			"sinemin" .1
+			"sinemax" 2.00
+			"sineperiod" 0.30
+		}
+	}
+}

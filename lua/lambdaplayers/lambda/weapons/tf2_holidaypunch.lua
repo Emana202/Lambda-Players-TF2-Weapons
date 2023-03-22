@@ -38,7 +38,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
 
             wepent.l_TF_MakeLaugh = false
             wepent:EmitSound( "lambdaplayers/weapons/tf2/draw_melee.mp3", 74, 100, 0.5 )
-            self:SimpleWeaponTimer( 0.1, function() wepent:EmitSound( "lambdaplayers/weapons/tf2/boxing_gloves_hit.mp3" ) end )
+            self:SimpleWeaponTimer( 0.1, function() wepent:EmitSound( "lambdaplayers/weapons/tf2/melee/boxing_gloves_hit.mp3" ) end )
         end,
         
 		OnAttack = function( self, wepent, target )
@@ -49,9 +49,9 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         OnDealDamage = function( self, wepent, target, dmginfo, tookDamage, lethal )
             if !wepent.l_TF_MakeLaugh then return end
             if target.IsLambdaPlayer then
-                if target.l_CurrentPlayedGesture != ACT_GMOD_TAUNT_LAUGH then
+                if target:GetState() != "Schadenfreude" then
                     target:CancelMovement()
-                    target:SetState( "Laughing" )
+                    target:SetState( "Schadenfreude" )
                 end
             elseif target:IsPlayer() then
                 target:ConCommand( "act laugh" )

@@ -26,6 +26,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
                 "lambdaplayers/weapons/tf2/melee/eviction_notice_04.mp3"
             } )
             wepent:SetWeaponAttribute( "BleedingDuration", 5 )
+            wepent:SetWeaponAttribute( "DamageType", DMG_SLASH )
 
             wepent:SetWeaponAttribute( "OnMiss", function( lambda, weapon, target, dmginfo )
                 dmginfo:ScaleDamage( 0.5 )

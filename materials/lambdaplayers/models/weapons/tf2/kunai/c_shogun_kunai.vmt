@@ -1,0 +1,18 @@
+"VertexLitGeneric"
+{
+	"$baseTexture" "lambdaplayers\models\weapons\tf2\kunai\c_shogun_kunai"
+	
+	"$phong" "1"
+	"$phongexponent" "25"
+	"$phongboost" "2.5"	
+	
+	"$phongfresnelranges"	"[.25 .5 20]"
+	"$halflambert" "1"
+
+	"$basemapalphaphongmask" "1"
+	
+	// Rim lighting parameters
+	"$rimlight" "1"					
+	"$rimlightexponent" "4"		
+	"$rimlightboost" "2"
+}

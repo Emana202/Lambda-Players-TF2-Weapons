@@ -1,0 +1,24 @@
+"VertexLitGeneric"
+{
+	"$basetexture"	"lambdaplayers\models\weapons\tf2\wrench\w_wrench_sheet"
+	
+	"$phong" "1"
+	"$phongexponent" "15"
+	"$phongboost" "5"	
+	"$lightwarptexture" "lambdaplayers\models\weapons\tf2\shared\weapon_lightwarp"
+	"$phongfresnelranges"	"[.3 .5 3]"
+	"$halflambert" "1"
+
+	"$basephongexponent" "15"
+	"$basephongboost" "5"
+
+	"$commadd_phongexponent" "30"
+	"$commadd_phongboost" 	"22.5"
+	"$commweapon"		"0"
+
+	"$basemapalphaphongmask" "1"
+	
+	"$rimlight" "1"						
+	"$rimlightexponent" "20"				
+	"$rimlightboost" ".25"
+}

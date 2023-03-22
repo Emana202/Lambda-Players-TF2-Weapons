@@ -40,33 +40,9 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent.l_FireTime = CurTime()
             wepent.l_NextWindUpStateChangeT = CurTime()
 
-            wepent.l_SpinSound = CreateSound( wepent, "lambdaplayers/weapons/tf2/minigun/minigun_spin.wav" )            
-            wepent.l_FireSound = CreateSound( wepent, "lambdaplayers/weapons/tf2/minigun/minigun_shoot.wav" )
-            wepent.l_CritSound = CreateSound( wepent, "lambdaplayers/weapons/tf2/crits/crit_shoot_loop.wav" )
-
-            wepent:CallOnRemove( "Lambda_PAIG_StopSound" .. wepent:EntIndex(), function() 
-                wepent:StopSound( "lambdaplayers/weapons/tf2/minigun/minigun_wind_up.wav" )
-                wepent:StopSound( "lambdaplayers/weapons/tf2/minigun/minigun_wind_down.mp3" )
-                
-                if wepent.l_FireSound then wepent.l_FireSound:Stop(); wepent.l_FireSound = nil end 
-                if wepent.l_SpinSound then wepent.l_SpinSound:Stop(); wepent.l_SpinSound = nil end 
-                if wepent.l_CritSound then wepent.l_CritSound:Stop(); wepent.l_CritSound = nil end 
-            end )
-
-            wepent:LambdaHookTick( "LambdaTF2_Minigun_SoundThink", function() 
-                if !IsValid( self ) or self.l_Weapon != "tf2_minigun" then return true end
-
-                if self:GetNoDraw() or self:GetIsDead() then
-                    wepent:StopSound( "lambdaplayers/weapons/tf2/minigun/minigun_wind_up.wav" )
-                    if wepent.l_WindUpState == 2 and self:GetIsDead() then 
-                        wepent.l_WindUpState = 1 
-                        wepent:StopSound( "lambdaplayers/weapons/tf2/minigun/minigun_wind_down.mp3" )
-                    end
-                    if wepent.l_FireSound then wepent.l_FireSound:Stop() end
-                    if wepent.l_SpinSound then wepent.l_SpinSound:Stop() end 
-                    if wepent.l_CritSound then wepent.l_CritSound:Stop() end 
-                end
-            end )
+            wepent.l_SpinSound = LAMBDA_TF2:CreateSound( wepent, "lambdaplayers/weapons/tf2/minigun/minigun_spin.wav" )            
+            wepent.l_FireSound = LAMBDA_TF2:CreateSound( wepent, "lambdaplayers/weapons/tf2/minigun/minigun_shoot.wav" )
+            wepent.l_CritSound = LAMBDA_TF2:CreateSound( wepent, "lambdaplayers/weapons/tf2/crits/crit_shoot_loop.wav" )
 
             wepent:EmitSound( "lambdaplayers/weapons/tf2/minigun/minigun_draw.mp3", 60 )
             wepent:EmitSound( "lambdaplayers/weapons/tf2/draw_primary.mp3", 74, 100, 0.5 )
@@ -75,66 +51,79 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         OnHolster = function( self, wepent )
             wepent:StopSound( "lambdaplayers/weapons/tf2/minigun/minigun_wind_up.wav" )
             wepent:StopSound( "lambdaplayers/weapons/tf2/minigun/minigun_wind_down.mp3" )
-            
+
             if wepent.l_FireSound then wepent.l_FireSound:Stop(); wepent.l_FireSound = nil end 
             if wepent.l_SpinSound then wepent.l_SpinSound:Stop(); wepent.l_SpinSound = nil end 
             if wepent.l_CritSound then wepent.l_CritSound:Stop(); wepent.l_CritSound = nil end 
         end,
 
-        OnThink = function( self, wepent )
-            if CurTime() < wepent.l_SpinTime then
-                if CurTime() > wepent.l_NextWindUpStateChangeT then
-                    if wepent.l_WindUpState == 1 then
-                        wepent.l_WindUpState = 2
-                        wepent.l_NextWindUpStateChangeT = ( CurTime() + SoundDuration( "lambdaplayers/weapons/tf2/minigun/minigun_wind_up.wav" ) )
+        OnThink = function( self, wepent, dead )
+            if dead then
+                wepent:StopSound( "lambdaplayers/weapons/tf2/minigun/minigun_wind_up.wav" )
+                
+                if wepent.l_WindUpState == 2 and self:GetIsDead() then 
+                    wepent.l_WindUpState = 1 
+                    wepent:StopSound( "lambdaplayers/weapons/tf2/minigun/minigun_wind_down.mp3" )
+                end
+                
+                if wepent.l_FireSound then wepent.l_FireSound:Stop() end
+                if wepent.l_SpinSound then wepent.l_SpinSound:Stop() end 
+                if wepent.l_CritSound then wepent.l_CritSound:Stop() end
+            else 
+                if CurTime() < wepent.l_SpinTime then
+                    if CurTime() > wepent.l_NextWindUpStateChangeT then
+                        if wepent.l_WindUpState == 1 then
+                            wepent.l_WindUpState = 2
+                            wepent.l_NextWindUpStateChangeT = ( CurTime() + SoundDuration( "lambdaplayers/weapons/tf2/minigun/minigun_wind_up.wav" ) )
 
-                        wepent:EmitSound( "lambdaplayers/weapons/tf2/minigun/minigun_wind_up.wav", 75, 100, 0.9 )
-                    else
-                        if self:IsPanicking() or !self:InCombat() and self.l_issmoving and !self:IsInRange( self:GetDestination(), 1000 ) then
-                            wepent.l_SpinTime = 0
+                            wepent:EmitSound( "lambdaplayers/weapons/tf2/minigun/minigun_wind_up.wav", 75, 100, 0.9 )
                         else
-                            if wepent.l_SpinSound and !wepent.l_SpinSound:IsPlaying() then 
-                                wepent.l_SpinSound:Play()
-                                wepent.l_SpinSound:ChangeVolume( 0.75 )
-                            end
-
-                            if wepent.l_FireSound then
-                                if CurTime() < wepent.l_FireTime then 
-                                    if !wepent.l_FireSound:IsPlaying() then 
-                                        wepent.l_FireSound:Play()
-                                    end
-                                else
-                                    wepent.l_FireSound:Stop()
+                            if self:IsPanicking() or !self:InCombat() and self.l_issmoving and !self:IsInRange( self:GetDestination(), 1000 ) then
+                                wepent.l_SpinTime = 0
+                            else
+                                if wepent.l_SpinSound and !wepent.l_SpinSound:IsPlaying() then 
+                                    wepent.l_SpinSound:Play()
+                                    wepent.l_SpinSound:ChangeVolume( 0.75 )
                                 end
-                            end
-                            
-                            if wepent.l_CritSound then
-                                if wepent.l_IsCritical and CurTime() < wepent.l_FireTime then
-                                    if !wepent.l_CritSound:IsPlaying() then
-                                        wepent.l_CritSound:Play()
+
+                                if wepent.l_FireSound then
+                                    if CurTime() < wepent.l_FireTime then 
+                                        if !wepent.l_FireSound:IsPlaying() then 
+                                            wepent.l_FireSound:Play()
+                                        end
+                                    else
+                                        wepent.l_FireSound:Stop()
                                     end
-                                else
-                                    wepent.l_CritSound:Stop()
+                                end
+                                
+                                if wepent.l_CritSound then
+                                    if wepent.l_IsCritical and CurTime() < wepent.l_FireTime then
+                                        if !wepent.l_CritSound:IsPlaying() then
+                                            wepent.l_CritSound:Play()
+                                        end
+                                    else
+                                        wepent.l_CritSound:Stop()
+                                    end
                                 end
                             end
                         end
                     end
+                elseif wepent.l_WindUpState == 2 then
+                    wepent.l_WindUpState = 1
+                    wepent.l_NextWindUpStateChangeT = ( CurTime() + 0.5 )
+
+                    if wepent.l_SpinSound then wepent.l_SpinSound:Stop() end
+                    if wepent.l_FireSound then wepent.l_FireSound:Stop() end
+                    if wepent.l_CritSound then wepent.l_CritSound:Stop() end 
+
+                    wepent:EmitSound( "lambdaplayers/weapons/tf2/minigun/minigun_wind_down.mp3", 75, 100, 0.9 )
                 end
-            elseif wepent.l_WindUpState == 2 then
-                wepent.l_WindUpState = 1
-                wepent.l_NextWindUpStateChangeT = ( CurTime() + 0.5 )
 
-                if wepent.l_SpinSound then wepent.l_SpinSound:Stop() end
-                if wepent.l_FireSound then wepent.l_FireSound:Stop() end
-                if wepent.l_CritSound then wepent.l_CritSound:Stop() end 
-
-                wepent:EmitSound( "lambdaplayers/weapons/tf2/minigun/minigun_wind_down.mp3", 75, 100, 0.9 )
-            end
-
-            if wepent.l_WindUpState == 2 then
-                self.l_WeaponSpeedMultiplier = 0.37
-            else
-                self.l_WeaponSpeedMultiplier = 0.77
+                if wepent.l_WindUpState == 2 then
+                    self.l_WeaponSpeedMultiplier = 0.37
+                else
+                    self.l_WeaponSpeedMultiplier = 0.77
+                end
             end
         end,
 

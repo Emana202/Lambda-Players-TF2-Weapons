@@ -1,0 +1,15 @@
+"VertexlitGeneric"
+{
+	"$baseTexture" "lambdaplayers\models\weapons\tf2\boston_basher\c_boston_basher"
+
+	"$phong" "1"
+	"$phongexponent" "10"
+	"$phongboost" ".3"	
+	"$lightwarptexture" "lambdaplayers\models\weapons\tf2\shared\weapon_lightwarp"
+	"$phongfresnelranges"	"[.6 1 1.5]"
+	"$basemapalphaphongmask" "1"
+
+	"$rimlight" "1"
+	"$rimlightexponent" "6"	
+	"$rimlightboost" "1"
+}

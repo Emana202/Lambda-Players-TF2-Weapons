@@ -111,6 +111,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             pipe:PhysicsInit( SOLID_BBOX )
             pipe:SetCollisionBounds( -pipeBounds, pipeBounds )
             pipe:SetCollisionGroup( COLLISION_GROUP_PROJECTILE )
+            LAMBDA_TF2:TakeNoDamage( pipe )
 
             local phys = pipe:GetPhysicsObject()
             if IsValid( phys ) then

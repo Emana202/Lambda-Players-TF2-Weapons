@@ -32,11 +32,13 @@ local function OnJarExplode( self, colData, collider )
         splashTrTbl.endpos = ent:GetPos()
         if TraceLine( splashTrTbl ).HitWorld then continue end
 
-        if ent != owner then
-            ent.l_TF_CoveredInUrine = effectDuration
-        elseif ent.l_TF_IsBurning or ent:IsOnFire() then
+        if ent.l_TF_IsBurning or ent:IsOnFire() then
             ent:EmitSound( ")lambdaplayers/weapons/tf2/flame_out.mp3", nil, nil, nil, CHAN_STATIC )
             LAMBDA_TF2:RemoveBurn( ent )
+        end
+
+        if ent != owner then
+            ent.l_TF_CoveredInUrine = effectDuration
         end
     end
 
@@ -51,8 +53,8 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         holdtype = "grenade",
         bonemerge = true,
 
-        keepdistance = 500,
-        attackrange = 700,
+        keepdistance = 400,
+        attackrange = 500,
 		islethal = true,
         ismelee = false,
         deploydelay = 0.5,
@@ -100,6 +102,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             jarate:SetFriction( 0.2 )
             jarate:SetElasticity( 0.45 )
             jarate:SetCollisionGroup( COLLISION_GROUP_PROJECTILE )
+            LAMBDA_TF2:TakeNoDamage( jarate )
 
             local phys = jarate:GetPhysicsObject()
             if IsValid( phys ) then
@@ -113,7 +116,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             jarate.l_TF_Detonated = false
             jarate.PhysicsCollide = OnJarExplode
 
-            self:SimpleWeaponTimer( 1, function()
+            self:SimpleWeaponTimer( 0.8, function()
                 self:SwitchToLethalWeapon()
             end )
 

@@ -1,0 +1,17 @@
+"VertexlitGeneric"
+{
+	"$baseTexture" "lambdaplayers\models\weapons\tf2\jarate/c_urinejar_cap"
+	"$phong" "1"
+	"$phongexponent" 25
+	"$phongfresnelranges" "[1 2 5]"
+	"$lightwarptexture" "lambdaplayers\models\weapons\tf2\shared\weapon_lightwarp"
+	"$phongboost" "1"
+	"$basemapalphaphongmask" "1"
+
+	"$rimlight" "1"						
+	"$rimlightexponent" "20"				
+	"$rimlightboost" ".25"
+
+	"$envmap" "env_cubemap"
+	"$envmaptint" "[.25 .25 .25]"
+}

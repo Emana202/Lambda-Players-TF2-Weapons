@@ -1,0 +1,19 @@
+"UnlitTwoTexture"
+{
+	"$basetexture" "lambdaplayers\models\weapons\tf2\criteffects/crit"
+	"$texture2" "lambdaplayers\models\weapons\tf2\criteffects/crit"
+ 	"$model" 1
+	"$nocull" "1"
+	"$additive" "1"
+	"Proxies"
+	{
+
+		"TextureScroll"
+		{
+			"texturescrollvar" "$texture2transform"
+			"texturescrollrate" -.2
+			"texturescrollangle" 60
+		}
+	}
+
+}

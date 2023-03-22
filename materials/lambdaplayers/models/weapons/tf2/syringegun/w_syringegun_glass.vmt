@@ -1,0 +1,6 @@
+"VertexLitGeneric"
+{
+	"$basetexture"	"lambdaplayers\models\weapons\tf2\syringegun\w_syringegun_glass"
+	"$translucent" "1"
+	"$additive" "1"
+}

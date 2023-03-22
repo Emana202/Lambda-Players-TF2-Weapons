@@ -44,7 +44,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             self:SetMaxHealth( newMaxHealth )
             self:SetHealth( ceil( self:Health() * ( newMaxHealth / wepent.l_TF_Eyelander_PreEquipMaxHealth ) ) )
 
-            if !self.l_TF_Shield_IsEquipped and random( 1, 2 ) == 1 then
+            if !self.l_TF_Shield_IsEquipped and random( 1, 3 ) != 1 then
                 LAMBDA_TF2:GiveRemoveChargeShield( self, true )
             end
 

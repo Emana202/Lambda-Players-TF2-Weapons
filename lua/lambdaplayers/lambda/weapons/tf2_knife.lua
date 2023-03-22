@@ -1,8 +1,4 @@
 local random = math.random
-local CurTime = CurTime
-local ents_Create = ents.Create
-local DamageInfo = DamageInfo
-local sound_Play = sound.Play
 
 table.Merge( _LAMBDAPLAYERSWEAPONS, {
     tf2_knife = {

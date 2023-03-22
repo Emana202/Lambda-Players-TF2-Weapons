@@ -30,11 +30,11 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent:SetWeaponAttribute( "RandomCrits", false )
 
             wepent:SetWeaponAttribute( "BulletCallback", function( lambda, weapon, tr, dmginfo )
-                if !wepent.l_TF_MiniCritBoostFull then return end
-                wepent.l_TF_MiniCritBoostActive = true
-
-                if wepent.l_TF_MiniCritBoostActive then
-                    dmginfo:SetDamageType( dmginfo:GetDamageType() + DMG_MINICRITICAL )
+                if wepent.l_TF_MiniCritBoostFull and !lambda.l_TF_MiniCritBoosted then
+                    wepent.l_TF_MiniCritBoostMeter = 0
+                    wepent.l_TF_MiniCritBoostFull = false
+                    wepent.l_TF_MiniCritBoostActive = true
+                    lambda.l_TF_MiniCritBoosted = CurTime() + 8
                 end
             end )
 
@@ -53,22 +53,16 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             if !tookDamage or wepent.l_TF_MiniCritBoostFull or wepent.l_TF_MiniCritBoostActive then return end
             wepent.l_TF_MiniCritBoostMeter = ( wepent.l_TF_MiniCritBoostMeter + dmginfo:GetDamage() )
             
-            if wepent.l_TF_MiniCritBoostMeter >= 65 then
-                wepent.l_TF_MiniCritBoostMeter = 65
+            if wepent.l_TF_MiniCritBoostMeter >= 100 then
+                wepent.l_TF_MiniCritBoostMeter = 100
                 wepent.l_TF_MiniCritBoostFull = true
                 wepent:EmitSound( "lambdaplayers/weapons/tf2/recharged.mp3", 70, 100, 0.5, CHAN_STATIC )
             end
         end,
 
         OnThink = function( self, wepent, dead )
-            if !wepent.l_TF_MiniCritBoostActive then return end
-
-            if dead or wepent.l_TF_MiniCritBoostMeter <= 0 then
-                wepent.l_TF_MiniCritBoostMeter = 0
-                wepent.l_TF_MiniCritBoostFull = false
+            if wepent.l_TF_MiniCritBoostActive and !self.l_TF_MiniCritBoosted then
                 wepent.l_TF_MiniCritBoostActive = false
-            else
-                wepent.l_TF_MiniCritBoostMeter = ( wepent.l_TF_MiniCritBoostMeter - ( ( 65 / 8 ) * FrameTime() ) )
             end
         end,
 
