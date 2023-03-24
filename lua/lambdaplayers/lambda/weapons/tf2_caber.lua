@@ -28,7 +28,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent:SetWeaponAttribute( "RateOfFire", 0.96 )
             wepent:SetWeaponAttribute( "RandomCrits", false )
 
-            if !self.l_TF_Shield_IsEquipped and random( 1, 4 ) == 1 then
+            if !self.l_TF_Shield_IsEquipped and random( 1, 3 ) == 1 then
                 LAMBDA_TF2:GiveRemoveChargeShield( self, true )
             end
 
@@ -45,7 +45,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent.l_TF_Detonated = false
             self:SimpleWeaponTimer( 0.1, function() wepent:SetBodygroup( 1, 0 ) end, true )
 		end,
-        
+
         OnDrop = function( self, wepent, cs_prop )
             cs_prop:SetBodygroup( 1, wepent:GetBodygroup( 1 ) )
         end,

@@ -1,0 +1,15 @@
+"VertexlitGeneric"
+{
+	"$baseTexture" "lambdaplayers\models\weapons\tf2\pep_pistol/c_pep_pistol"
+
+	"$lightwarptexture" "lambdaplayers\models\weapons\tf2\shared/weapon_lightwarp"
+
+	"$phong" "1"
+	"$phongexponent" "50"
+	"$phongboost" "10"
+	"$phongfresnelranges" "[.25 .5 1]"
+	"$basemapalphaphongmask" "1"
+	"$rimlight" "1"
+	"$rimlightexponent" "4"
+	"$rimlightboost" "1"
+}

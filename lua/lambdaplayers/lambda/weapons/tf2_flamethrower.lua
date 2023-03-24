@@ -54,7 +54,7 @@ local function OnFlameThink( self )
             local hitSomething = false
             for _, ent in ipairs( FindAlongRay( prevPos, selfPos, mins, maxs ) ) do
                 if ent == self or ent == attacker then continue end
-                if attacker.IsLambdaPlayer and ( ent:IsPlayer() or ent:IsNPC() or ent:IsNextBot() ) and !attacker:CanTarget( ent ) then continue end
+                if attacker.IsLambdaPlayer and LAMBDA_TF2:IsValidCharacter( ent ) and !attacker:CanTarget( ent ) then continue end
 
                 local alreadyBurning = false
                 for _, v in ipairs( self.l_EntitiesBurnt ) do
@@ -143,8 +143,8 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
 
         clip = 200,
         islethal = true,
-        attackrange = 350,
-        keepdistance = 100,
+        attackrange = 450,
+        keepdistance = 200,
         deploydelay = 0.5,
 
         OnDeploy = function( self, wepent )
@@ -289,7 +289,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         end,
 
         OnAttack = function( self, wepent, target )
-            wepent.l_FireAttackTime = CurTime() + Rand( 0.1, 0.66 )
+            wepent.l_FireAttackTime = CurTime() + Rand( 0.25, 0.66 )
             wepent.l_FireDirection = ( target:WorldSpaceCenter() - wepent:GetPos() ):GetNormalized()
             return true
         end

@@ -2,7 +2,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
     tf2_equalizer = {
         model = "models/lambdaplayers/weapons/tf2/w_equalizer.mdl",
         origin = "Team Fortress 2",
-        prettyname = "The Equalizer",
+        prettyname = "Equalizer",
         holdtype = "melee",
         bonemerge = true,
 
@@ -27,6 +27,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
                 "lambdaplayers/weapons/tf2/melee/blade_slice_3.mp3", 
                 "lambdaplayers/weapons/tf2/melee/blade_slice_4.mp3" 
             } )
+            wepent:SetWeaponAttribute( "DamageType", DMG_SLASH )
 
             wepent:SetWeaponAttribute( "PreHitCallback", function( lambda, weapon, target, dmginfo )
                 local healthRatio = ( self:Health() / self:GetMaxHealth() )

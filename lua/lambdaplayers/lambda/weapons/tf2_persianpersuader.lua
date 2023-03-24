@@ -4,11 +4,11 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
     tf2_persianpersuader = {
         model = "models/lambdaplayers/weapons/tf2/w_sultan_sword.mdl",
         origin = "Team Fortress 2",
-        prettyname = "The Persian Persuader",
+        prettyname = "Persian Persuader",
         holdtype = "melee",
         bonemerge = true,
 
-        killicon = "lambdaplayers/killicons/icon_tf2_eyelander",
+        killicon = "lambdaplayers/killicons/icon_tf2_persianpersuader",
         keepdistance = 10,
         attackrange = 80,        
 		islethal = true,

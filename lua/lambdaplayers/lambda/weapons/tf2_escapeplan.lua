@@ -2,7 +2,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
     tf2_escapeplan = {
         model = "models/lambdaplayers/weapons/tf2/w_escape_plan.mdl",
         origin = "Team Fortress 2",
-        prettyname = "The Escape Plan",
+        prettyname = "Escape Plan",
         holdtype = "melee",
         bonemerge = true,
 
@@ -27,6 +27,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
                 "lambdaplayers/weapons/tf2/melee/blade_slice_3.mp3", 
                 "lambdaplayers/weapons/tf2/melee/blade_slice_4.mp3" 
             } )
+            wepent:SetWeaponAttribute( "DamageType", DMG_SLASH )
 
             wepent:EmitSound( "lambdaplayers/weapons/tf2/draw_melee.mp3", 74, 100, 0.5 )
             wepent:EmitSound( "lambdaplayers/weapons/tf2/melee/shovel_draw.mp3", 74, 100, 0.5 )

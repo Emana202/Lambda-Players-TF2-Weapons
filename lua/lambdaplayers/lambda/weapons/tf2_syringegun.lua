@@ -42,10 +42,16 @@ local function OnSyringeTouch( self, ent )
         self:SetPos( tr.HitPos )
         if self.l_IsCritical then dmginfo:SetDamageType( dmginfo:GetDamageType() + DMG_CRITICAL ) end
 
+        local trail = self.l_Trail
+        if IsValid( trail ) then
+            trail:SetParent()
+            SafeRemoveEntityDelayed( trail, 1 )
+        end
+
         if tr.HitWorld then
             SafeRemoveEntityDelayed( self, 10 )
-            SafeRemoveEntityDelayed( self.CritTrail, 1 )
         else
+            if IsValid( trail ) then trail:Remove() end
             self:Remove()
         end
     end
@@ -137,8 +143,10 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
                 syringe.l_IsCritical = true
                 syringe:SetMaterial( "models/shiny" )
                 syringe:SetColor( plyColor:ToColor() )
-                syringe.CritTrail = SpriteTrail( syringe, 0, plyColor:ToColor(), true, 3, 1.5, 0.5, ( 1 / ( 3 + 1.5 ) * 0.5 ), "trails/laser" )
             end
+            
+            local trail = LAMBDA_TF2:CreateSpriteTrailEntity( plyColor:ToColor(), nil, ( isCrit and 1 or 0.5 ), ( isCrit and 0.5 or 0.25 ), ( isCrit and 0.5 or 0.25 ), "trails/laser", syringe:WorldSpaceCenter(), syringe )
+            syringe.l_Trail = trail
 
             return true
         end,

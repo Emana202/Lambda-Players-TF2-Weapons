@@ -5,7 +5,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
     tf2_familybusiness = {
         model = "models/lambdaplayers/weapons/tf2/w_russian_riot.mdl",
         origin = "Team Fortress 2",
-        prettyname = "The Family Business",
+        prettyname = "Family Business",
         holdtype = "shotgun",
         bonemerge = true,
         killicon = "lambdaplayers/killicons/icon_tf2_familybusiness",

@@ -1,3 +1,4 @@
+local random = math.random
 local Rand = math.Rand
 local CurTime = CurTime
 local IsValid = IsValid
@@ -27,7 +28,7 @@ local function OnJarExplode( self, colData, collider )
     local owner = self:GetOwner()
     local effectDuration = ( CurTime() + 10 )
     for _, ent in ipairs( FindInSphere( self:GetPos(), 200 ) ) do
-        if !LambdaIsValid( ent ) or !ent:IsPlayer() and !ent:IsNPC() and !ent:IsNextBot() or !owner:CanTarget( ent ) then continue end
+        if !LambdaIsValid( ent ) or !LAMBDA_TF2:IsValidCharacter( ent ) then continue end
 
         splashTrTbl.endpos = ent:GetPos()
         if TraceLine( splashTrTbl ).HitWorld then continue end
@@ -37,7 +38,7 @@ local function OnJarExplode( self, colData, collider )
             LAMBDA_TF2:RemoveBurn( ent )
         end
 
-        if ent != owner then
+        if ent != owner and owner:CanTarget( ent ) then
             ent.l_TF_CoveredInUrine = effectDuration
         end
     end
@@ -54,7 +55,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         bonemerge = true,
 
         keepdistance = 400,
-        attackrange = 500,
+        attackrange = 750,
 		islethal = true,
         ismelee = false,
         deploydelay = 0.5,
@@ -71,8 +72,18 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
                 local selfPos = self:GetPos()
                 self:LookTo( selfPos, 1.0 )
                 self:SimpleWeaponTimer( 0.5, function() self:UseWeapon( selfPos ) end )
-                return 1.5
+            else
+                local extinguishTargets = self:FindInSphere( nil, 750, function( ent )
+                    return ( LambdaIsValid( ent ) and ( ent.l_TF_IsBurning or ent:IsOnFire() ) and LAMBDA_TF2:IsValidCharacter( ent ) and self:CanSee( ent ) )
+                end )
+                if #extinguishTargets > 0 then
+                    local target = extinguishTargets[ random( #extinguishTargets ) ]
+                    self:LookTo( target, 1.0 )
+                    self:SimpleWeaponTimer( 0.5, function() self:UseWeapon( target ) end )
+                end
             end
+
+            return 1.5
         end,
 
         OnAttack = function( self, wepent, target )
@@ -86,38 +97,43 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
 
             wepent:EmitSound( "lambdaplayers/weapons/tf2/jarate/jar_single.mp3", 84, nil, nil, CHAN_WEAPON )
             
-            self:ClientSideNoDraw( wepent, true )
-            wepent:SetNoDraw( true )
-            wepent:DrawShadow( false )
+            self:SimpleWeaponTimer( 0.25, function()
+                throwAng = ( isvector( target ) and target or ( IsValid( target ) and ( target:GetPos() - wepent:GetPos() ):Angle() or self:GetAngles() ) )
 
-            local jarate = ents_Create( "base_anim" )
-            jarate:SetModel( "models/lambdaplayers/weapons/tf2/w_jarate.mdl" )
-            jarate:SetPos( wepent:GetPos() )
-            jarate:SetAngles( throwAng )
-            jarate:SetOwner( self )
-            jarate:Spawn()
+                self:ClientSideNoDraw( wepent, true )
+                wepent:SetNoDraw( true )
+                wepent:DrawShadow( false )
 
-            jarate:PhysicsInit( SOLID_BBOX )
-            jarate:SetGravity( 0.4 )
-            jarate:SetFriction( 0.2 )
-            jarate:SetElasticity( 0.45 )
-            jarate:SetCollisionGroup( COLLISION_GROUP_PROJECTILE )
-            LAMBDA_TF2:TakeNoDamage( jarate )
+                local jarate = ents_Create( "base_anim" )
+                jarate:SetModel( "models/lambdaplayers/weapons/tf2/w_jarate.mdl" )
+                jarate:SetPos( wepent:GetPos() )
+                jarate:SetAngles( throwAng )
+                jarate:SetOwner( self )
+                jarate:Spawn()
 
-            local phys = jarate:GetPhysicsObject()
-            if IsValid( phys ) then
-                local throwVel = ( throwAng:Forward() * 1000 + throwAng:Up() * ( 200 + Rand( -10, 10 ) ) + throwAng:Right() * Rand( -10, 10 ) )
-                phys:AddVelocity( throwVel )
+                jarate:PhysicsInit( SOLID_BBOX )
+                jarate:SetGravity( 0.4 )
+                jarate:SetFriction( 0.2 )
+                jarate:SetElasticity( 0.45 )
+                jarate:SetCollisionGroup( COLLISION_GROUP_PROJECTILE )
+                LAMBDA_TF2:TakeNoDamage( jarate )
 
-                phys:AddAngleVelocity( angularImpulse )
-                phys:AddGameFlag( FVPHYSICS_NO_IMPACT_DMG )
-            end
+                local phys = jarate:GetPhysicsObject()
+                if IsValid( phys ) then
+                    local throwVel = ( throwAng:Forward() * 1000 + throwAng:Up() * ( 200 + Rand( -10, 10 ) ) + throwAng:Right() * Rand( -10, 10 ) )
+                    phys:AddVelocity( throwVel )
 
-            jarate.l_TF_Detonated = false
-            jarate.PhysicsCollide = OnJarExplode
+                    phys:AddAngleVelocity( angularImpulse )
+                    phys:AddGameFlag( FVPHYSICS_NO_IMPACT_DMG )
+                end
 
-            self:SimpleWeaponTimer( 0.8, function()
-                self:SwitchToLethalWeapon()
+                jarate.l_TF_Detonated = false
+                jarate.PhysicsCollide = OnJarExplode
+
+                self:SimpleWeaponTimer( 0.8, function()
+                    LAMBDA_TF2:AddInventoryCooldown( self )
+                    self:SwitchToLethalWeapon()
+                end )
             end )
 
             return true

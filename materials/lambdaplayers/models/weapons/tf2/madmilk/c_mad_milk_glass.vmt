@@ -1,0 +1,6 @@
+"VertexlitGeneric"
+{
+	"$baseTexture" "lambdaplayers\models\weapons\tf2\madmilk/c_mad_milk_glass"
+	"$translucent" "1"
+	"$additive" "1"
+}

@@ -1,0 +1,15 @@
+"VertexlitGeneric"
+{
+	"$baseTexture" "lambdaplayers\models\weapons\tf2\madmilk/c_mad_milk_liquid"
+
+	"$phong" "1"
+	"$phongexponent" "60"
+	"$phongboost" "20"	
+	"$lightwarptexture" "lambdaplayers\models\weapons\tf2\shared\weapon_lightwarp"
+	"$phongfresnelranges" "[0.25 0.5 1]"
+	"$basemapalphaphongmask" "1"
+
+	"$rimlight" "1"
+	"$rimlightexponent" "4"	
+	"$rimlightboost" "2"
+}

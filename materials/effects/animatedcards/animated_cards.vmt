@@ -1,6 +1,0 @@
-"Spritecard"
-{
-	"$baseTexture" "Effects\AnimatedCards/animated_cards"
-	$translucent 1
-	$overbrightfactor 1
-}

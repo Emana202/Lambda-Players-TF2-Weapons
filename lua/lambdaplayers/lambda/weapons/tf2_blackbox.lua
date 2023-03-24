@@ -1,7 +1,20 @@
 local random = math.random
 local Rand = math.Rand
+local Clamp = math.Clamp
 local CurTime = CurTime
 local coroutine_wait = coroutine.wait
+
+local rocketAttributes = {
+    Sound = {
+        ")lambdaplayers/weapons/tf2/blackbox/rocket_blackbox_explode1.mp3",
+        ")lambdaplayers/weapons/tf2/blackbox/rocket_blackbox_explode2.mp3",
+        ")lambdaplayers/weapons/tf2/blackbox/rocket_blackbox_explode3.mp3"
+    },
+    OnDealDamage = function( rocket, hitEnt, dmginfo )
+        if !IsValid( hitEnt ) or !LAMBDA_TF2:IsValidCharacter( hitEnt ) then return end
+        LAMBDA_TF2:GiveHealth( rocket:GetOwner(), ( 20 * Clamp( dmginfo:GetDamage() / dmginfo:GetBaseDamage(), 0, 1 ) ), false )
+    end
+}
 
 table.Merge( _LAMBDAPLAYERSWEAPONS, {
     tf2_blackbox = {
@@ -39,22 +52,14 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
 
             local spawnAng = ( ( targetPos + ( ( target:IsNextBot() and target.loco or target ):GetVelocity() * ( ( self:GetRangeTo( targetPos ) * Rand( 0.66, 1.1 ) ) / 1100 ) ) ) - spawnPos ):Angle()
             spawnAng = ( ( targetPos + spawnAng:Right() * random( -5, 5 ) + spawnAng:Up() * random( -5, 5 ) ) - spawnPos ):Angle()
-            spawnPos = ( spawnPos + spawnAng:Forward() * ( self.loco:GetVelocity():Length() * FrameTime() * 2 ) )
+
+            spawnPos = ( spawnPos + spawnAng:Forward() * ( self.loco:GetVelocity():Length() * FrameTime() * 4 ) )
+            spawnAng = ( ( targetPos + spawnAng:Right() * random( -5, 5 ) + spawnAng:Up() * random( -5, 5 ) ) - spawnPos ):Angle()
 
             if self:GetForward():Dot( spawnAng:Forward() ) <= 0.5 then self.l_WeaponUseCooldown = ( CurTime() + 0.1 ) return true end
             if !LAMBDA_TF2:WeaponAttack( self, wepent, target ) then return true end
 
-            LAMBDA_TF2:CreateRocketProjectile( spawnPos, spawnAng, self, wepent, {
-                Sound = {
-                    ")lambdaplayers/weapons/tf2/blackbox/rocket_blackbox_explode1.mp3",
-                    ")lambdaplayers/weapons/tf2/blackbox/rocket_blackbox_explode2.mp3",
-                    ")lambdaplayers/weapons/tf2/blackbox/rocket_blackbox_explode3.mp3"
-                },
-                OnDealDamage = function( rocket, dmginfo )
-                    local healAmount = LAMBDA_TF2:RemapClamped( dmginfo:GetDamage(), 0, wepent:GetWeaponAttribute( "Damage" ), 0, 10 )
-                    LAMBDA_TF2:GiveHealth( rocket:GetOwner(), healAmount, false )
-                end
-            } )
+            LAMBDA_TF2:CreateRocketProjectile( spawnPos, spawnAng, self, wepent, rocketAttributes )
             return true
         end,
 

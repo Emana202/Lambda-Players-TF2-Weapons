@@ -15,13 +15,22 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         model = "models/lambdaplayers/weapons/tf2/w_sniper_rifle.mdl",
         origin = "Team Fortress 2",
         prettyname = "Sniper Rifle",
-        holdtype = "rpg",
+        holdtype = {
+            idle = ACT_HL2MP_IDLE_RPG,
+            run = ACT_HL2MP_RUN_RPG,
+            walk = ACT_HL2MP_WALK_RPG,
+            jump = ACT_HL2MP_JUMP_RPG,
+            crouchIdle = ACT_HL2MP_IDLE_CROUCH_AR2,
+            crouchWalk = ACT_HL2MP_WALK_CROUCH_AR2,
+            swimIdle = ACT_HL2MP_SWIM_IDLE_RPG,
+            swimMove = ACT_HL2MP_SWIM_RPG
+        },
         bonemerge = true,
         killicon = "lambdaplayers/killicons/icon_tf2_sniperrifle",
 
         clip = 25,
         keepdistance = 2000,
-        attackrange = 2000,
+        attackrange = 4000,
         islethal = true,
         deploydelay = 0.5,
 

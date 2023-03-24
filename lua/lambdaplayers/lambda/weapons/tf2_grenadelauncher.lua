@@ -33,7 +33,14 @@ local function OnPhysicsCollide( self, colData, collider )
             dmginfo:SetDamage( self.l_ExplodeDamage )
             dmginfo:SetAttacker( owner )
             dmginfo:SetInflictor( owner:GetWeaponENT() )
-            dmginfo:SetDamageType( DMG_BLAST + DMG_HALF_FALLOFF + ( self.l_IsCritical and DMG_CRITICAL or 0 ) )
+            
+            local dmgTypes = ( DMG_BLAST + DMG_HALF_FALLOFF )
+            if self.l_TF_ExplodeCrit == 2 then
+                dmgTypes = ( dmgTypes + DMG_CRITICAL )
+            elseif self.l_TF_ExplodeCrit == 1 then
+                dmgTypes = ( dmgTypes + DMG_MINICRITICAL )
+            end
+            dmginfo:SetDamageType(dmgTypes )
 
             LAMBDA_TF2:RadiusDamageInfo( dmginfo, hitPos, 150, hitEnt )
         end
@@ -130,17 +137,19 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             pipe.l_IsTF2PipeBomb = true
             pipe.PhysicsCollide = OnPhysicsCollide
             pipe.l_ExplodeDamage = wepent:GetWeaponAttribute( "Damage" )
-            pipe.l_IsCritical = false
 
-            local isCrit = wepent:CalcIsAttackCriticalHelper()
-            if isCrit then
-                pipe.l_IsCritical = true
+            pipe.l_TF_ExplodeCrit = ( wepent:CalcIsAttackCriticalHelper() and 2 or ( self.l_TF_MiniCritBoosted and 1 or 0 ) )
+            if pipe.l_TF_ExplodeCrit == 2 then
                 pipe:SetMaterial( "models/shiny" )
                 pipe:EmitSound( "lambdaplayers/weapons/tf2/crits/crit_shoot.mp3", 75, random( 90, 110 ), 1.0, CHAN_STATIC )
                 
                 pipe:SetColor( plyColor:ToColor() )
                 SpriteTrail( pipe, 0, plyColor:ToColor(), true, 15, 7.5, 1, ( 1 / ( 15 + 7.5 ) * 0.5 ), "trails/laser" )
             else
+                if pipe.l_TF_ExplodeCrit == 1 then
+                    pipe:SetMaterial( "lambdaplayers/models/weapons/tf2/criteffects/minicrit" )
+                end
+
                 SpriteTrail( pipe, 0, plyColor:ToColor(), true, 8.5, 4.25, 0.33, ( 1 / ( 8.5 + 4.25 ) * 0.5 ), "trails/laser" )
             end
 

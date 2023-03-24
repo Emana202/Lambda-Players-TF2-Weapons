@@ -2,7 +2,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
     tf2_diamondback = {
         model = "models/lambdaplayers/weapons/tf2/w_diamondback.mdl",
         origin = "Team Fortress 2",
-        prettyname = "The Diamondback",
+        prettyname = "Diamondback",
         holdtype = "pistol",
         bonemerge = true,
         killicon = "lambdaplayers/killicons/icon_tf2_diamondback",

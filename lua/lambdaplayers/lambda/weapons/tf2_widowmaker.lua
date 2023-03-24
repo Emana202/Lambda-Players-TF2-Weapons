@@ -5,7 +5,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
     tf2_widowmaker = {
         model = "models/lambdaplayers/weapons/tf2/w_widowmaker.mdl",
         origin = "Team Fortress 2",
-        prettyname = "The Widowmaker",
+        prettyname = "Widowmaker",
         holdtype = "shotgun",
         bonemerge = true,
         killicon = "lambdaplayers/killicons/icon_tf2_widowmaker",

@@ -1,0 +1,23 @@
+"VertexLitGeneric"
+{
+	"$basetexture"	"lambdaplayers\models\weapons\tf2\medigun\w_medigun01"
+	
+	"$phong" "1"
+	"$phongexponent" "15"
+	"$phongboost" "5"	
+	"$lightwarptexture" "lambdaplayers\models\weapons\tf2\shared\weapon_lightwarp"
+	"$phongfresnelranges"	"[1.5 .5 3]"
+	"$halflambert" "1"
+
+	"$basephongexponent" "15"
+	"$basephongboost" "5"
+
+	"$selfillum" "1"
+	"$selfillumtint" "[1 .55 .1]"
+
+	"$basemapalphaphongmask" "1"
+	
+	"$rimlight" "1"						
+	"$rimlightexponent" "4"				
+	"$rimlightboost" "2"
+}

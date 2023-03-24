@@ -2,7 +2,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
     tf2_shahanshah = {
         model = "models/lambdaplayers/weapons/tf2/w_scimitar.mdl",
         origin = "Team Fortress 2",
-        prettyname = "The Shahanshah",
+        prettyname = "Shahanshah",
         holdtype = "knife",
         bonemerge = true,
 

@@ -78,7 +78,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
 
                             wepent:EmitSound( "lambdaplayers/weapons/tf2/minigun/minigun_wind_up.wav", 75, 100, 0.9 )
                         else
-                            if self:IsPanicking() or !self:InCombat() and self.l_issmoving and !self:IsInRange( self:GetDestination(), 1000 ) then
+                            if self:IsPanicking() then
                                 wepent.l_SpinTime = 0
                             else
                                 if wepent.l_SpinSound and !wepent.l_SpinSound:IsPlaying() then 

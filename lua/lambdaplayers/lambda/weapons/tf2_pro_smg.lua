@@ -5,8 +5,17 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
     tf2_pro_smg = {
         model = "models/lambdaplayers/weapons/tf2/w_pro_smg.mdl",
         origin = "Team Fortress 2",
-        prettyname = "The Cleaner's Carbine",
-        holdtype = "rpg",
+        prettyname = "Cleaner's Carbine",
+        holdtype = {
+            idle = ACT_HL2MP_IDLE_RPG,
+            run = ACT_HL2MP_RUN_RPG,
+            walk = ACT_HL2MP_WALK_RPG,
+            jump = ACT_HL2MP_JUMP_RPG,
+            crouchIdle = ACT_HL2MP_IDLE_CROUCH_AR2,
+            crouchWalk = ACT_HL2MP_WALK_CROUCH_AR2,
+            swimIdle = ACT_HL2MP_SWIM_IDLE_RPG,
+            swimMove = ACT_HL2MP_SWIM_RPG
+        },
         bonemerge = true,
         killicon = "lambdaplayers/killicons/icon_tf2_cleanercarbine",
 
@@ -30,7 +39,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent:SetWeaponAttribute( "RandomCrits", false )
 
             wepent:SetWeaponAttribute( "BulletCallback", function( lambda, weapon, tr, dmginfo )
-                if wepent.l_TF_MiniCritBoostFull and !lambda.l_TF_MiniCritBoosted then
+                if wepent.l_TF_MiniCritBoostFull and !wepent.l_TF_MiniCritBoostActive and !lambda.l_TF_MiniCritBoosted then
                     wepent.l_TF_MiniCritBoostMeter = 0
                     wepent.l_TF_MiniCritBoostFull = false
                     wepent.l_TF_MiniCritBoostActive = true

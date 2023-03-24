@@ -2,7 +2,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
     tf2_amputator = {
         model = "models/lambdaplayers/weapons/tf2/w_amputator.mdl",
         origin = "Team Fortress 2",
-        prettyname = "The Amputator",
+        prettyname = "Amputator",
         holdtype = "knife",
         bonemerge = true,
 

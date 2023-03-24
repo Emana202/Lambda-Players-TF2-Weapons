@@ -7,7 +7,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
     tf2_bigearner = {
         model = "models/lambdaplayers/weapons/tf2/w_switchblade.mdl",
         origin = "Team Fortress 2",
-        prettyname = "The Big Earner",
+        prettyname = "Big Earner",
         holdtype = "knife",
         bonemerge = true,
 
@@ -73,7 +73,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             return true 
         end,
 
-        OnThink = function( self, wepent )
+        OnThink = function( self, wepent, dead )
             if wepent.l_TF_InSpeedBoost and ( dead or CurTime() >= wepent.l_TF_InSpeedBoost and CurTime() > self.l_nextspeedupdate ) then
                 wepent.l_TF_InSpeedBoost = false
                 self:EmitSound( ")lambdaplayers/weapons/tf2/discipline_device_power_down.mp3", nil, nil, nil, CHAN_STATIC )
@@ -101,11 +101,14 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
                 self.loco:SetDesiredSpeed( desSpeed + min( desSpeed * 0.4, 105 ) )
                 
                 local boostTrail = self.l_TF_SpeedBoostTrail 
-                if !IsValid( boostTrail ) then 
-                    boostTrail = LAMBDA_TF2:CreateSpriteTrailEntity( nil, nil, 16, 8, 0.33, "effects/beam001_white", self:WorldSpaceCenter(), self )
-                    self:DeleteOnRemove( boostTrail )
-                    self.l_TF_SpeedBoostTrail = boostTrail
+                if IsValid( boostTrail ) then
+                    boostTrail:SetParent()
+                    SafeRemoveEntityDelayed( boostTrail, 1 ) 
                 end
+
+                boostTrail = LAMBDA_TF2:CreateSpriteTrailEntity( nil, nil, 16, 8, 0.33, "effects/beam001_white", self:WorldSpaceCenter(), self )
+                self:DeleteOnRemove( boostTrail )
+                self.l_TF_SpeedBoostTrail = boostTrail
             end
             
             wepent.l_TF_InSpeedBoost = CurTime() + 3
