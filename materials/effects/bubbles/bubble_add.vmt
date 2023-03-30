@@ -1,6 +1,0 @@
-"SpriteCard"
-{
-	"$basetexture" "effects/bubbles/bubble"
-	"$translucent" "1"
-	$additive 1
-}

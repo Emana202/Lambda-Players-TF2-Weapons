@@ -2,7 +2,7 @@ local random = math.random
 
 table.Merge( _LAMBDAPLAYERSWEAPONS, {
     tf2_caber = {
-        model = "models/lambdaplayers/weapons/tf2/w_caber.mdl",
+        model = "models/lambdaplayers/tf2/weapons/w_caber.mdl",
         origin = "Team Fortress 2",
         prettyname = "Ullapool Caber",
         holdtype = "melee",
@@ -21,11 +21,10 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent:SetWeaponAttribute( "Damage", 34 )
             wepent:SetWeaponAttribute( "IsMelee", true )
             wepent:SetWeaponAttribute( "HitSound", {
-                "lambdaplayers/weapons/tf2/melee/bottle_hit_flesh1.mp3",
-                "lambdaplayers/weapons/tf2/melee/bottle_hit_flesh2.mp3",
-                "lambdaplayers/weapons/tf2/melee/bottle_hit_flesh3.mp3"
+                "weapons/bottle_hit_flesh1.wav",
+                "weapons/bottle_hit_flesh2.wav",
+                "weapons/bottle_hit_flesh3.wav"
             } )
-            wepent:SetWeaponAttribute( "RateOfFire", 0.96 )
             wepent:SetWeaponAttribute( "RandomCrits", false )
 
             if !self.l_TF_Shield_IsEquipped and random( 1, 3 ) == 1 then
@@ -33,7 +32,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             end
 
             wepent.l_TF_Detonated = false
-            wepent:EmitSound( "lambdaplayers/weapons/tf2/draw_melee.mp3", 74, nil, 0.5, CHAN_WEAPON )
+            wepent:EmitSound( "weapons/draw_melee.wav", nil, nil, 0.5 )
         end,
 		
 		OnHolster = function( self, wepent )
@@ -63,7 +62,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
 
             local wepPos = wepent:GetPos()
             ParticleEffect( "ExplosionCore_MidAir", wepPos, ( ( wepPos + vector_up * 1 ) - wepPos ):Angle() )
-            wepent:EmitSound( ")lambdaplayers/weapons/tf2/explode" .. random( 1, 3 ) .. ".mp3", 85, 100, 1.0, CHAN_WEAPON )
+            wepent:EmitSound( ")lambdaplayers/tf2/explode" .. random( 1, 3 ) .. ".mp3", 85, nil, nil, CHAN_WEAPON )
 
             local explodeinfo = DamageInfo()
             explodeinfo:SetDamage( 45 )

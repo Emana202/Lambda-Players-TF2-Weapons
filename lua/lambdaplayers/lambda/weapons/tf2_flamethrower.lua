@@ -88,6 +88,7 @@ local function OnFlameThink( self )
                 dmginfo:SetDamage( damage )
                 dmginfo:SetDamageType( self.l_DmgType )
                 dmginfo:SetDamageCustom( TF_DMG_CUSTOM_BURNING )
+                dmginfo:SetDamagePosition( ent:WorldSpaceCenter() + VectorRand( -5, 5 ) )
                 dmginfo:SetReportedPosition( attacker:GetPos() )
 
                 dmgTraceTbl.start = self:WorldSpaceCenter()
@@ -134,7 +135,7 @@ end
 
 table.Merge( _LAMBDAPLAYERSWEAPONS, {
     tf2_flamethrower = {
-        model = "models/lambdaplayers/weapons/tf2/w_flamethrower.mdl",
+        model = "models/lambdaplayers/tf2/weapons/w_flamethrower.mdl",
         origin = "Team Fortress 2",
         prettyname = "Flame Thrower",
         holdtype = "shotgun",
@@ -152,12 +153,12 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
 
             wepent:SetWeaponAttribute( "Damage", 100 )
             wepent:SetWeaponAttribute( "RateOfFire", 0.04 )
-            wepent:SetWeaponAttribute( "IsRapidFire", true )
+            wepent:SetWeaponAttribute( "UseRapidFireCrits", true )
             wepent:SetWeaponAttribute( "DamageType", ( DMG_IGNITE + DMG_PREVENT_PHYSICS_FORCE ) )
 
             wepent.l_IsCritical = true
-            wepent.l_FireLoopSound = LAMBDA_TF2:CreateSound( wepent, "lambdaplayers/weapons/tf2/flamethrower/flame_thrower_loop.wav" )
-            wepent.l_FireCritSound = LAMBDA_TF2:CreateSound( wepent, "lambdaplayers/weapons/tf2/crits/crit_shoot_loop.wav" )
+            wepent.l_FireLoopSound = LAMBDA_TF2:CreateSound( wepent, ")weapons/flame_thrower_loop.wav" )
+            wepent.l_FireCritSound = LAMBDA_TF2:CreateSound( wepent, ")weapons/flame_thrower_loop_crit.wav" )
             wepent.l_FireState = 0
             wepent.l_NextFireStateUpdateT = CurTime()
             
@@ -165,10 +166,11 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent.l_FireDirection = self:GetForward()
             wepent.l_FireShootTime = CurTime()
 
-            wepent.l_ActiveFlames = 0
+            local pilotSnd = LAMBDA_TF2:CreateSound( wepent, "weapons/flame_thrower_pilot.wav" )
+            pilotSnd:PlayEx( 0.25, 100 )
+            wepent.l_FirePilotSound = pilotSnd
 
-            wepent:EmitSound( "lambdaplayers/weapons/tf2/flamethrower/flame_thrower_pilot.mp3", 60 )
-            wepent:EmitSound( "lambdaplayers/weapons/tf2/draw_primary.mp3", 74, 100, 0.5 )
+            wepent:EmitSound( "Weapon_FlameThrower.Draw" )
         end,
 
         OnThink = function( self, wepent, isdead )
@@ -177,20 +179,22 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
                 wepent.l_FireState = 0
                 wepent.l_NextFireStateUpdateT = CurTime()
 
-                wepent:StopSound( "lambdaplayers/weapons/tf2/flamethrower/flame_thrower_start.wav" )
-                wepent:StopSound( "lambdaplayers/weapons/tf2/flamethrower/flame_thrower_end.mp3" )
+                wepent:StopSound( ")weapons/flame_thrower_start.wav" )
+                wepent:StopSound( ")weapons/flame_thrower_end.wav")
                 LAMBDA_TF2:StopParticlesNamed( wepent, "flamethrower" )
 
                 if wepent.l_FireLoopSound then wepent.l_FireLoopSound:Stop() end
                 if wepent.l_FireCritSound then wepent.l_FireCritSound:Stop() end 
+                if wepent.l_FirePilotSound then wepent.l_FirePilotSound:Stop() end 
             else
                 if wepent.l_FireAttackTime then 
                     if CurTime() > wepent.l_FireAttackTime then
                         if wepent.l_FireLoopSound then wepent.l_FireLoopSound:Stop() end
                         if wepent.l_FireCritSound then wepent.l_FireCritSound:Stop() end
+                        if wepent.l_FirePilotSound then wepent.l_FirePilotSound:Stop() end
 
-                        wepent:StopSound( "lambdaplayers/weapons/tf2/flamethrower/flame_thrower_start.wav" )
-                        wepent:EmitSound( "lambdaplayers/weapons/tf2/flamethrower/flame_thrower_end.mp3", 70 )
+                        wepent:StopSound( ")weapons/flame_thrower_start.wav" )
+                        wepent:EmitSound( ")weapons/flame_thrower_end.wav", 80, nil, nil, CHAN_STATIC )
                         LAMBDA_TF2:StopParticlesNamed( wepent, "flamethrower" )
 
                         wepent.l_FireAttackTime = false
@@ -199,24 +203,18 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
                     else
                         if CurTime() > wepent.l_NextFireStateUpdateT then
                             if wepent.l_FireState == 0 then
-                                wepent:StopSound( "lambdaplayers/weapons/tf2/flamethrower/flame_thrower_end.mp3" )
-                                wepent:EmitSound( "lambdaplayers/weapons/tf2/flamethrower/flame_thrower_start.wav", 70 )
+                                wepent:StopSound( ")weapons/flame_thrower_end.wav" )
+                                wepent:EmitSound( ")weapons/flame_thrower_start.wav", 80, nil, nil, CHAN_STATIC )
                                 ParticleEffectAttach( "flamethrower", PATTACH_POINT_FOLLOW, wepent, 1 )
 
                                 wepent.l_FireState = 1
-                                wepent.l_NextFireStateUpdateT = CurTime() + SoundDuration( "lambdaplayers/weapons/tf2/flamethrower/flame_thrower_start.wav" )
-                            elseif wepent.l_FireLoopSound and !wepent.l_FireLoopSound:IsPlaying() then 
-                                wepent.l_FireLoopSound:Play() 
-                            end
-                        end
-
-                        if wepent.l_FireCritSound then
-                            if wepent.l_IsCritical then
-                                if !wepent.l_FireCritSound:IsPlaying() then
-                                    wepent.l_FireCritSound:Play()
-                                end
+                                wepent.l_NextFireStateUpdateT = CurTime() + SoundDuration( "weapons/flame_thrower_start.wav" )
                             else
-                                wepent.l_FireCritSound:Stop()
+                                local playSnd = ( wepent.l_IsCritical and wepent.l_FireCritSound or wepent.l_FireLoopSound )
+                                local stopSnd = ( !wepent.l_IsCritical and wepent.l_FireCritSound or wepent.l_FireLoopSound )
+
+                                if playSnd and !playSnd:IsPlaying() then playSnd:Play() end
+                                if stopSnd and stopSnd:IsPlaying() then stopSnd:Stop() end
                             end
                         end
 
@@ -284,8 +282,13 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
 
         OnHolster = function( self, wepent )
             LAMBDA_TF2:StopParticlesNamed( wepent, "flamethrower" )
+
+            wepent:StopSound( ")weapons/flame_thrower_start.wav" )
+            wepent:StopSound( ")weapons/flame_thrower_end.wav")
+
             if wepent.l_FireLoopSound then wepent.l_FireLoopSound:Stop(); wepent.l_FireLoopSound = nil end 
             if wepent.l_FireCritSound then wepent.l_FireCritSound:Stop(); wepent.l_FireCritSound = nil end 
+            if wepent.l_FirePilotSound then wepent.l_FirePilotSound:Stop(); wepent.l_FirePilotSound = nil end 
         end,
 
         OnAttack = function( self, wepent, target )

@@ -2,7 +2,7 @@ local random = math.random
 
 table.Merge( _LAMBDAPLAYERSWEAPONS, {
     tf2_katana = {
-        model = "models/lambdaplayers/weapons/tf2/w_katana.mdl",
+        model = "models/lambdaplayers/tf2/weapons/w_katana.mdl",
         origin = "Team Fortress 2",
         prettyname = "Half-Zatoichi",
         holdtype = "melee",
@@ -23,17 +23,18 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent:SetWeaponAttribute( "DamageType", DMG_SLASH )
             wepent:SetWeaponAttribute( "RandomCrits", false )
             wepent:SetWeaponAttribute( "Sound", {
-                "lambdaplayers/weapons/tf2/katana/tf_katana_01.mp3",
-                "lambdaplayers/weapons/tf2/katana/tf_katana_02.mp3",
-                "lambdaplayers/weapons/tf2/katana/tf_katana_03.mp3",
-                "lambdaplayers/weapons/tf2/katana/tf_katana_04.mp3",
-                "lambdaplayers/weapons/tf2/katana/tf_katana_05.mp3",
-                "lambdaplayers/weapons/tf2/katana/tf_katana_06.mp3"
+                ")weapons/samurai/TF_Katana_01.wav",
+                ")weapons/samurai/TF_Katana_02.wav",
+                ")weapons/samurai/TF_Katana_03.wav",
+                ")weapons/samurai/TF_Katana_04.wav",
+                ")weapons/samurai/TF_Katana_05.wav",
+                ")weapons/samurai/TF_Katana_06.wav"
             } )
+            wepent:SetWeaponAttribute( "CritSound", ")weapons/samurai/TF_katana_crit_miss_01.wav" )
             wepent:SetWeaponAttribute( "HitSound", {
-                "lambdaplayers/weapons/tf2/katana/tf_katana_slice_01.mp3",
-                "lambdaplayers/weapons/tf2/katana/tf_katana_slice_02.mp3",
-                "lambdaplayers/weapons/tf2/katana/tf_katana_slice_03.mp3"
+                ")weapons/samurai/TF_katana_slice_01.wav",
+                ")weapons/samurai/TF_katana_slice_02.wav",
+                ")weapons/samurai/TF_katana_slice_03.wav"
             } )
             wepent:SetWeaponAttribute( "CustomDamage", TF_DMG_CUSTOM_DECAPITATION )
 
@@ -42,18 +43,19 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
                 dmginfo:SetDamage( target:Health() * 3 )
 			end )
 
-            if !self.l_TF_Shield_IsEquipped and random( 1, 4 ) == 1 then
+            if !self.l_TF_Shield_IsEquipped and random( 4 ) == 1 then
                 LAMBDA_TF2:GiveRemoveChargeShield( self, true )
             end
 
             wepent.l_TF_IsHonorbound = true
-            wepent:EmitSound( "lambdaplayers/weapons/tf2/katana/tf_katana_draw_0" .. random( 1, 2 ) .. ".mp3", 74, 100, 0.5 )
+            wepent:EmitSound( ")weapons/samurai/TF_katana_draw_0" .. random( 1, 2 ) .. ".wav", 70, nil, 0.7 )
         end,
 
         OnHolster = function( self, wepent )
-            if !wepent.l_TF_IsHonorbound then return end
-            self:TakeDamage( 50, self, wepent )
-            wepent:SetSkin( 0 )
+            if !wepent.l_TF_IsHonorbound then
+                if self:Health() <= 50 then return true end
+                self:TakeDamage( 50, self, wepent )
+            end
         end,
 
         OnDeath = function( self, wepent )

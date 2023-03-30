@@ -1,6 +1,6 @@
 table.Merge( _LAMBDAPLAYERSWEAPONS, {
     tf2_fireaxe = {
-        model = "models/lambdaplayers/weapons/tf2/w_fireaxe.mdl",
+        model = "models/lambdaplayers/tf2/weapons/w_fireaxe.mdl",
         origin = "Team Fortress 2",
         prettyname = "Fireaxe",
         holdtype = "melee2",
@@ -20,12 +20,12 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent:SetWeaponAttribute( "DamageType", DMG_SLASH )
             wepent:SetWeaponAttribute( "Animation", ACT_HL2MP_GESTURE_RANGE_ATTACK_MELEE2 )
             wepent:SetWeaponAttribute( "HitSound", {
-                "lambdaplayers/weapons/tf2/melee/axe_hit_flesh1.mp3",
-                "lambdaplayers/weapons/tf2/melee/axe_hit_flesh2.mp3",
-                "lambdaplayers/weapons/tf2/melee/axe_hit_flesh3.mp3"
+                ")weapons/axe_hit_flesh1.wav",
+                ")weapons/axe_hit_flesh2.wav",
+                ")weapons/axe_hit_flesh3.wav"
             } )
 
-            wepent:EmitSound( "lambdaplayers/weapons/tf2/draw_melee.mp3", 74, 100, 0.5 )
+            wepent:EmitSound("weapons/draw_melee.wav", nil, nil, 0.5 )
         end,
         
 		OnAttack = function( self, wepent, target )

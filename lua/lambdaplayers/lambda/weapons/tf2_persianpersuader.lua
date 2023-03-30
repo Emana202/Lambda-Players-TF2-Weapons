@@ -2,7 +2,7 @@ local random = math.random
 
 table.Merge( _LAMBDAPLAYERSWEAPONS, {
     tf2_persianpersuader = {
-        model = "models/lambdaplayers/weapons/tf2/w_sultan_sword.mdl",
+        model = "models/lambdaplayers/tf2/weapons/w_sultan_sword.mdl",
         origin = "Team Fortress 2",
         prettyname = "Persian Persuader",
         holdtype = "melee",
@@ -24,23 +24,23 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent:SetWeaponAttribute( "Animation", ACT_HL2MP_GESTURE_RANGE_ATTACK_MELEE )
             wepent:SetWeaponAttribute( "RandomCrits", false )
             wepent:SetWeaponAttribute( "Sound", {
-                "lambdaplayers/weapons/tf2/melee/sword_swing1.mp3",
-                "lambdaplayers/weapons/tf2/melee/sword_swing2.mp3",
-                "lambdaplayers/weapons/tf2/melee/sword_swing3.mp3"
+                ")weapons/demo_sword_swing1.wav",
+                ")weapons/demo_sword_swing2.wav",
+                ")weapons/demo_sword_swing3.wav"
             } )
+            wepent:SetWeaponAttribute( "CritSound", ")weapons/demo_sword_swing_crit.wav" )
             wepent:SetWeaponAttribute( "HitSound", {
-                "lambdaplayers/weapons/tf2/melee/blade_slice_2.mp3",
-                "lambdaplayers/weapons/tf2/melee/blade_slice_3.mp3",
-                "lambdaplayers/weapons/tf2/melee/blade_slice_4.mp3"
+                "weapons/blade_slice_2.wav",
+                "weapons/blade_slice_3.wav",
+                "weapons/blade_slice_4.wav"
             } )
             wepent:SetWeaponAttribute( "CustomDamage", TF_DMG_CUSTOM_DECAPITATION )
 
-            if !self.l_TF_Shield_IsEquipped and random( 1, 3 ) != 1 then
+            if !self.l_TF_Shield_IsEquipped and random( 3 ) != 1 then
                 LAMBDA_TF2:GiveRemoveChargeShield( self, true )
             end
 
-            wepent:EmitSound( "lambdaplayers/weapons/tf2/melee/sword_draw.mp3", 74, 100, 0.5 )
-            wepent:EmitSound( "lambdaplayers/weapons/tf2/draw_melee.mp3", 74, 100, 0.5 )
+            wepent:EmitSound( "weapons/draw_sword.wav" )
         end,
 
 		OnAttack = function( self, wepent, target )

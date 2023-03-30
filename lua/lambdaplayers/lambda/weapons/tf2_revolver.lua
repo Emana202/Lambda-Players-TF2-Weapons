@@ -1,6 +1,6 @@
 table.Merge( _LAMBDAPLAYERSWEAPONS, {
     tf2_revolver = {
-        model = "models/lambdaplayers/weapons/tf2/w_revolver.mdl",
+        model = "models/lambdaplayers/tf2/weapons/w_revolver.mdl",
         origin = "Team Fortress 2",
         prettyname = "Revolver",
         holdtype = "pistol",
@@ -10,7 +10,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         clip = 6,
         islethal = true,
         attackrange = 1500,
-        keepdistance = 700,
+        keepdistance = 600,
         deploydelay = 0.5,
 
         OnDeploy = function( self, wepent )
@@ -19,12 +19,13 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent:SetWeaponAttribute( "Damage", 25 )
             wepent:SetWeaponAttribute( "RateOfFire", { 0.55, 0.75 } )
             wepent:SetWeaponAttribute( "Animation", ACT_HL2MP_GESTURE_RANGE_ATTACK_REVOLVER )
-            wepent:SetWeaponAttribute( "Sound", "lambdaplayers/weapons/tf2/revolver/revolver_shoot.mp3" )
+            wepent:SetWeaponAttribute( "Sound", ")weapons/revolver_shoot.wav" )
+            wepent:SetWeaponAttribute( "CritSound", ")weapons/revolver_shoot_crit.wav" )
             wepent:SetWeaponAttribute( "Spread", 0.025 )
             wepent:SetWeaponAttribute( "FirstShotAccurate", true )
             wepent:SetWeaponAttribute( "DamageType", DMG_USEDISTANCEMOD )
 
-            wepent:EmitSound( "lambdaplayers/weapons/tf2/draw_secondary.mp3", 60 )
+            wepent:EmitSound( "weapons/draw_secondary.wav", nil, nil, 0.5 )
         end,
 
         OnAttack = function( self, wepent, target )
@@ -35,6 +36,6 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         reloadtime = 1.133,
         reloadanim = ACT_HL2MP_GESTURE_RELOAD_PISTOL,
         reloadanimspeed = 1.33,
-        reloadsounds = { { 0, "lambdaplayers/weapons/tf2/revolver/revolver_worldreload.mp3" } }
+        reloadsounds = { { 0, "weapons/revolver_worldreload.wav" } }
    }
 } )

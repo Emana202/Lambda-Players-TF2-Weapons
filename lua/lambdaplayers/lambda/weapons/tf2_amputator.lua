@@ -1,6 +1,6 @@
 table.Merge( _LAMBDAPLAYERSWEAPONS, {
     tf2_amputator = {
-        model = "models/lambdaplayers/weapons/tf2/w_amputator.mdl",
+        model = "models/lambdaplayers/tf2/weapons/w_amputator.mdl",
         origin = "Team Fortress 2",
         prettyname = "Amputator",
         holdtype = "knife",
@@ -20,7 +20,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent:SetWeaponAttribute( "IsMelee", true )
             wepent:SetWeaponAttribute( "DamageType", DMG_SLASH )
 
-            wepent:EmitSound( "lambdaplayers/weapons/tf2/draw_melee.mp3", 74, 100, 0.5 )
+            wepent:EmitSound( "weapons/draw_melee.wav", nil, nil, 0.5 )
         end,
         
 		OnAttack = function( self, wepent, target )
@@ -29,9 +29,8 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         end,
 
         OnThink = function( self, wepent, dead )
-            if dead then return end
-            LAMBDA_TF2:GiveHealth( self, 3, false )
-            return 1
+            if dead or CurTime() <= self.l_TF_NextMedicHealthRegenT then return end
+            LAMBDA_TF2:GiveHealth( self, 2, false )
         end,
     }
 } )

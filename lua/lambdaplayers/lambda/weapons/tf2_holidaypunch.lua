@@ -1,6 +1,6 @@
 table.Merge( _LAMBDAPLAYERSWEAPONS, {
     tf2_holidaypunch = {
-        model = "models/lambdaplayers/weapons/tf2/w_holidaypunch.mdl",
+        model = "models/lambdaplayers/tf2/weapons/w_holidaypunch.mdl",
         origin = "Team Fortress 2",
         prettyname = "Holiday Punch",
         holdtype = "fist",
@@ -20,10 +20,12 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent:SetWeaponAttribute( "IsMelee", true )
             wepent:SetWeaponAttribute( "Animation", ACT_HL2MP_GESTURE_RANGE_ATTACK_FIST )
             wepent:SetWeaponAttribute( "Sound", {
-                "lambdaplayers/weapons/tf2/melee/bat_draw_swoosh1.mp3",
-                "lambdaplayers/weapons/tf2/melee/bat_draw_swoosh2.mp3"
+                "weapons/bat_draw_swoosh1.wav",
+                "weapons/bat_draw_swoosh2.wav"
             } )
-            wepent:SetWeaponAttribute( "HitSound", "lambdaplayers/weapons/tf2/melee/mittens_punch.mp3" )
+            wepent:SetWeaponAttribute( "CritSound", "weapons/fist_swing_crit.wav" )
+            wepent:SetWeaponAttribute( "HitSound", ")weapons/mittens_punch.wav" )
+            wepent:SetWeaponAttribute( "HitCritSound", ")weapons/mittens_punch_crit.wav" )
 
 			wepent:SetWeaponAttribute( "PreHitCallback", function( lambda, weapon, target, dmginfo )
                 local isCrit = dmginfo:IsDamageType( DMG_CRITICAL )
@@ -37,8 +39,8 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
 			end )
 
             wepent.l_TF_MakeLaugh = false
-            wepent:EmitSound( "lambdaplayers/weapons/tf2/draw_melee.mp3", 74, 100, 0.5 )
-            self:SimpleWeaponTimer( 0.1, function() wepent:EmitSound( "lambdaplayers/weapons/tf2/melee/boxing_gloves_hit.mp3" ) end )
+            wepent:EmitSound("weapons/draw_melee.wav", nil, nil, 0.5 )
+            self:SimpleWeaponTimer( 0.1, function() wepent:EmitSound( ")weapons/mittens_punch.wav", nil, nil, 0.4 ) end )
         end,
         
 		OnAttack = function( self, wepent, target )

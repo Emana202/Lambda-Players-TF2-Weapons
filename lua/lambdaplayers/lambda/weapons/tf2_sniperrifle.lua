@@ -2,7 +2,7 @@ local Rand = math.Rand
 local random = math.random
 local min = math.min
 local max = math.max
-local Remap = math.Remap
+local Clamp = math.Clamp
 local CurTime = CurTime
 local isnumber = isnumber
 local bulletTbl = {
@@ -12,7 +12,7 @@ local bulletTbl = {
 
 table.Merge( _LAMBDAPLAYERSWEAPONS, {
     tf2_sniperrifle = {
-        model = "models/lambdaplayers/weapons/tf2/w_sniper_rifle.mdl",
+        model = "models/lambdaplayers/tf2/weapons/w_sniper_rifle.mdl",
         origin = "Team Fortress 2",
         prettyname = "Sniper Rifle",
         holdtype = {
@@ -41,34 +41,50 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent:SetWeaponAttribute( "Damage", 30 )
             wepent:SetWeaponAttribute( "RateOfFire", { 1.5, 2.0 } )
             wepent:SetWeaponAttribute( "Animation", ACT_HL2MP_GESTURE_RANGE_ATTACK_REVOLVER )
-            wepent:SetWeaponAttribute( "Sound", "lambdaplayers/weapons/tf2/sniperrifle/sniper_shoot.mp3" )
+            wepent:SetWeaponAttribute( "Sound", ")weapons/sniper_shoot.wav" )
+            wepent:SetWeaponAttribute( "CritSound", ")weapons/sniper_shoot_crit.wav" )
+            wepent:SetWeaponAttribute( "RandomCrits", false )
             wepent:SetWeaponAttribute( "ShellEject", false )
             wepent:SetWeaponAttribute( "ClipDrain", false )
 
             wepent.l_TF_IsCharging = false
             wepent.l_TF_NextZoomTime = CurTime()
+            wepent.l_TF_ZoomedTime = CurTime()
             wepent.l_TF_ChargeIsFull = false
             wepent.l_TF_ChargeStartTime = CurTime()
             wepent.l_TF_ChargeTimeRequired = 3.3
-            wepent:EmitSound( "lambdaplayers/weapons/tf2/draw_primary.mp3", 60 )
+
+            wepent:EmitSound( "weapons/draw_primary.wav", nil, nil, 0.5 )
         end,
 
-        OnThink = function( self, wepent )
-            local ene = self:GetEnemy()
-            wepent.l_TF_IsCharging = ( CurTime() > wepent.l_TF_NextZoomTime and self:GetState() == "Combat" and IsValid( ene ) and !self:IsInRange( ene, 400 ) and ( self:CanSee( ene ) or self:IsInRange( ene, 768 ) ) )
-
-            if wepent.l_TF_IsCharging then 
-                self.l_WeaponSpeedMultiplier = 0.27
-                wepent.l_TF_ChargeTimeRequired = min( Remap( self:GetRangeTo( ene ), 128, 768, 1.5, 4 ), Rand( 3.3, 4 ) )
-
-                if !wepent.l_TF_ChargeIsFull and ( CurTime() - wepent.l_TF_ChargeStartTime ) >= 3.3 then
-                    wepent.l_TF_ChargeIsFull = true
-                    wepent:EmitSound( "lambdaplayers/weapons/tf2/recharged.mp3", 75, 100, 0.5, CHAN_STATIC )
+        OnThink = function( self, wepent, isdead )
+            if !isdead then
+                local ene = self:GetEnemy()
+                if self:GetState() == "Combat" and IsValid( ene ) and ( self:CanSee( ene ) or self:IsInRange( ene, 512 ) ) then
+                    wepent.l_TF_ZoomedTime = CurTime() + Rand( 1.0, 3.0 )
                 end
-            else
-                if CurTime() >= self.l_WeaponUseCooldown then self.l_WeaponUseCooldown = CurTime() + 1.0 end
-                self.l_WeaponSpeedMultiplier = 1
-                wepent.l_TF_ChargeStartTime = CurTime()
+
+                wepent.l_TF_IsCharging = ( CurTime() > wepent.l_TF_NextZoomTime and CurTime() <= wepent.l_TF_ZoomedTime )
+                if wepent.l_TF_IsCharging then 
+                    self.l_WeaponSpeedMultiplier = 0.27
+        
+                    if self:InCombat() then
+                        local distMap = LAMBDA_TF2:RemapClamped( self:GetRangeTo( ene ), 128, 768, 0, 1 )
+                        local healthMap = Clamp( ene:Health() / wepent:GetWeaponAttribute( "Damage" ), 0, 1 )
+                        wepent.l_TF_ChargeTimeRequired = LAMBDA_TF2:RemapClamped( ( ( distMap + healthMap ) / 2 ), 0, 1, 0.5, Rand( 3.3, 4 ) )
+                    else
+                        wepent.l_TF_ChargeTimeRequired = 3.3
+                    end
+
+                    if !wepent.l_TF_ChargeIsFull and ( CurTime() - wepent.l_TF_ChargeStartTime ) >= 3.3 then
+                        wepent.l_TF_ChargeIsFull = true
+                        wepent:EmitSound( "player/recharged.wav", 65, nil, nil, CHAN_STATIC )
+                    end
+                else
+                    if CurTime() >= self.l_WeaponUseCooldown then self.l_WeaponUseCooldown = CurTime() + 1.0 end
+                    self.l_WeaponSpeedMultiplier = 1
+                    wepent.l_TF_ChargeStartTime = CurTime()
+                end
             end
 
             return 0.1
@@ -90,10 +106,10 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             local srcPos = wepent:GetPos()
             bulletTbl.Dir = ( targetPos - srcPos ):GetNormalized()
 
-            local spread = max( Remap( chargeStartTime, 0, 3.3, 0.125, 0.0175 ), 0 )
+            local spread = LAMBDA_TF2:RemapClamped( chargeStartTime, 0, 3.3, 0.125, 0.02 )
             bulletTbl.Spread = Vector( spread, spread, 2 )
 
-            local dmgMult = min( 3, Remap( chargeStartTime, 0, 3.3, 1, 3 ) )
+            local dmgMult = LAMBDA_TF2:RemapClamped( chargeStartTime, 0, 3.3, 1, 3 )
             local damage = ( wepent:GetWeaponAttribute( "Damage" ) * dmgMult )
             bulletTbl.Damage = damage
             bulletTbl.Force = ( damage / 2 )
@@ -101,21 +117,27 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             bulletTbl.Attacker = self
             bulletTbl.IgnoreEntity = self
             bulletTbl.Src = srcPos
+
+            local muzzlePos = wepent:GetAttachment( wepent:LookupAttachment( "muzzle" ) ).Pos
             bulletTbl.Callback = function( attacker, tr, dmginfo )
-                LAMBDA_TF2:CreateCritBulletTracer( tr.StartPos, tr.HitPos, self:GetPlyColor():ToColor(), 0.4, 1 )
-                if tr.HitGroup == HITGROUP_HEAD then dmginfo:SetDamageCustom( TF_DMG_CUSTOM_HEADSHOT ) end
+                local traceLifeTime = LAMBDA_TF2:RemapClamped( chargeStartTime, 0, 3.3, 0.25, 1 )
+                LAMBDA_TF2:CreateCritBulletTracer( muzzlePos, tr.HitPos, self:GetPlyColor():ToColor(), 0.4, traceLifeTime )
+
+                if chargeStartTime > 0.2 and tr.HitGroup == HITGROUP_HEAD then 
+                    dmginfo:SetDamageCustom( TF_DMG_CUSTOM_HEADSHOT ) 
+                end
             end
 
             wepent:FireBullets( bulletTbl )
 
-            self:SimpleWeaponTimer( 0.6, function()
+            self:SimpleWeaponTimer( 0.666667, function()
+                wepent:EmitSound( "weapons/sniper_bolt_back.wav", nil, nil, 0.45 )
+            end )
+            self:SimpleWeaponTimer( 0.966667, function()
                 LAMBDA_TF2:CreateShellEject( wepent, "RifleShellEject" )
-                wepent:EmitSound( "lambdaplayers/weapons/tf2/sniperrifle/sniper_bolt_back.mp3", 65 )
+                wepent:EmitSound( "weapons/sniper_bolt_forward.wav", nil, nil, 0.45 )
             end )
-            self:SimpleWeaponTimer( 0.9, function()
-                wepent:EmitSound( "lambdaplayers/weapons/tf2/sniperrifle/sniper_bolt_forward.mp3", 65 )
-            end )
-                
+
             return true
         end
     }

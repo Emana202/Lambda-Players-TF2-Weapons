@@ -1,6 +1,6 @@
 table.Merge( _LAMBDAPLAYERSWEAPONS, {
     tf2_machete = {
-        model = "models/lambdaplayers/weapons/tf2/w_machete.mdl",
+        model = "models/lambdaplayers/tf2/weapons/w_machete.mdl",
         origin = "Team Fortress 2",
         prettyname = "Kukri",
         holdtype = "knife",
@@ -17,10 +17,10 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             LAMBDA_TF2:InitializeWeaponData( self, wepent )
 
             wepent:SetWeaponAttribute( "IsMelee", true )
-            wepent:SetWeaponAttribute( "Sound", "lambdaplayers/weapons/tf2/melee/machete_swing.mp3" )
+            wepent:SetWeaponAttribute( "Sound", ")weapons/machete_swing.wav" )
+            wepent:SetWeaponAttribute( "CritSound", ")weapons/machete_swing_crit.wav" )
 
-            wepent:EmitSound( "lambdaplayers/weapons/tf2/melee/machete_draw.mp3", 74, 100, 0.5 )
-            wepent:EmitSound( "lambdaplayers/weapons/tf2/draw_melee.mp3", 74, 100, 0.5 )
+            wepent:EmitSound( "weapons/draw_machete_sniper.wav" )
         end,
         
 		OnAttack = function( self, wepent, target )

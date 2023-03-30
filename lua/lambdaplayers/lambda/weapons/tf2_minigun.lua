@@ -5,7 +5,7 @@ local Rand = math.Rand
 
 table.Merge( _LAMBDAPLAYERSWEAPONS, {
     tf2_minigun = {
-        model = "models/lambdaplayers/weapons/tf2/w_minigun.mdl",
+        model = "models/lambdaplayers/tf2/weapons/w_minigun.mdl",
         origin = "Team Fortress 2",
         prettyname = "Minigun",
         holdtype = "physgun",
@@ -30,7 +30,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent:SetWeaponAttribute( "MuzzleFlash", false )
             wepent:SetWeaponAttribute( "ShellEject", false )
             wepent:SetWeaponAttribute( "Spread", 0.08 )
-            wepent:SetWeaponAttribute( "IsRapidFire", true )
+            wepent:SetWeaponAttribute( "UseRapidFireCrits", true )
             wepent:SetWeaponAttribute( "ClipDrain", false )
             wepent:SetWeaponAttribute( "DamageType", DMG_USEDISTANCEMOD )
 
@@ -40,17 +40,16 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent.l_FireTime = CurTime()
             wepent.l_NextWindUpStateChangeT = CurTime()
 
-            wepent.l_SpinSound = LAMBDA_TF2:CreateSound( wepent, "lambdaplayers/weapons/tf2/minigun/minigun_spin.wav" )            
-            wepent.l_FireSound = LAMBDA_TF2:CreateSound( wepent, "lambdaplayers/weapons/tf2/minigun/minigun_shoot.wav" )
-            wepent.l_CritSound = LAMBDA_TF2:CreateSound( wepent, "lambdaplayers/weapons/tf2/crits/crit_shoot_loop.wav" )
+            wepent.l_SpinSound = LAMBDA_TF2:CreateSound( wepent, ")weapons/minigun_spin.wav" )            
+            wepent.l_FireSound = LAMBDA_TF2:CreateSound( wepent, ")weapons/minigun_shoot.wav" )
+            wepent.l_CritSound = LAMBDA_TF2:CreateSound( wepent, ")weapons/minigun_shoot_crit.wav" )
 
-            wepent:EmitSound( "lambdaplayers/weapons/tf2/minigun/minigun_draw.mp3", 60 )
-            wepent:EmitSound( "lambdaplayers/weapons/tf2/draw_primary.mp3", 74, 100, 0.5 )
+            wepent:EmitSound( "weapons/draw_minigun_heavy.wav", nil, nil, 0.5 )
         end,
 
         OnHolster = function( self, wepent )
-            wepent:StopSound( "lambdaplayers/weapons/tf2/minigun/minigun_wind_up.wav" )
-            wepent:StopSound( "lambdaplayers/weapons/tf2/minigun/minigun_wind_down.mp3" )
+            wepent:StopSound( "weapons/minigun_wind_up.wav" )
+            wepent:StopSound( "weapons/minigun_wind_down.wav" )
 
             if wepent.l_FireSound then wepent.l_FireSound:Stop(); wepent.l_FireSound = nil end 
             if wepent.l_SpinSound then wepent.l_SpinSound:Stop(); wepent.l_SpinSound = nil end 
@@ -59,11 +58,11 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
 
         OnThink = function( self, wepent, dead )
             if dead then
-                wepent:StopSound( "lambdaplayers/weapons/tf2/minigun/minigun_wind_up.wav" )
+                wepent:StopSound( "weapons/minigun_wind_up.wav" )
                 
                 if wepent.l_WindUpState == 2 and self:GetIsDead() then 
                     wepent.l_WindUpState = 1 
-                    wepent:StopSound( "lambdaplayers/weapons/tf2/minigun/minigun_wind_down.mp3" )
+                    wepent:StopSound( "weapons/minigun_wind_down.wav" )
                 end
                 
                 if wepent.l_FireSound then wepent.l_FireSound:Stop() end
@@ -74,9 +73,9 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
                     if CurTime() > wepent.l_NextWindUpStateChangeT then
                         if wepent.l_WindUpState == 1 then
                             wepent.l_WindUpState = 2
-                            wepent.l_NextWindUpStateChangeT = ( CurTime() + SoundDuration( "lambdaplayers/weapons/tf2/minigun/minigun_wind_up.wav" ) )
+                            wepent.l_NextWindUpStateChangeT = ( CurTime() + SoundDuration( "weapons/minigun_wind_up.wav" ) )
 
-                            wepent:EmitSound( "lambdaplayers/weapons/tf2/minigun/minigun_wind_up.wav", 75, 100, 0.9 )
+                            wepent:EmitSound( ")weapons/minigun_wind_up.wav", 85, nil, nil, CHAN_WEAPON )
                         else
                             if self:IsPanicking() then
                                 wepent.l_SpinTime = 0
@@ -116,7 +115,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
                     if wepent.l_FireSound then wepent.l_FireSound:Stop() end
                     if wepent.l_CritSound then wepent.l_CritSound:Stop() end 
 
-                    wepent:EmitSound( "lambdaplayers/weapons/tf2/minigun/minigun_wind_down.mp3", 75, 100, 0.9 )
+                    wepent:EmitSound( ")weapons/minigun_wind_down.wav", 85, nil, nil, CHAN_WEAPON )
                 end
 
                 if wepent.l_WindUpState == 2 then

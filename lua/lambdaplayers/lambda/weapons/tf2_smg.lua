@@ -1,6 +1,6 @@
 table.Merge( _LAMBDAPLAYERSWEAPONS, {
     tf2_smg = {
-        model = "models/lambdaplayers/weapons/tf2/w_smg.mdl",
+        model = "models/lambdaplayers/tf2/weapons/w_smg.mdl",
         origin = "Team Fortress 2",
         prettyname = "SMG",
         holdtype = {
@@ -28,13 +28,14 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent:SetWeaponAttribute( "Damage", 5 )
             wepent:SetWeaponAttribute( "RateOfFire", 0.105 )
             wepent:SetWeaponAttribute( "Animation", ACT_HL2MP_GESTURE_RANGE_ATTACK_SMG1 )
-            wepent:SetWeaponAttribute( "Sound", "lambdaplayers/weapons/tf2/smg/smg_shoot.mp3" )
+            wepent:SetWeaponAttribute( "Sound", ")weapons/smg_shoot.wav" )
+            wepent:SetWeaponAttribute( "CritSound", ")weapons/smg_shoot_crit.wav")
             wepent:SetWeaponAttribute( "Spread", 0.025 )
             wepent:SetWeaponAttribute( "FirstShotAccurate", true )
-            wepent:SetWeaponAttribute( "IsRapidFire", true )
+            wepent:SetWeaponAttribute( "UseRapidFireCrits", true )
             wepent:SetWeaponAttribute( "DamageType", DMG_USEDISTANCEMOD )
 
-            wepent:EmitSound( "lambdaplayers/weapons/tf2/draw_secondary.mp3", 60 )
+            wepent:EmitSound( "weapons/draw_secondary.wav", nil, nil, 0.5 )
         end,
 
         OnAttack = function( self, wepent, target )
@@ -43,7 +44,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         end,
 
         reloadtime = 1.1,
-        reloadsounds = { { 0, "lambdaplayers/weapons/tf2/smg/smg_worldreload.mp3" } },
+        reloadsounds = { { 0, "weapons/smg_worldreload.wav" } },
 
         OnReload = function( self, wepent )
             self:RemoveGesture( ACT_HL2MP_GESTURE_RELOAD_SMG1 )

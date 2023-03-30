@@ -7,11 +7,12 @@ local FindInSphere = ents.FindInSphere
 local ipairs = ipairs
 local ParticleEffect = ParticleEffect
 local TraceLine = util.TraceLine
+
 local splashTrTbl = {
     mask = ( MASK_SHOT - CONTENTS_HITBOX ),
     collisiongroup = COLLISION_GROUP_PROJECTILE,
     filter = function( ent )
-        if ent:IsPlayer() or ent:IsNPC() or ent:IsNextBot() then return false end
+        if LAMBDA_TF2:IsValidCharacter( ent, false ) then return false end
     end
 }
 local angularImpulse = Vector( 0, 500, 0 )
@@ -21,24 +22,31 @@ local function OnJarExplode( self, colData, collider )
     self.l_TF_Detonated = true
 
     ParticleEffect( "peejar_impact", self:GetPos(), angle_zero )
-    self:EmitSound( "lambdaplayers/weapons/tf2/jarate/jar_explode.mp3", 85, nil, nil, CHAN_STATIC )
-
-    splashTrTbl.start = self:GetPos()
+    self:EmitSound( ")weapons/jar_explode.wav", 80, nil, nil, CHAN_STATIC )
     
     local owner = self:GetOwner()
+    local validOwner = IsValid( owner )
+
+    splashTrTbl.start = self:GetPos()
     local effectDuration = ( CurTime() + 10 )
+
     for _, ent in ipairs( FindInSphere( self:GetPos(), 200 ) ) do
-        if !LambdaIsValid( ent ) or !LAMBDA_TF2:IsValidCharacter( ent ) then continue end
+        if !IsValid( ent ) or !LAMBDA_TF2:IsValidCharacter( ent ) then continue end
 
         splashTrTbl.endpos = ent:GetPos()
         if TraceLine( splashTrTbl ).HitWorld then continue end
 
-        if ent.l_TF_IsBurning or ent:IsOnFire() then
-            ent:EmitSound( ")lambdaplayers/weapons/tf2/flame_out.mp3", nil, nil, nil, CHAN_STATIC )
+        if LAMBDA_TF2:IsBurning( ent ) then
+            ent:EmitSound( ")player/flame_out.wav", nil, nil, nil, CHAN_STATIC )
             LAMBDA_TF2:RemoveBurn( ent )
+            
+            if validOwner and ent != owner and !self.l_TF_DecreasedCooldown then
+                self.l_TF_DecreasedCooldown = true
+                LAMBDA_TF2:DecreaseInventoryCooldown( owner, "tf2_jarate", 4 )
+            end
         end
 
-        if ent != owner and owner:CanTarget( ent ) then
+        if !validOwner or ent != owner and owner:CanTarget( ent ) then
             ent.l_TF_CoveredInUrine = effectDuration
         end
     end
@@ -48,7 +56,7 @@ end
 
 table.Merge( _LAMBDAPLAYERSWEAPONS, {
     tf2_jarate = {
-        model = "models/lambdaplayers/weapons/tf2/w_jarate.mdl",
+        model = "models/lambdaplayers/tf2/weapons/w_jarate.mdl",
         origin = "Team Fortress 2",
         prettyname = "Jarate",
         holdtype = "grenade",
@@ -62,19 +70,18 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
 
         OnDeploy = function( self, wepent )
             LAMBDA_TF2:InitializeWeaponData( self, wepent )
-            wepent:EmitSound( "lambdaplayers/weapons/tf2/jarate/draw_jarate.mp3", nil, nil, nil, CHAN_STATIC )
+            wepent:EmitSound( "weapons/draw_jarate.wav", nil, nil, nil, CHAN_STATIC )
         end,
 
         OnThink = function( self, wepent, isdead )
-            if isdead then return end
+            if isdead or self:InCombat() then return end
 
-            if self.l_TF_IsBurning or self:IsOnFire() then
-                local selfPos = self:GetPos()
-                self:LookTo( selfPos, 1.0 )
-                self:SimpleWeaponTimer( 0.5, function() self:UseWeapon( selfPos ) end )
+            if LAMBDA_TF2:IsBurning( self ) then
+                self:LookTo( self, 1.0 )
+                self:SimpleWeaponTimer( 0.5, function() self:UseWeapon( self ) end )
             else
                 local extinguishTargets = self:FindInSphere( nil, 750, function( ent )
-                    return ( LambdaIsValid( ent ) and ( ent.l_TF_IsBurning or ent:IsOnFire() ) and LAMBDA_TF2:IsValidCharacter( ent ) and self:CanSee( ent ) )
+                    return ( LambdaIsValid( ent ) and LAMBDA_TF2:IsBurning( ent ) and LAMBDA_TF2:IsValidCharacter( ent ) and self:CanSee( ent ) )
                 end )
                 if #extinguishTargets > 0 then
                     local target = extinguishTargets[ random( #extinguishTargets ) ]
@@ -87,7 +94,8 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         end,
 
         OnAttack = function( self, wepent, target )
-            local throwAng = ( ( ( isvector( target ) and target or target:GetPos() ) - wepent:GetPos() ):Angle() )
+            local throwPos = ( isvector( target ) and target or target:GetPos() )
+            local throwAng = ( throwPos - wepent:GetPos() ):Angle()
             if self:GetForward():Dot( throwAng:Forward() ) <= 0.5 then self.l_WeaponUseCooldown = ( CurTime() + 0.1 ) return true end
 
             self.l_WeaponUseCooldown = ( CurTime() + 2 )
@@ -95,17 +103,18 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             self:RemoveGesture( ACT_HL2MP_GESTURE_RANGE_ATTACK_GRENADE )
             self:AddGesture( ACT_HL2MP_GESTURE_RANGE_ATTACK_GRENADE, true )
 
-            wepent:EmitSound( "lambdaplayers/weapons/tf2/jarate/jar_single.mp3", 84, nil, nil, CHAN_WEAPON )
-            
+            wepent:EmitSound( "weapons/jar_single.wav", 70, nil, nil, CHAN_ITEM )
+
             self:SimpleWeaponTimer( 0.25, function()
-                throwAng = ( isvector( target ) and target or ( IsValid( target ) and ( target:GetPos() - wepent:GetPos() ):Angle() or self:GetAngles() ) )
+                throwPos = ( isvector( target ) and target or ( IsValid( target ) and target:GetPos() or ( self:GetPos() + self:GetForward() * 500 ) ) )
+                throwAng = ( throwPos - wepent:GetPos() ):Angle()
 
                 self:ClientSideNoDraw( wepent, true )
                 wepent:SetNoDraw( true )
                 wepent:DrawShadow( false )
 
                 local jarate = ents_Create( "base_anim" )
-                jarate:SetModel( "models/lambdaplayers/weapons/tf2/w_jarate.mdl" )
+                jarate:SetModel( wepent:GetModel() )
                 jarate:SetPos( wepent:GetPos() )
                 jarate:SetAngles( throwAng )
                 jarate:SetOwner( self )
@@ -128,10 +137,11 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
                 end
 
                 jarate.l_TF_Detonated = false
+                jarate.l_TF_DecreasedCooldown = false
                 jarate.PhysicsCollide = OnJarExplode
 
+                LAMBDA_TF2:AddInventoryCooldown( self )
                 self:SimpleWeaponTimer( 0.8, function()
-                    LAMBDA_TF2:AddInventoryCooldown( self )
                     self:SwitchToLethalWeapon()
                 end )
             end )

@@ -2,7 +2,7 @@ local random = math.random
 
 table.Merge( _LAMBDAPLAYERSWEAPONS, {
     tf2_bottle = {
-        model = "models/lambdaplayers/weapons/tf2/w_bottle.mdl",
+        model = "models/lambdaplayers/tf2/weapons/w_bottle.mdl",
         origin = "Team Fortress 2",
         prettyname = "Bottle",
         holdtype = "melee",
@@ -20,9 +20,9 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
 
             wepent:SetWeaponAttribute( "IsMelee", true )
             wepent:SetWeaponAttribute( "HitSound", {
-                "lambdaplayers/weapons/tf2/melee/bottle_hit_flesh1.mp3",
-                "lambdaplayers/weapons/tf2/melee/bottle_hit_flesh2.mp3",
-                "lambdaplayers/weapons/tf2/melee/bottle_hit_flesh3.mp3"
+                "weapons/bottle_hit_flesh1.wav",
+                "weapons/bottle_hit_flesh2.wav",
+                "weapons/bottle_hit_flesh3.wav"
             } )
 
             wepent:SetWeaponAttribute( "PreHitCallback", function( lambda, weapon, target, dmginfo )
@@ -31,15 +31,15 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             end )
 
             wepent.l_TF_Broken = false
-            wepent:EmitSound( "lambdaplayers/weapons/tf2/draw_melee.mp3", 74, nil, 0.5, CHAN_WEAPON )
+            wepent:EmitSound( "weapons/draw_melee.wav", nil, nil, 0.5 )
         end,
 		
 		OnHolster = function( self, wepent )
             wepent.l_TF_Broken = false
 		    wepent:SetBodygroup( 0, 0 )
 		end,
-		
-		OnDeath = function( self, wepent )
+
+        OnDeath = function( self, wepent )
             wepent.l_TF_Broken = false
             self:SimpleWeaponTimer( 0.1, function() wepent:SetBodygroup( 0, 0 ) end, true )
 		end,
@@ -57,7 +57,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             if wepent.l_TF_Broken or !dmginfo:IsDamageType( DMG_CRITICAL ) then return end
             wepent.l_TF_Broken = true
             wepent:SetBodygroup( 0, 1 )
-            wepent:EmitSound( "lambdaplayers/weapons/tf2/melee/bottle_break.mp3", 70, random( 90, 110 ) )
+            wepent:EmitSound( "weapons/bottle_break.wav", 80, nil, nil, CHAN_WEAPON )
         end
     }
 } )

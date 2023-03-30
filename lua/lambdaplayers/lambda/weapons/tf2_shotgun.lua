@@ -1,9 +1,8 @@
 local random = math.random
-local coroutine_wait = coroutine.wait
 
 table.Merge( _LAMBDAPLAYERSWEAPONS, {
     tf2_shotgun = {
-        model = "models/lambdaplayers/weapons/tf2/w_shotgun.mdl",
+        model = "models/lambdaplayers/tf2/weapons/w_shotgun.mdl",
         origin = "Team Fortress 2",
         prettyname = "Shotgun",
         holdtype = "shotgun",
@@ -22,24 +21,24 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent:SetWeaponAttribute( "Damage", 4 )
             wepent:SetWeaponAttribute( "RateOfFire", { 0.625, 0.7 } )
             wepent:SetWeaponAttribute( "Animation", ACT_HL2MP_GESTURE_RANGE_ATTACK_SHOTGUN )
-            wepent:SetWeaponAttribute( "Sound", "lambdaplayers/weapons/tf2/shotgun/shotgun_shoot.mp3" )
+            wepent:SetWeaponAttribute( "Sound", ")weapons/shotgun_shoot.wav" )
+            wepent:SetWeaponAttribute( "CritSound", ")weapons/shotgun_shoot_crit.wav" )
             wepent:SetWeaponAttribute( "Spread", 0.0675 )
             wepent:SetWeaponAttribute( "ShellEject", false )
             wepent:SetWeaponAttribute( "ProjectileCount", 10 )
             wepent:SetWeaponAttribute( "DamageType", ( DMG_BUCKSHOT + DMG_USEDISTANCEMOD ) )
             wepent:SetWeaponAttribute( "FirstShotAccurate", true )
 
-            local rndDraw = random( 1, 3 )
-            wepent:EmitSound( "lambdaplayers/weapons/tf2/" .. ( rndDraw == 1 and "draw_secondary" or ( rndDraw == 2 and "draw_primary" or "shotgun/shotgun_draw_pyro" ) ) .. ".mp3", 60 )
+            wepent:EmitSound( random( 1, 4 ) != 1 and "weapons/draw_secondary.wav" or "weapons/draw_shotgun_pyro.wav", nil, nil, 0.5 )
         end,
 
         OnAttack = function( self, wepent, target )
             if LAMBDA_TF2:WeaponAttack( self, wepent, target ) then
                 self:SimpleWeaponTimer( 0.266, function()
-                    wepent:EmitSound( "lambdaplayers/weapons/tf2/shotgun/shotgun_cock_back.mp3", 70 )
+                    wepent:EmitSound( "weapons/shotgun_cock_back.wav", 70, nil, nil, CHAN_STATIC )
                 end )
                 self:SimpleWeaponTimer( 0.416, function()
-                    wepent:EmitSound( "lambdaplayers/weapons/tf2/shotgun/shotgun_cock_forward.mp3", 70 )
+                    wepent:EmitSound( "weapons/shotgun_cock_forward.wav", 70, nil, nil, CHAN_STATIC )
                     LAMBDA_TF2:CreateShellEject( wepent, "ShotgunShellEject" )
                 end )
             end
@@ -48,58 +47,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         end,
 
         OnReload = function( self, wepent )
-            self:RemoveGesture( ACT_HL2MP_GESTURE_RELOAD_AR2 )
-            local reloadLayer = self:AddGesture( ACT_HL2MP_GESTURE_RELOAD_AR2 )
-
-            self:SetIsReloading( true )
-            self:Thread( function()
-                coroutine_wait( 0.4 )
-
-                local interupted = false
-                while ( self.l_Clip < self.l_MaxClip ) do
-                    interupted = ( self.l_Clip > 0 and random( 1, 2 ) == 1 and self:InCombat() and self:IsInRange( self:GetEnemy(), 512 ) and self:CanSee( self:GetEnemy() ) )
-                    if interupted then break end
-
-                    if !self:IsValidLayer( reloadLayer ) then
-                        reloadLayer = self:AddGesture( ACT_HL2MP_GESTURE_RELOAD_AR2 )
-                    end                    
-                    self:SetLayerCycle( reloadLayer, 0.2 )
-                    self:SetLayerPlaybackRate( reloadLayer, 1.6 )
-                    
-                    self.l_Clip = self.l_Clip + 1
-                    wepent:EmitSound( "lambdaplayers/weapons/tf2/shotgun/shotgun_reload.mp3", 70 )
-                    coroutine_wait( 0.5 )
-                end
-
-                if !interupted then
-                    local cockBack, cockForward
-                    local randEnd = random( 1, 4 )
-                    if randEnd == 1 then
-                        cockBack = ( 12 / 35 )
-                        cockForward = ( 17 / 35 )
-                    elseif randEnd == 2 then
-                        cockBack = ( 10 / 35 )
-                        cockForward = ( 15 / 35 )
-                    elseif randEnd == 3 then
-                        cockBack = ( 12 / 30 )
-                        cockForward = ( 16 / 30 )
-                    else
-                        cockBack = ( 7 / 30 )
-                        cockForward = ( 11 / 30 )
-                    end
-
-                    self:SimpleWeaponTimer( cockBack, function()
-                        wepent:EmitSound( "lambdaplayers/weapons/tf2/shotgun/shotgun_cock_back.mp3", 70 )
-                    end )
-                    self:SimpleWeaponTimer( cockForward, function()
-                        wepent:EmitSound( "lambdaplayers/weapons/tf2/shotgun/shotgun_cock_forward.mp3", 70 )
-                    end )
-                end
-
-                self:RemoveGesture( ACT_HL2MP_GESTURE_RELOAD_AR2 )
-                self:SetIsReloading( false )
-            end, "TF2_ShotgunReload" )
-
+            LAMBDA_TF2:ShotgunReload( self, wepent )
             return true
         end
     }

@@ -1,6 +1,6 @@
 table.Merge( _LAMBDAPLAYERSWEAPONS, {
     tf2_paintrain = {
-        model = "models/lambdaplayers/weapons/tf2/w_paintrain.mdl",
+        model = "models/lambdaplayers/tf2/weapons/w_paintrain.mdl",
         origin = "Team Fortress 2",
         prettyname = "Pain Train",
         holdtype = "melee",
@@ -17,19 +17,20 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             LAMBDA_TF2:InitializeWeaponData( self, wepent )
 
             wepent:SetWeaponAttribute( "IsMelee", true )
-            wepent:SetWeaponAttribute( "Sound", { 
-                "lambdaplayers/weapons/tf2/melee/pickaxe_swing1.mp3", 
-                "lambdaplayers/weapons/tf2/melee/pickaxe_swing2.mp3", 
-                "lambdaplayers/weapons/tf2/melee/pickaxe_swing3.mp3" 
+            wepent:SetWeaponAttribute( "Sound", {
+                ")weapons/pickaxe_swing1.wav",
+                ")weapons/pickaxe_swing2.wav",
+                ")weapons/pickaxe_swing3.wav"
             } )
-            wepent:SetWeaponAttribute( "HitSound", { 
-                "lambdaplayers/weapons/tf2/melee/blade_slice_2.mp3", 
-                "lambdaplayers/weapons/tf2/melee/blade_slice_3.mp3", 
-                "lambdaplayers/weapons/tf2/melee/blade_slice_4.mp3" 
+            wepent:SetWeaponAttribute( "CritSound", ")weapons/pickaxe_swing_crit.wav" )
+            wepent:SetWeaponAttribute( "HitSound", {
+                "weapons/blade_slice_2.wav",
+                "weapons/blade_slice_3.wav",
+                "weapons/blade_slice_4.wav"
             } )
             wepent:SetWeaponAttribute( "DamageType", DMG_SLASH )
 
-            wepent:EmitSound( "lambdaplayers/weapons/tf2/draw_melee.mp3", 74, nil, 0.5, CHAN_WEAPON )
+            wepent:EmitSound( "weapons/draw_shovel_soldier.wav" )
         end,
 
         OnAttack = function( self, wepent, target )

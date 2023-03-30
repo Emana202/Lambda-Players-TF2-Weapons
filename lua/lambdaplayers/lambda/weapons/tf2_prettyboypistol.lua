@@ -2,7 +2,7 @@ local Clamp = math.Clamp
 
 table.Merge( _LAMBDAPLAYERSWEAPONS, {
     tf2_prettyboypistol = {
-        model = "models/lambdaplayers/weapons/tf2/w_pep_pistol.mdl",
+        model = "models/lambdaplayers/tf2/weapons/w_pep_pistol.mdl",
         origin = "Team Fortress 2",
         prettyname = "Pretty Boy's Pocket Pistol",
         holdtype = "revolver",
@@ -21,13 +21,14 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent:SetWeaponAttribute( "Damage", 9 )
             wepent:SetWeaponAttribute( "RateOfFire", 0.1275 )
             wepent:SetWeaponAttribute( "Animation", ACT_HL2MP_GESTURE_RANGE_ATTACK_PISTOL )
-            wepent:SetWeaponAttribute( "Sound", "lambdaplayers/weapons/tf2/pistol/doom_scout_pistol.mp3" )
+            wepent:SetWeaponAttribute( "Sound", ")weapons/doom_scout_pistol.wav" )
+            wepent:SetWeaponAttribute( "CritSound", ")weapons/doom_scout_pistol_crit.wav" )
             wepent:SetWeaponAttribute( "Spread", 0.04 )
             wepent:SetWeaponAttribute( "FirstShotAccurate", true )
-            wepent:SetWeaponAttribute( "IsRapidFire", true )
+            wepent:SetWeaponAttribute( "UseRapidFireCrits", true )
             wepent:SetWeaponAttribute( "DamageType", DMG_USEDISTANCEMOD )
 
-            wepent:EmitSound( "lambdaplayers/weapons/tf2/draw_secondary.mp3", 60  )
+            wepent:EmitSound( "weapons/draw_secondary.wav", nil, nil, 0.5 )
         end,
 
         OnAttack = function( self, wepent, target )
@@ -43,6 +44,6 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         reloadtime = 1.02,
         reloadanim = ACT_HL2MP_GESTURE_RELOAD_PISTOL,
         reloadanimspeed = 1.5,
-        reloadsounds = { { 0, "lambdaplayers/weapons/tf2/pistol/pistol_worldreload.mp3" } }
+        reloadsounds = { { 0, "weapons/pistol_worldreload.wav" } }
     }
 } )

@@ -2,7 +2,7 @@ local random = math.random
 
 table.Merge( _LAMBDAPLAYERSWEAPONS, {
     tf2_pistol = {
-        model = "models/lambdaplayers/weapons/tf2/w_pistol.mdl",
+        model = "models/lambdaplayers/tf2/weapons/w_pistol.mdl",
         origin = "Team Fortress 2",
         prettyname = "Pistol",
         holdtype = "pistol",
@@ -21,16 +21,16 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent:SetWeaponAttribute( "Damage", 9 )
             wepent:SetWeaponAttribute( "RateOfFire", 0.15 )
             wepent:SetWeaponAttribute( "Animation", ACT_HL2MP_GESTURE_RANGE_ATTACK_PISTOL )
-            wepent:SetWeaponAttribute( "Sound", "lambdaplayers/weapons/tf2/pistol/pistol_shoot.mp3" )
+            wepent:SetWeaponAttribute( "Sound", ")weapons/pistol_shoot.wav" )
+            wepent:SetWeaponAttribute( "CritSound", ")weapons/pistol_shoot_crit.wav" )
             wepent:SetWeaponAttribute( "Spread", 0.04 )
             wepent:SetWeaponAttribute( "FirstShotAccurate", true )
-            wepent:SetWeaponAttribute( "IsRapidFire", true )
+            wepent:SetWeaponAttribute( "UseRapidFireCrits", true )
             wepent:SetWeaponAttribute( "DamageType", DMG_USEDISTANCEMOD )
 
-            wepent:EmitSound( "lambdaplayers/weapons/tf2/draw_secondary.mp3", 60  )
-            
-            local holdtype = ( random( 1, 2 ) == 1 and "pistol" or "revolver" )
-            if holdtype == "revolver" then wepent:EmitSound( "lambdaplayers/weapons/tf2/pistol/pistol_draw_engineer.mp3", 60 ) end 
+            wepent:EmitSound( "weapons/draw_secondary.wav", nil, nil, 0.5 )
+            local holdtype = ( random( 2 ) == 1 and "pistol" or "revolver" )
+            if holdtype == "pistol" then wepent:EmitSound( "weapons/draw_pistol_engineer.wav", nil, nil, 0.5, CHAN_STATIC ) end 
             self.l_HoldType = holdtype
         end,
 
@@ -42,6 +42,6 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         reloadtime = 1.02,
         reloadanim = ACT_HL2MP_GESTURE_RELOAD_PISTOL,
         reloadanimspeed = 1.5,
-        reloadsounds = { { 0, "lambdaplayers/weapons/tf2/pistol/pistol_worldreload.mp3" } }
+        reloadsounds = { { 0, "weapons/pistol_worldreload.wav" } }
     }
 } )

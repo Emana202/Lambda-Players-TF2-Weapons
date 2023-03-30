@@ -45,7 +45,13 @@ local function OnPhysicsCollide( self, colData, collider )
             LAMBDA_TF2:RadiusDamageInfo( dmginfo, hitPos, 150, hitEnt )
         end
 
-        self:EmitSound( ")lambdaplayers/weapons/tf2/explode" .. random( 1, 3 ) .. ".mp3", 85, 100, 1.0, CHAN_WEAPON )
+        local trail = self.l_Trail
+        if IsValid( trail ) then
+            trail:SetParent()
+            SafeRemoveEntityDelayed( trail, 1 )
+        end
+
+        self:EmitSound( ")lambdaplayers/tf2/explode" .. random( 3 ) .. ".mp3", 95, nil, nil, CHAN_WEAPON )
         self:Remove()
         return
     end
@@ -56,13 +62,13 @@ local function OnPhysicsCollide( self, colData, collider )
     end
 
     if colData.Speed >= 100 then
-        self:EmitSound( "lambdaplayers/weapons/tf2/grenadelauncher/grenade_impact" .. random( 1, 3 ) .. ".mp3", 74, 100, 1, CHAN_STATIC )
+        self:EmitSound( "BaseGrenade.BounceSound" )
     end
 end
 
 table.Merge( _LAMBDAPLAYERSWEAPONS, {
     tf2_grenadelauncher = {
-        model = "models/lambdaplayers/weapons/tf2/w_grenade_launcher.mdl",
+        model = "models/lambdaplayers/tf2/weapons/w_grenade_launcher.mdl",
         origin = "Team Fortress 2",
         prettyname = "Grenade Launcher",
         holdtype = "shotgun",
@@ -82,11 +88,12 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent:SetWeaponAttribute( "Damage", 60 )
             wepent:SetWeaponAttribute( "RateOfFire", { 0.6, 1.0 } )
             wepent:SetWeaponAttribute( "Animation", ACT_HL2MP_GESTURE_RANGE_ATTACK_CROSSBOW )
-            wepent:SetWeaponAttribute( "Sound", "lambdaplayers/weapons/tf2/grenadelauncher/grenade_launcher_shoot.mp3" )
+            wepent:SetWeaponAttribute( "Sound", "Weapon_GrenadeLauncher.Single" )
+            wepent:SetWeaponAttribute( "CritSound", "Weapon_GrenadeLauncher.SingleCrit" )
             wepent:SetWeaponAttribute( "MuzzleFlash", false )
             wepent:SetWeaponAttribute( "ShellEject", false )
 
-            wepent:EmitSound( "lambdaplayers/weapons/tf2/draw_primary.mp3", 60 )
+            wepent:EmitSound( "Weapon_GrenadeLauncher.Draw" )
         end,
 
         OnAttack = function( self, wepent, target )
@@ -105,12 +112,12 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             local pipe = ents_Create( "base_anim" )
             if !IsValid( pipe ) then return true end
             
-            self:SimpleWeaponTimer( 11 / 30, function() wepent:EmitSound( "lambdaplayers/weapons/tf2/grenadelauncher/grenade_launcher_drum_start.mp3", 75, 100, 0.4, CHAN_STATIC ) end )
-            self:SimpleWeaponTimer( 16 / 30, function() wepent:EmitSound( "lambdaplayers/weapons/tf2/grenadelauncher/grenade_launcher_drum_start.mp3", 75, 100, 0.4, CHAN_STATIC ) end )
+            self:SimpleWeaponTimer( 0.366667, function() wepent:EmitSound( "weapons/grenade_launcher_drum_start.wav", nil, nil, 0.4, CHAN_STATIC ) end )
+            self:SimpleWeaponTimer( 0.533333, function() wepent:EmitSound( "weapons/grenade_launcher_drum_start.wav", nil, nil, 0.4, CHAN_STATIC ) end )
 
             pipe:SetPos( spawnPos )
             pipe:SetAngles( spawnAng )
-            pipe:SetModel( "models/lambdaplayers/weapons/tf2/w_grenade_launcher_proj.mdl" )
+            pipe:SetModel( "models/weapons/w_models/w_grenade_grenadelauncher.mdl" )
             pipe:SetOwner( self )
             pipe:Spawn()
 
@@ -127,31 +134,25 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
                 phys:AddAngleVelocity( Vector( 600, random( -1200, 1200 ), 0 ) )
             end
 
-            local plyColor = self:GetPlyColor()
-            net.Start( "lambdaplayers_serversideragdollplycolor" )
-                net.WriteEntity( pipe )
-                net.WriteVector( plyColor )
-            net.Broadcast()
-
             pipe.l_HasTouched = false
             pipe.l_IsTF2PipeBomb = true
             pipe.PhysicsCollide = OnPhysicsCollide
             pipe.l_ExplodeDamage = wepent:GetWeaponAttribute( "Damage" )
 
-            pipe.l_TF_ExplodeCrit = ( wepent:CalcIsAttackCriticalHelper() and 2 or ( self.l_TF_MiniCritBoosted and 1 or 0 ) )
-            if pipe.l_TF_ExplodeCrit == 2 then
-                pipe:SetMaterial( "models/shiny" )
-                pipe:EmitSound( "lambdaplayers/weapons/tf2/crits/crit_shoot.mp3", 75, random( 90, 110 ), 1.0, CHAN_STATIC )
-                
-                pipe:SetColor( plyColor:ToColor() )
-                SpriteTrail( pipe, 0, plyColor:ToColor(), true, 15, 7.5, 1, ( 1 / ( 15 + 7.5 ) * 0.5 ), "trails/laser" )
-            else
-                if pipe.l_TF_ExplodeCrit == 1 then
-                    pipe:SetMaterial( "lambdaplayers/models/weapons/tf2/criteffects/minicrit" )
-                end
+            local critType = LAMBDA_TF2:GetCritBoost( self )
+            if wepent:CalcIsAttackCriticalHelper() then critType = CRIT_FULL end
+            pipe.l_TF_ExplodeCrit = critType
 
-                SpriteTrail( pipe, 0, plyColor:ToColor(), true, 8.5, 4.25, 0.33, ( 1 / ( 8.5 + 4.25 ) * 0.5 ), "trails/laser" )
-            end
+            local plyColor = self:GetPlyColor():ToColor()
+            if critType == CRIT_FULL then
+                pipe:SetMaterial( "models/shiny" )
+                pipe:SetColor( plyColor )
+            elseif critType == CRIT_MINI then
+                pipe:SetMaterial( "lambdaplayers/models/weapons/tf2/criteffects/minicrit" )
+            end                
+        
+            local trail = LAMBDA_TF2:CreateSpriteTrailEntity( plyColor, nil, ( critType == CRIT_FULL and 15 or 7.5 ), ( critType == CRIT_FULL and 7.5 or 4.25 ), ( critType == CRIT_FULL and 1 or 0.5 ), "trails/laser", pipe:WorldSpaceCenter(), pipe )
+            pipe.l_Trail = trail
 
             SimpleTimer( 2.0, function()
                 if !IsValid( pipe ) then return end
@@ -181,7 +182,12 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
                     LAMBDA_TF2:RadiusDamageInfo( dmginfo, pipePos, 150 )
                 end
 
-                pipe:EmitSound( ")lambdaplayers/weapons/tf2/explode" .. random( 1, 3 ) .. ".mp3", 85, 100, 1.0, CHAN_WEAPON )
+                if IsValid( trail ) then
+                    trail:SetParent()
+                    SafeRemoveEntityDelayed( trail, 1 )
+                end
+
+                pipe:EmitSound( ")lambdaplayers/tf2/explode" .. random( 3 ) .. ".mp3", 85, nil, nil, CHAN_WEAPON )
                 pipe:Remove()
             end )
 
@@ -189,42 +195,21 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         end,
 
         OnReload = function( self, wepent )
-            self:RemoveGesture( ACT_HL2MP_GESTURE_RELOAD_AR2 )
-            local reloadLayer = self:AddGesture( ACT_HL2MP_GESTURE_RELOAD_AR2 )
-
-            self:SetIsReloading( true )
-            self:Thread( function()
-                
-                wepent:EmitSound( "lambdaplayers/weapons/tf2/grenadelauncher/grenade_launcher_drum_open.mp3", 75, 100, 1.0, CHAN_STATIC )
-                self:SimpleWeaponTimer( 0.64, function() wepent:EmitSound( "lambdaplayers/weapons/tf2/grenadelauncher/grenade_launcher_drum_load.mp3", 75, 100, 1.0, CHAN_STATIC ) end )
-
-                coroutine.wait( 1.24 )
-                self.l_Clip = self.l_Clip + 1
-
-                local interrupted = false
-                while ( self.l_Clip < self.l_MaxClip ) do
-                    interrupted = ( self.l_Clip > 0 and random( 1, 2 ) == 1 and self:InCombat() and self:IsInRange( self:GetEnemy(), 700 ) and self:CanSee( self:GetEnemy() ) ) 
-                    if interrupted then break end
-
-                    if !self:IsValidLayer( reloadLayer ) then
-                        reloadLayer = self:AddGesture( ACT_HL2MP_GESTURE_RELOAD_AR2 )
-                    end                    
-                    self:SetLayerCycle( reloadLayer, 0.2 )
-                    self:SetLayerPlaybackRate( reloadLayer, 1.5 )
-                    
-                    self.l_Clip = self.l_Clip + 1
-                    wepent:EmitSound( "lambdaplayers/weapons/tf2/grenadelauncher/grenade_launcher_drum_load.mp3", 75, 100, 1.0, CHAN_STATIC )
-                    coroutine.wait( 0.6 )
-                end
-
-                if !interrupted then
-                    wepent:EmitSound( "lambdaplayers/weapons/tf2/grenadelauncher/grenade_launcher_drum_close.mp3", 75, 100, 1.0, CHAN_STATIC )
-                end
-                
-                self:RemoveGesture( ACT_HL2MP_GESTURE_RELOAD_AR2 )
-                self:SetIsReloading( false )
-            
-            end, "TF2_RPGReload" )
+            LAMBDA_TF2:ShotgunReload( self, wepent, {
+                StartSound = "weapons/grenade_launcher_drum_open.wav",
+                StartDelay = 1.24,
+                StartFunction = function( lambda, weapon )
+                    lambda:SimpleWeaponTimer( 0.64, function() 
+                        lambda.l_Clip = ( lambda.l_Clip + 1 )
+                        weapon:EmitSound( "weapons/grenade_launcher_drum_load.wav" ) 
+                    end )
+                end,
+                CycleSound = "weapons/grenade_launcher_drum_load.wav",
+                CycleDelay = 0.6,
+                EndSound = "weapons/grenade_launcher_drum_close.wav",
+                EndFunction = false,
+                LayerPlayRate = 1.5
+            } )
 
             return true
         end

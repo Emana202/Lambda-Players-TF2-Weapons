@@ -1,9 +1,6 @@
-local min = math.min
-local FrameTime = FrameTime
-
 table.Merge( _LAMBDAPLAYERSWEAPONS, {
     tf2_pro_smg = {
-        model = "models/lambdaplayers/weapons/tf2/w_pro_smg.mdl",
+        model = "models/lambdaplayers/tf2/weapons/w_pro_smg.mdl",
         origin = "Team Fortress 2",
         prettyname = "Cleaner's Carbine",
         holdtype = {
@@ -31,26 +28,22 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent:SetWeaponAttribute( "Damage", 5 )
             wepent:SetWeaponAttribute( "RateOfFire", 0.13125 )
             wepent:SetWeaponAttribute( "Animation", ACT_HL2MP_GESTURE_RANGE_ATTACK_SMG1 )
-            wepent:SetWeaponAttribute( "Sound", "lambdaplayers/weapons/tf2/smg/doom_sniper_smg.mp3" )
+            wepent:SetWeaponAttribute( "Sound", ")weapons/doom_sniper_smg.wav" )
+            wepent:SetWeaponAttribute( "CritSound", ")weapons/doom_sniper_smg_crit.wav" )
             wepent:SetWeaponAttribute( "Spread", 0.025 )
             wepent:SetWeaponAttribute( "FirstShotAccurate", true )
-            wepent:SetWeaponAttribute( "IsRapidFire", true )
+            wepent:SetWeaponAttribute( "UseRapidFireCrits", true )
             wepent:SetWeaponAttribute( "DamageType", DMG_USEDISTANCEMOD )
             wepent:SetWeaponAttribute( "RandomCrits", false )
 
             wepent:SetWeaponAttribute( "BulletCallback", function( lambda, weapon, tr, dmginfo )
-                if wepent.l_TF_MiniCritBoostFull and !wepent.l_TF_MiniCritBoostActive and !lambda.l_TF_MiniCritBoosted then
-                    wepent.l_TF_MiniCritBoostMeter = 0
-                    wepent.l_TF_MiniCritBoostFull = false
-                    wepent.l_TF_MiniCritBoostActive = true
-                    lambda.l_TF_MiniCritBoosted = CurTime() + 8
-                end
+                if !lambda.l_TF_CrikeyMeterFull or LAMBDA_TF2:GetCritBoost( lambda ) != CRIT_NONE then return end
+                lambda.l_TF_CrikeyMeter = 0
+                lambda.l_TF_CrikeyMeterFull = false
+                LAMBDA_TF2:AddCritBoost( lambda, "CRIKEY", CRIT_MINI, 8 )
             end )
 
-            wepent.l_TF_MiniCritBoostMeter = 0
-            wepent.l_TF_MiniCritBoostFull = false
-            wepent.l_TF_MiniCritBoostActive = false
-            wepent:EmitSound( "lambdaplayers/weapons/tf2/draw_secondary.mp3", 60 )
+            wepent:EmitSound( "weapons/draw_secondary.wav", nil, nil, 0.5 )
         end,
 
         OnAttack = function( self, wepent, target )
@@ -59,24 +52,17 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         end,
 
         OnDealDamage = function( self, wepent, target, dmginfo, tookDamage )
-            if !tookDamage or wepent.l_TF_MiniCritBoostFull or wepent.l_TF_MiniCritBoostActive then return end
-            wepent.l_TF_MiniCritBoostMeter = ( wepent.l_TF_MiniCritBoostMeter + dmginfo:GetDamage() )
-            
-            if wepent.l_TF_MiniCritBoostMeter >= 100 then
-                wepent.l_TF_MiniCritBoostMeter = 100
-                wepent.l_TF_MiniCritBoostFull = true
-                wepent:EmitSound( "lambdaplayers/weapons/tf2/recharged.mp3", 70, 100, 0.5, CHAN_STATIC )
-            end
-        end,
+            if !tookDamage or LAMBDA_TF2:GetCritBoost( self, "CRIKEY" ) != CRIT_NONE then return end
+            self.l_TF_CrikeyMeter = ( self.l_TF_CrikeyMeter + dmginfo:GetDamage() )
 
-        OnThink = function( self, wepent, dead )
-            if wepent.l_TF_MiniCritBoostActive and !self.l_TF_MiniCritBoosted then
-                wepent.l_TF_MiniCritBoostActive = false
+            if self.l_TF_CrikeyMeter >= 100 and !self.l_TF_CrikeyMeterFull then
+                self.l_TF_CrikeyMeterFull = true
+                wepent:EmitSound( "player/recharged.wav", 65, nil, nil, CHAN_STATIC )
             end
         end,
 
         reloadtime = 1.1,
-        reloadsounds = { { 0, "lambdaplayers/weapons/tf2/smg/smg_worldreload.mp3" } },
+        reloadsounds = { { 0, "weapons/smg_worldreload.wav" } },
 
         OnReload = function( self, wepent )
             self:RemoveGesture( ACT_HL2MP_GESTURE_RELOAD_SMG1 )

@@ -1,6 +1,6 @@
 table.Merge( _LAMBDAPLAYERSWEAPONS, {
     tf2_shovel = {
-        model = "models/lambdaplayers/weapons/tf2/w_shovel.mdl",
+        model = "models/lambdaplayers/tf2/weapons/w_shovel.mdl",
         origin = "Team Fortress 2",
         prettyname = "Shovel",
         holdtype = "melee",
@@ -17,10 +17,15 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             LAMBDA_TF2:InitializeWeaponData( self, wepent )
 
             wepent:SetWeaponAttribute( "IsMelee", true )
-            wepent:SetWeaponAttribute( "Sound", "lambdaplayers/weapons/tf2/melee/shovel_swing.mp3" )
+            wepent:SetWeaponAttribute( "Sound", ")weapons/shovel_swing.wav" )
+            wepent:SetWeaponAttribute( "CritSound", ")weapons/shovel_swing_crit.wav" )
+            wepent:SetWeaponAttribute( "HitSound", {
+                ")weapons/axe_hit_flesh1.wav",
+                ")weapons/axe_hit_flesh2.wav",
+                ")weapons/axe_hit_flesh3.wav"
+            } )
 
-            wepent:EmitSound( "lambdaplayers/weapons/tf2/draw_melee.mp3", 74, 100, 0.5 )
-            wepent:EmitSound( "lambdaplayers/weapons/tf2/melee/shovel_draw.mp3", 74, 100, 0.5 )
+            wepent:EmitSound( "weapons/draw_shovel_soldier.wav" )
         end,
         
 		OnAttack = function( self, wepent, target )

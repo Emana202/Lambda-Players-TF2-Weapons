@@ -1,6 +1,6 @@
 table.Merge( _LAMBDAPLAYERSWEAPONS, {
     tf2_bostonbasher = {
-        model = "models/lambdaplayers/weapons/tf2/w_boston_basher.mdl",
+        model = "models/lambdaplayers/tf2/weapons/w_boston_basher.mdl",
         origin = "Team Fortress 2",
         prettyname = "Boston Basher",
         holdtype = "melee",
@@ -19,11 +19,22 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent:SetWeaponAttribute( "IsMelee", true )
             wepent:SetWeaponAttribute( "Damage", 20 )
             wepent:SetWeaponAttribute( "RateOfFire", 0.5 )
-            wepent:SetWeaponAttribute( "HitSound", { 
-                "lambdaplayers/weapons/tf2/melee/eviction_notice_01.mp3",
-                "lambdaplayers/weapons/tf2/melee/eviction_notice_02.mp3",
-                "lambdaplayers/weapons/tf2/melee/eviction_notice_03.mp3",
-                "lambdaplayers/weapons/tf2/melee/eviction_notice_04.mp3"
+            wepent:SetWeaponAttribute( "Sound", {
+                "weapons/boxing_gloves_swing1.wav",
+                "weapons/boxing_gloves_swing2.wav",
+                "weapons/boxing_gloves_swing4.wav"
+            } )
+            wepent:SetWeaponAttribute( "HitSound", {
+                ")weapons/eviction_notice_01.wav",
+                ")weapons/eviction_notice_02.wav",
+                ")weapons/eviction_notice_03.wav",
+                ")weapons/eviction_notice_04.wav"
+            } )
+            wepent:SetWeaponAttribute( "HitCritSound", {
+                ")weapons/eviction_notice_01_crit.wav",
+                ")weapons/eviction_notice_02_crit.wav",
+                ")weapons/eviction_notice_03_crit.wav",
+                ")weapons/eviction_notice_04_crit.wav"
             } )
             wepent:SetWeaponAttribute( "BleedingDuration", 5 )
             wepent:SetWeaponAttribute( "DamageType", DMG_SLASH )
@@ -33,10 +44,10 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
                 lambda:TakeDamageInfo( dmginfo )
             end )
 
-            wepent:EmitSound( "lambdaplayers/weapons/tf2/melee/bat_draw.mp3", 75, 100, 0.5 )
-            self:SimpleWeaponTimer( ( 8 / 30 ), function() wepent:EmitSound( "lambdaplayers/weapons/tf2/melee/bat_draw_swoosh2.mp3", 75, 100, 0.45, CHAN_STATIC ) end )
-            self:SimpleWeaponTimer( ( 16 / 30 ), function() wepent:EmitSound( "lambdaplayers/weapons/tf2/melee/bat_draw_swoosh1.mp3", 75, 100, 0.45, CHAN_STATIC ) end )
-            self:SimpleWeaponTimer( ( 20 / 30 ), function() wepent:EmitSound( "lambdaplayers/weapons/tf2/melee/metal_hit_hand1.mp3", 75, 100, 1, CHAN_WEAPON ) end )
+            wepent:EmitSound( "weapons/bat_draw.wav", nil, nil, 0.5 )
+            self:SimpleWeaponTimer( 0.266667, function() wepent:EmitSound( "weapons/bat_draw_swoosh1.wav", nil, nil, 0.45, CHAN_STATIC ) end )
+            self:SimpleWeaponTimer( 0.533333, function() wepent:EmitSound( "weapons/bat_draw_swoosh2.wav", nil, nil, 0.45, CHAN_STATIC ) end )
+            self:SimpleWeaponTimer( 0.666667, function() wepent:EmitSound( "weapons/metal_hit_hand1.wav", nil, nil, nil, CHAN_WEAPON ) end )
         end,
         
 		OnAttack = function( self, wepent, target )

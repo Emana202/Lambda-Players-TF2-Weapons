@@ -1,6 +1,6 @@
 table.Merge( _LAMBDAPLAYERSWEAPONS, {
     tf2_wrench = {
-        model = "models/lambdaplayers/weapons/tf2/w_wrench.mdl",
+        model = "models/lambdaplayers/tf2/weapons/w_wrench.mdl",
         origin = "Team Fortress 2",
         prettyname = "Wrench",
         holdtype = "melee",
@@ -17,10 +17,14 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             LAMBDA_TF2:InitializeWeaponData( self, wepent )
 
             wepent:SetWeaponAttribute( "IsMelee", true )
-            wepent:SetWeaponAttribute( "Sound", "lambdaplayers/weapons/tf2/melee/wrench_swing.mp3" )
+            wepent:SetWeaponAttribute( "Sound", "weapons/wrench_swing.wav" )
+            wepent:SetWeaponAttribute( "CritSound", ")weapons/wrench_swing_crit.wav" )
 
-            wepent:EmitSound( "lambdaplayers/weapons/tf2/melee/wrench_draw.mp3", 74, 100, 0.5 )
-            wepent:EmitSound( "lambdaplayers/weapons/tf2/draw_melee.mp3", 74, 100, 0.5 )
+            wepent:EmitSound( "weapons/draw_primary.wav", nil, nil, 0.5 )
+            wepent:EmitSound( "weapons/draw_wrench_engineer.wav", nil, nil, nil, CHAN_STATIC )
+            self:SimpleWeaponTimer( 0.666667, function()
+                wepent:EmitSound( "weapons/metal_hit_hand" .. math.random( 1, 3 ) .. ".wav", nil, nil, 0.1 )
+            end )
         end,
         
 		OnAttack = function( self, wepent, target )

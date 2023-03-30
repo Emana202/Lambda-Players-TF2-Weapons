@@ -1,6 +1,6 @@
 table.Merge( _LAMBDAPLAYERSWEAPONS, {
     tf2_bonesaw = {
-        model = "models/lambdaplayers/weapons/tf2/w_bonesaw.mdl",
+        model = "models/lambdaplayers/tf2/weapons/w_bonesaw.mdl",
         origin = "Team Fortress 2",
         prettyname = "Bonesaw",
         holdtype = "knife",
@@ -19,7 +19,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent:SetWeaponAttribute( "IsMelee", true )
             wepent:SetWeaponAttribute( "DamageType", DMG_SLASH )
 
-            wepent:EmitSound( "lambdaplayers/weapons/tf2/draw_melee.mp3", 74, 100, 0.5 )
+            wepent:EmitSound( "weapons/draw_melee.wav", nil, nil, 0.5 )
         end,
         
 		OnAttack = function( self, wepent, target )

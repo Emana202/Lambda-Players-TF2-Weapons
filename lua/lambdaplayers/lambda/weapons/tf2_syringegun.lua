@@ -67,7 +67,7 @@ end
 
 table.Merge( _LAMBDAPLAYERSWEAPONS, {
     tf2_syringegun = {
-        model = "models/lambdaplayers/weapons/tf2/w_syringegun.mdl",
+        model = "models/lambdaplayers/tf2/weapons/w_syringegun.mdl",
         origin = "Team Fortress 2",
         prettyname = "Syringe Gun",
         holdtype = "ar2",
@@ -87,13 +87,14 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent:SetWeaponAttribute( "Damage", 6 )
             wepent:SetWeaponAttribute( "RateOfFire", 0.105 )
             wepent:SetWeaponAttribute( "Animation", ACT_HL2MP_GESTURE_RANGE_ATTACK_SMG1 )
-            wepent:SetWeaponAttribute( "Sound", "lambdaplayers/weapons/tf2/syringegun/syringegun_shoot.mp3" )
+            wepent:SetWeaponAttribute( "Sound", ")weapons/syringegun_shoot.wav" )
+            wepent:SetWeaponAttribute( "CritSound", ")weapons/syringegun_shoot_crit.wav" )
             wepent:SetWeaponAttribute( "MuzzleFlash", false )
             wepent:SetWeaponAttribute( "ShellEject", false )
-            wepent:SetWeaponAttribute( "IsRapidFire", true )
+            wepent:SetWeaponAttribute( "UseRapidFireCrits", true )
 
             wepent:SetSkin( random( 0, 1 ) )
-            wepent:EmitSound( "lambdaplayers/weapons/tf2/draw_secondary.mp3", 60 )
+            wepent:EmitSound( "weapons/draw_primary.wav", nil, nil, 0.5 )
         end,
 
         OnAttack = function( self, wepent, target )
@@ -112,7 +113,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
 
             syringe:SetPos( spawnPos )
             syringe:SetAngles( spawnAng )
-            syringe:SetModel( "models/lambdaplayers/weapons/tf2/w_syringegun_proj.mdl" )
+            syringe:SetModel( "models/weapons/w_models/w_syringe_proj.mdl" )
             syringe:SetOwner( self )
             syringe:Spawn()
 
@@ -123,12 +124,6 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             syringe:SetVelocity( spawnAng:Forward() * 990 )
             LAMBDA_TF2:TakeNoDamage( syringe )
 
-            local plyColor = self:GetPlyColor()
-            net.Start( "lambdaplayers_serversideragdollplycolor" )
-                net.WriteEntity( syringe )
-                net.WriteVector( plyColor )
-            net.Broadcast()
-
             syringe.l_IsTF2Syringe = true
             syringe.l_Stopped = false
             syringe.l_HitDamage = wepent:GetWeaponAttribute( "Damage" )
@@ -137,22 +132,22 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             syringe.Touch = OnSyringeTouch
             syringe.Think = OnSyringeThink
 
+            local plyColor = self:GetPlyColor():ToColor()
             local isCrit = wepent:CalcIsAttackCriticalHelper()
             if isCrit then
-                wepent:EmitSound( "lambdaplayers/weapons/tf2/crits/crit_shoot.mp3", 75, random( 90, 110 ), 1, CHAN_STATIC )
                 syringe.l_IsCritical = true
                 syringe:SetMaterial( "models/shiny" )
-                syringe:SetColor( plyColor:ToColor() )
+                syringe:SetColor( plyColor )
             end
             
-            local trail = LAMBDA_TF2:CreateSpriteTrailEntity( plyColor:ToColor(), nil, ( isCrit and 1 or 0.5 ), ( isCrit and 0.5 or 0.25 ), ( isCrit and 0.5 or 0.25 ), "trails/laser", syringe:WorldSpaceCenter(), syringe )
+            local trail = LAMBDA_TF2:CreateSpriteTrailEntity( plyColor, nil, ( isCrit and 1 or 0.5 ), ( isCrit and 0.5 or 0.25 ), ( isCrit and 0.5 or 0.25 ), "trails/laser", syringe:WorldSpaceCenter(), syringe )
             syringe.l_Trail = trail
 
             return true
         end,
 
         reloadtime = 1.305,
-        reloadsounds = { { 0, "lambdaplayers/weapons/tf2/syringegun/syringegun_worldreload.mp3" } },
+        reloadsounds = { { 0, "weapons/syringegun_worldreload.wav" } },
 
         OnReload = function( self, wepent )
             self:RemoveGesture( ACT_HL2MP_GESTURE_RELOAD_SMG1 )
