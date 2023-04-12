@@ -12,10 +12,16 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         bonemerge = true,
   
 		islethal = false,
+        isedible = true,
         deploydelay = 0.5,
 
         OnDeploy = function( self, wepent )
             LAMBDA_TF2:InitializeWeaponData( self, wepent )
+            wepent:SetSkin( self.l_TF_TeamColor )
+        end,
+
+        OnDrop = function( self, wepent, cs_prop )
+            cs_prop:Remove()
         end,
 
         OnThink = function( self, wepent, isdead )
@@ -44,10 +50,15 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             local preEatHP = self:GetMaxHealth()
             for i = 1, 4 do
                 self:SimpleWeaponTimer( ( ( waitTime / 4 ) * i ), function()
-                    if i == 1 then self:EmitSound( "vo/sandwicheat09.mp3", 80, self:GetVoicePitch(), nil, CHAN_VOICE ) end
+                    if !self.l_TF_DalokohsBars[ barIndex ] then return end
 
-                    local giveHP = ceil( ( preEatHP / 2 ) / 4 )
-                    local maxHP = min( self:GetMaxHealth() + giveHP, ( preEatHP * 1.5 ) )
+                    if i == 1 then 
+                        self:EmitSound( "vo/sandwicheat09.mp3", 80, self:GetVoicePitch(), nil, CHAN_VOICE )
+                        wepent:SetBodygroup( 1, 1 )
+                    end
+
+                    local giveHP = ceil( ( preEatHP / 3 ) / 4 )
+                    local maxHP = min( self:GetMaxHealth() + giveHP, ( preEatHP / 0.75 ) )
                     self:SetMaxHealth( maxHP )
                     LAMBDA_TF2:GiveHealth( self, giveHP, false )
 

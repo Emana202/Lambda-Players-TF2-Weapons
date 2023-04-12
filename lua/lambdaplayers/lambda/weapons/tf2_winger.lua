@@ -26,14 +26,12 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent:SetWeaponAttribute( "UseRapidFireCrits", true )
             wepent:SetWeaponAttribute( "DamageType", DMG_USEDISTANCEMOD )
 
-            wepent.l_TF_Winger_PreEquipJumpHeight = self.loco:GetJumpHeight()
-            self.loco:SetJumpHeight( wepent.l_TF_Winger_PreEquipJumpHeight * 1.25 )
-
+            self.loco:SetJumpHeight( self.loco:GetJumpHeight() * 1.25 )
             wepent:EmitSound( "weapons/draw_secondary.wav", nil, nil, 0.5 )
         end,
 
         OnHolster = function( self, wepent )
-            self.loco:SetJumpHeight( wepent.l_TF_Winger_PreEquipJumpHeight )
+            self.loco:SetJumpHeight( self.loco:GetJumpHeight() / 1.25 )
         end,
 
         OnAttack = function( self, wepent, target )

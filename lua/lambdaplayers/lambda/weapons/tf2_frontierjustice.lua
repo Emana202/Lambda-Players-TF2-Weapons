@@ -7,11 +7,11 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         prettyname = "Frontier Justice",
         holdtype = "shotgun",
         bonemerge = true,
-        killicon = "lambdaplayers/killicons/icon_tf2_shotgun",
+        killicon = "lambdaplayers/killicons/icon_tf2_frontier_justice",
 
         clip = 3,
         islethal = true,
-        attackrange = 400,
+        attackrange = 500,
         keepdistance = 400,
         deploydelay = 0.5,
 
@@ -30,6 +30,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent:SetWeaponAttribute( "FirstShotAccurate", true )
             wepent:SetWeaponAttribute( "RandomCrits", false )
 
+            wepent:SetSkin( self.l_TF_TeamColor )
             wepent:EmitSound( "weapons/draw_secondary.wav", nil, nil, 0.5 )
         end,
 
@@ -51,13 +52,8 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             return true
         end,
 
-        OnThink = function( self, wepent )
-            if self.l_TF_RevengeCrits > 0 then
-                self.l_CombatAttackRange = 600
-                LAMBDA_TF2:AddCritBoost( self, "RevengeCrits", CRIT_FULL, 0.1 )
-            else
-                self.l_CombatAttackRange = 400
-            end
+        OnThink = function( self, wepent, isdead )
+            if !isdead and self.l_TF_RevengeCrits > 0 then LAMBDA_TF2:AddCritBoost( self, "RevengeCrits", TF_CRIT_FULL, 0.1 ) end
         end,
 
         OnDealDamage = function( self, wepent, target, dmginfo, tookDamage, isLethal )

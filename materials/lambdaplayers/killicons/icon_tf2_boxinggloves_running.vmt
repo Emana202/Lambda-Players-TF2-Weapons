@@ -1,0 +1,8 @@
+"UnlitGeneric"
+{
+	"$basetexture" 		"lambdaplayers\killicons\icon_tf2_boxinggloves_running"
+	"$vertexcolor" 		"1"
+	"$vertexalpha" 		"1"
+	"$nolod" 			"1"
+	"$additive"		"1"
+}

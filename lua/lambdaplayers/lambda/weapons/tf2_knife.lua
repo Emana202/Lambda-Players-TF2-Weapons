@@ -22,7 +22,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
 
             wepent:SetWeaponAttribute( "IsMelee", true )
             wepent:SetWeaponAttribute( "Damage", 25 )
-            wepent:SetWeaponAttribute( "Animation", false )
+            wepent:SetWeaponAttribute( "Animation", ACT_HL2MP_GESTURE_RANGE_ATTACK_KNIFE )
             wepent:SetWeaponAttribute( "HitDelay", 0 )
             wepent:SetWeaponAttribute( "Sound", ")weapons/knife_swing.wav" )
             wepent:SetWeaponAttribute( "CritSound", ")weapons/knife_swing_crit.wav" )

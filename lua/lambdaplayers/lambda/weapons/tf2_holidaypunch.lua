@@ -36,8 +36,13 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
                     dmginfo:SetDamage( 0 )
                     if isCrit then dmginfo:SetDamageType( dmginfo:GetDamageType() - DMG_CRITICAL ) end
                 end
+
+                if target:IsPlayer() and target:IsPlayingTaunt() or target.IsLambdaPlayer and ( target:GetState() == "Schadenfreude" or target:GetState() == "Laughing" ) then
+                    dmginfo:SetDamageCustom( TF_DMG_CUSTOM_GLOVES_LAUGHING )
+                end
 			end )
 
+            wepent:SetSkin( self.l_TF_TeamColor )
             wepent.l_TF_MakeLaugh = false
             wepent:EmitSound("weapons/draw_melee.wav", nil, nil, 0.5 )
             self:SimpleWeaponTimer( 0.1, function() wepent:EmitSound( ")weapons/mittens_punch.wav", nil, nil, 0.4 ) end )

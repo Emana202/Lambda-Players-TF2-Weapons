@@ -25,11 +25,6 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
                 "weapons/bottle_hit_flesh3.wav"
             } )
 
-            wepent:SetWeaponAttribute( "PreHitCallback", function( lambda, weapon, target, dmginfo )
-                if !wepent.l_TF_Broken then return end
-                dmginfo:SetDamageType( dmginfo:GetDamageType() - DMG_CLUB + DMG_SLASH )
-            end )
-
             wepent.l_TF_Broken = false
             wepent:EmitSound( "weapons/draw_melee.wav", nil, nil, 0.5 )
         end,
@@ -56,7 +51,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         OnDealDamage = function( self, wepent, target, dmginfo )
             if wepent.l_TF_Broken or !dmginfo:IsDamageType( DMG_CRITICAL ) then return end
             wepent.l_TF_Broken = true
-            wepent:SetBodygroup( 0, 1 )
+            wepent:SetBodygroup( 1, 1 )
             wepent:EmitSound( "weapons/bottle_break.wav", 80, nil, nil, CHAN_WEAPON )
         end
     }

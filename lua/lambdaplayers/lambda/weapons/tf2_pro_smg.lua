@@ -37,10 +37,11 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent:SetWeaponAttribute( "RandomCrits", false )
 
             wepent:SetWeaponAttribute( "BulletCallback", function( lambda, weapon, tr, dmginfo )
-                if !lambda.l_TF_CrikeyMeterFull or LAMBDA_TF2:GetCritBoost( lambda ) != CRIT_NONE then return end
+                if !lambda.l_TF_CrikeyMeterFull or lambda:GetCritBoostType() != TF_CRIT_NONE then return end
+
                 lambda.l_TF_CrikeyMeter = 0
                 lambda.l_TF_CrikeyMeterFull = false
-                LAMBDA_TF2:AddCritBoost( lambda, "CRIKEY", CRIT_MINI, 8 )
+                LAMBDA_TF2:AddCritBoost( lambda, "CRIKEY", TF_CRIT_MINI, 8 )
             end )
 
             wepent:EmitSound( "weapons/draw_secondary.wav", nil, nil, 0.5 )
@@ -52,7 +53,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         end,
 
         OnDealDamage = function( self, wepent, target, dmginfo, tookDamage )
-            if !tookDamage or LAMBDA_TF2:GetCritBoost( self, "CRIKEY" ) != CRIT_NONE then return end
+            if !tookDamage or self.l_TF_CritBoosts[ "CRIKEY" ] then return end
             self.l_TF_CrikeyMeter = ( self.l_TF_CrikeyMeter + dmginfo:GetDamage() )
 
             if self.l_TF_CrikeyMeter >= 100 and !self.l_TF_CrikeyMeterFull then

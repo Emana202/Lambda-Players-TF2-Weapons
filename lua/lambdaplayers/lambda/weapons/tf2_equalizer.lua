@@ -30,7 +30,6 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
                 "weapons/blade_slice_3.wav",
                 "weapons/blade_slice_4.wav"
             } )
-            wepent:SetWeaponAttribute( "DamageType", DMG_SLASH )
 
             wepent:SetWeaponAttribute( "PreHitCallback", function( lambda, weapon, target, dmginfo )
                 local healthRatio = ( self:Health() / self:GetMaxHealth() )

@@ -12,14 +12,14 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         clip = 6,
         islethal = true,
         attackrange = 1500,
-        keepdistance = 800,
+        keepdistance = 700,
         deploydelay = 0.5,
 
         OnDeploy = function( self, wepent )
             LAMBDA_TF2:InitializeWeaponData( self, wepent )
 
             wepent:SetWeaponAttribute( "Damage", 21 )
-            wepent:SetWeaponAttribute( "RateOfFire", { 0.6, 1.2 } )
+            wepent:SetWeaponAttribute( "RateOfFire", { 0.7, 1.25 } )
             wepent:SetWeaponAttribute( "Animation", ACT_HL2MP_GESTURE_RANGE_ATTACK_REVOLVER )
             wepent:SetWeaponAttribute( "Sound", ")weapons/ambassador_shoot.wav" )
             wepent:SetWeaponAttribute( "CritSound", ")weapons/ambassador_shoot_crit.wav" )
@@ -30,15 +30,23 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent:SetWeaponAttribute( "DamageType", DMG_USEDISTANCEMOD )
 
             wepent:SetWeaponAttribute( "PreFireBulletCallback", function( lambda, weapon, target, dmginfo, bulletTbl )
+                local spread = LAMBDA_TF2:RemapClamped( ( CurTime() - wepent.l_NextAccuracyCheckT ), 1.0, 0.5, 0.0, ( 0.0 + weapon:GetWeaponAttribute( "Spread" ) ) )
+                bulletTbl.Spread.x = spread
+                bulletTbl.Spread.y = spread
+
                 local headBone = target:LookupBone( "ValveBiped.Bip01_Head1" )
                 if headBone then return LAMBDA_TF2:GetBoneTransformation( target, headBone ) end
             end )
             wepent:SetWeaponAttribute( "BulletCallback", function( lambda, weapon, tr, dmginfo )
-                if !LambdaIsValid( tr.Entity ) or tr.HitGroup != HITGROUP_HEAD then return end
-                dmginfo:SetDamageCustom( TF_DMG_CUSTOM_HEADSHOT )
-                dmginfo:SetDamage( dmginfo:GetDamage() / 1.5 )
+                if ( CurTime() - wepent.l_NextAccuracyCheckT ) >= 1 and LambdaIsValid( tr.Entity ) and tr.HitGroup == HITGROUP_HEAD and tr.StartPos:DistToSqr( tr.HitPos ) <= 1440000 then 
+                    dmginfo:SetDamageCustom( TF_DMG_CUSTOM_HEADSHOT_REVOLVER )
+                end
+
+                wepent.l_NextAccuracyCheckT = CurTime()
             end )
 
+            wepent.l_NextAccuracyCheckT = 0
+            wepent:SetSkin( self.l_TF_TeamColor )
             wepent:EmitSound( "weapons/draw_secondary.wav", nil, nil, 0.5 )
         end,
 

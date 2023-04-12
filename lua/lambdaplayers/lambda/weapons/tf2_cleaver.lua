@@ -5,7 +5,7 @@ local IsValid = IsValid
 local SafeRemoveEntityDelayed = SafeRemoveEntityDelayed
 local ents_Create = ents.Create
 
-local angularImpulse = Vector( 0, 500, 0 )
+local angularImpulse = Angle( 500, 0, 0 )
 local hitFleshSnds = {
     ")weapons/cleaver_hit_02.wav",
     ")weapons/cleaver_hit_03.wav",
@@ -14,17 +14,25 @@ local hitFleshSnds = {
     ")weapons/cleaver_hit_07.wav"
 }
 
-local function OnCleaverCollide( self, colData, collider )
-    local hitEnt = colData.HitEntity
+local function OnCleaverTouch( self, ent )
+    if !ent or !ent:IsSolid() or ent:GetSolidFlags() == FSOLID_VOLUME_CONTENTS then return end
 
-    if !self.l_DealtDamage then
-        local owner = self:GetOwner()
-        if IsValid( owner ) and IsValid( hitEnt ) then
-            if LAMBDA_TF2:IsValidCharacter( hitEnt ) then
-                LAMBDA_TF2:MakeBleed( hitEnt, owner, owner:GetWeaponENT(), 5 )
-                if ( CurTime() - self.l_CreationTime ) >= 1 then
+    local touchTr = self:GetTouchTrace()
+    if touchTr.HitSky then self:Remove() return end
+
+    local owner = self:GetOwner()
+    if IsValid( owner ) then 
+        if ent == owner then return end
+
+        if IsValid( ent ) then
+            local critType = self.l_CritType
+
+            if LAMBDA_TF2:IsValidCharacter( ent ) then
+                LAMBDA_TF2:MakeBleed( ent, owner, owner:GetWeaponENT(), 5 )
+                
+                if ( CurTime() - self:GetCreationTime() ) >= 1 then
                     LAMBDA_TF2:DecreaseInventoryCooldown( owner, "tf2_cleaver", 1.5 )
-                    if self.l_TF_CritType == CRIT_NONE then self.l_TF_CritType = CRIT_MINI end
+                    if critType == TF_CRIT_NONE then critType = TF_CRIT_MINI end
                 end
             end
 
@@ -33,30 +41,26 @@ local function OnCleaverCollide( self, colData, collider )
             dmginfo:SetInflictor( self )
             dmginfo:SetDamage( 30 )
             dmginfo:SetDamagePosition( self:GetPos() )
+            dmginfo:SetDamageForce( self:GetVelocity() * dmginfo:GetDamage() )
 
             local dmgTypes = DMG_GENERIC
-            if self.l_TF_CritType == CRIT_FULL then 
+            if critType == TF_CRIT_FULL then 
                 dmgTypes = ( dmgTypes + DMG_CRITICAL )
-            elseif self.l_TF_CritType == CRIT_MINI then
+            elseif critType == TF_CRIT_MINI then
                 dmgTypes = ( dmgTypes + DMG_MINICRITICAL )
             end
             dmginfo:SetDamageType( dmgTypes )
 
-            hitEnt:DispatchTraceAttack( dmginfo, self:GetTouchTrace(), self:GetForward() )
+            ent:DispatchTraceAttack( dmginfo, touchTr, self:GetForward() )
         end
-
-        self.l_DealtDamage = true
     end
+    
+    self:AddSolidFlags( FSOLID_NOT_SOLID )
+    self:SetMoveType( MOVETYPE_NONE )
 
-    local trail = self.l_Trail
-    if IsValid( hitEnt ) and LAMBDA_TF2:IsValidCharacter( hitEnt ) then
-        if IsValid( trail ) then
-            trail:SetParent()
-            SafeRemoveEntityDelayed( trail, 1 )
-        end
-
+    if IsValid( ent ) and LAMBDA_TF2:IsValidCharacter( ent, false ) then
         self:EmitSound( hitFleshSnds[ random( #hitFleshSnds ) ], nil, nil, nil, CHAN_STATIC )
-        LAMBDA_TF2:CreateBloodParticle( self:GetPos(), AngleRand( -180, 180 ), hitEnt )
+        LAMBDA_TF2:CreateBloodParticle( self:GetPos(), AngleRand( -180, 180 ), ent )
 
         self:SetNoDraw( true )
         self:DrawShadow( false )
@@ -64,11 +68,11 @@ local function OnCleaverCollide( self, colData, collider )
         SafeRemoveEntityDelayed( self, 0.1 )
     else
         self:EmitSound( ")weapons/cleaver_hit_world.wav", nil, nil, nil, CHAN_STATIC )
-        self:SetPos( colData.HitPos + colData.HitNormal * 3 )
-        self:SetMoveType( MOVETYPE_NONE )
-
-        if IsValid( trail ) then self:DeleteOnRemove( trail ) end
+        self:SetPos( touchTr.HitPos + touchTr.HitNormal * 3 )
         SafeRemoveEntityDelayed( self, 2 )
+        
+        LAMBDA_TF2:StopParticlesNamed( self, "peejar_trail_red_glow" )
+        LAMBDA_TF2:StopParticlesNamed( self, "peejar_trail_blu_glow" )
     end
 end
 
@@ -89,11 +93,14 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
 
         OnDeploy = function( self, wepent )
             LAMBDA_TF2:InitializeWeaponData( self, wepent )
+            if !wepent.l_TF_CleaverSkin then wepent.l_TF_CleaverSkin = random( 1, 2 ) end
+            wepent:SetSkin( wepent.l_TF_CleaverSkin )
             wepent:EmitSound( "weapons/cleaver_draw.wav", nil, nil, nil, CHAN_STATIC )
         end,
 
         OnAttack = function( self, wepent, target )
-            local throwAng = ( target:GetPos() - wepent:GetPos() ):Angle()
+            local throwPos = target:GetPos()
+            local throwAng = ( throwPos - self:GetPos() ):Angle()
             if self:GetForward():Dot( throwAng:Forward() ) <= 0.5 then self.l_WeaponUseCooldown = ( CurTime() + 0.1 ) return true end
 
             self.l_WeaponUseCooldown = ( CurTime() + 2 )
@@ -104,7 +111,9 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent:EmitSound( ")weapons/cleaver_throw.wav", 70, nil, nil, CHAN_WEAPON )
 
             self:SimpleWeaponTimer( 0.25, function()
-                throwAng = ( IsValid( target ) and ( target:GetPos() - wepent:GetPos() ):Angle() or self:GetAngles() )
+                local spawnPos = self:GetAttachmentPoint( "eyes" ).Pos
+                throwPos = ( IsValid( target ) and target:GetPos() or ( self:GetPos() + self:GetForward() * 500 ) )
+                throwAng = ( throwPos - spawnPos ):Angle()
 
                 self:ClientSideNoDraw( wepent, true )
                 wepent:SetNoDraw( true )
@@ -112,46 +121,41 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
 
                 local cleaver = ents_Create( "base_anim" )
                 cleaver:SetModel( wepent:GetModel() )
-                cleaver:SetPos( wepent:GetPos() )
+                cleaver:SetPos( spawnPos )
                 cleaver:SetAngles( throwAng )
                 cleaver:SetOwner( self )
                 cleaver:Spawn()
-    
-                cleaver:PhysicsInit( SOLID_BBOX )
-                cleaver:SetGravity( 0.4 )
+
+                cleaver:SetSolid( SOLID_BBOX )
+                cleaver:SetMoveType( MOVETYPE_FLYGRAVITY )
+                cleaver:SetMoveCollide( MOVECOLLIDE_FLY_CUSTOM )
+                LAMBDA_TF2:TakeNoDamage( cleaver )
+                
                 cleaver:SetFriction( 0.2 )
                 cleaver:SetElasticity( 0.45 )
                 cleaver:SetCollisionGroup( COLLISION_GROUP_PROJECTILE )
-                LAMBDA_TF2:TakeNoDamage( cleaver )
-    
-                local phys = cleaver:GetPhysicsObject()
-                if IsValid( phys ) then
-                    local throwVel = vector_origin
-                    throwVel = throwVel + throwAng:Forward() * 10
-                    throwVel = throwVel + throwAng:Up() * 1
-                    throwVel:Normalize()
-                    throwVel = throwVel * 3000
-                    phys:AddVelocity( throwVel )
-    
-                    phys:AddAngleVelocity( angularImpulse )
-                    phys:AddGameFlag( FVPHYSICS_NO_IMPACT_DMG )
-                end
 
+                local throwVel = vector_origin
+                throwVel = throwVel + throwAng:Forward() * 10
+                throwVel = throwVel + throwAng:Up() * 1
+                throwVel:Normalize()
+                throwVel = throwVel * 3000
+
+                cleaver:SetLocalVelocity( throwVel )
+                cleaver:SetLocalAngularVelocity( angularImpulse )
+    
+                cleaver:SetSkin( wepent.l_TF_CleaverSkin )
+                ParticleEffectAttach( "peejar_trail_" .. ( self.l_TF_TeamColor == 1 and "blu" or "red" ) .. "_glow", PATTACH_ABSORIGIN_FOLLOW, cleaver, 0 )
+
+                cleaver.l_IsTFWeapon = true
+                cleaver.Touch = OnCleaverTouch
+                
                 cleaver.IsLambdaWeapon = true
                 cleaver.l_killiconname = wepent.l_killiconname
-                cleaver.l_TF_IsTF2Weapon = true
-                cleaver.l_IsTFProjectile = true
 
-                cleaver.l_CreationTime = CurTime()
-                cleaver.l_DealtDamage = false
-                cleaver.PhysicsCollide = OnCleaverCollide
-
-                local critType = LAMBDA_TF2:GetCritBoost( self )
-                if wepent:CalcIsAttackCriticalHelper() then critType = CRIT_FULL end
-                cleaver.l_TF_CritType = critType
-
-                local trail = LAMBDA_TF2:CreateSpriteTrailEntity( self:GetPlyColor():ToColor(), nil, 10, 5, 0.5, "trails/laser", cleaver:WorldSpaceCenter(), cleaver )
-                cleaver.l_Trail = trail
+                local critType = self:GetCritBoostType()
+                if wepent:CalcIsAttackCriticalHelper() then critType = TF_CRIT_FULL end
+                cleaver.l_CritType = critType
 
                 LAMBDA_TF2:AddInventoryCooldown( self )
                 self:SimpleWeaponTimer( 0.8, function()

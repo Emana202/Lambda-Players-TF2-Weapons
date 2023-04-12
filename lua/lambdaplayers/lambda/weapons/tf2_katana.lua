@@ -20,7 +20,6 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
 
             wepent:SetWeaponAttribute( "IsMelee", true )
             wepent:SetWeaponAttribute( "HitRange", 72 )
-            wepent:SetWeaponAttribute( "DamageType", DMG_SLASH )
             wepent:SetWeaponAttribute( "RandomCrits", false )
             wepent:SetWeaponAttribute( "Sound", {
                 ")weapons/samurai/TF_Katana_01.wav",
@@ -39,8 +38,9 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent:SetWeaponAttribute( "CustomDamage", TF_DMG_CUSTOM_DECAPITATION )
 
             wepent:SetWeaponAttribute( "PreHitCallback", function( lambda, weapon, target, dmginfo )
-				if !target.IsLambdaPlayer or target:GetWeaponName() != lambda:GetWeaponName() then return end
+				if !target.IsLambdaPlayer or target:GetWeaponName() != "tf2_katana" then return end
                 dmginfo:SetDamage( target:Health() * 3 )
+                dmginfo:SetDamageCustom( TF_DMG_CUSTOM_KATANA_DUEL )
 			end )
 
             if !self.l_TF_Shield_IsEquipped and random( 4 ) == 1 then

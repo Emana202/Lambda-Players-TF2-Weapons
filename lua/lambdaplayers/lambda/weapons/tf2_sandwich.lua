@@ -9,15 +9,20 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         bonemerge = true,
   
 		islethal = false,
+        isedible = true,
         deploydelay = 0.5,
 
         OnDeploy = function( self, wepent )
             LAMBDA_TF2:InitializeWeaponData( self, wepent )
         end,
 
+        OnDrop = function( self, wepent, cs_prop )
+            cs_prop:Remove()
+        end,
+
         OnThink = function( self, wepent, isdead )
             if !isdead then 
-                if self:Health() <= ( self:GetMaxHealth() * 0.8 ) then 
+                if self:Health() < self:GetMaxHealth() then 
                     self:UseWeapon()
                 end
             end
@@ -40,7 +45,11 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
 
             for i = 1, 4 do
                 self:SimpleWeaponTimer( ( ( waitTime / 4 ) * i ), function()
-                    if i == 1 then self:EmitSound( "vo/sandwicheat09.mp3", 80, self:GetVoicePitch(), nil, CHAN_VOICE ) end
+                    if i == 1 then 
+                        self:EmitSound( "vo/sandwicheat09.mp3", 80, self:GetVoicePitch(), nil, CHAN_VOICE )
+                        wepent:SetBodygroup( 1, 1 )
+                    end
+
                     LAMBDA_TF2:GiveHealth( self, self:GetMaxHealth() / 4, false )
                 end )
             end

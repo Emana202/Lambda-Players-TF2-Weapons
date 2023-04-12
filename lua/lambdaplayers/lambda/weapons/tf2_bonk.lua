@@ -14,7 +14,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
 
         OnDeploy = function( self, wepent )
             LAMBDA_TF2:InitializeWeaponData( self, wepent )
-            wepent:SetSkin( random( 0, 1 ) )
+            wepent:SetSkin( self.l_TF_TeamColor )
             wepent:EmitSound( "player/pl_scout_dodge_can_open.wav", nil, nil, 0.5 )
         end,
 

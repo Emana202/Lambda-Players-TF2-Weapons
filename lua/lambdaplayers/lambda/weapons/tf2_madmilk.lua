@@ -15,17 +15,20 @@ local splashTrTbl = {
         if LAMBDA_TF2:IsValidCharacter( ent, false ) then return false end
     end
 }
-local angularImpulse = Vector( 0, 500, 0 )
+local angularImpulse = Angle( 300, 0, 0 )
 
-local function OnJarExplode( self, colData, collider )
-    if self.l_TF_Detonated then return end
-    self.l_TF_Detonated = true
+local function OnJarExplode( self, ent )
+    if !ent or !ent:IsSolid() or ent:GetSolidFlags() == FSOLID_VOLUME_CONTENTS then return end
 
-    ParticleEffect( "peejar_impact_milk", self:GetPos(), angle_zero )
-    self:EmitSound( ")weapons/jar_explode.wav", 80, nil, nil, CHAN_STATIC )
+    local touchTr = self:GetTouchTrace()
+    if touchTr.HitSky then self:Remove() return end
 
     local owner = self:GetOwner()
     local validOwner = IsValid( owner )
+    if validOwner and ent == owner then return end
+
+    ParticleEffect( "peejar_impact_milk", self:GetPos(), angle_zero )
+    self:EmitSound( ")weapons/jar_explode.wav", 80, nil, nil, CHAN_STATIC )
     
     splashTrTbl.start = self:GetPos()
     local effectDuration = ( CurTime() + 10 )
@@ -74,70 +77,65 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         end,
 
         OnThink = function( self, wepent, isdead )
-            if isdead or self:InCombat() then return end
+            if isdead then return end
 
             if LAMBDA_TF2:IsBurning( self ) then
-                local selfPos = self:GetPos()
-                self:LookTo( selfPos, 1.0 )
-                self:SimpleWeaponTimer( 0.5, function() self:UseWeapon( selfPos ) end )
-            else
+                self:LookTo( self:GetPos(), 0.5 )
+                self:SimpleWeaponTimer( 0.33, function() self:UseWeapon( self ) end )
+            elseif !self:InCombat() then
                 local extinguishTargets = self:FindInSphere( nil, 750, function( ent )
-                    return ( LambdaIsValid( ent ) and LAMBDA_TF2:IsBurning( ent ) and LAMBDA_TF2:IsValidCharacter( ent ) and self:CanSee( ent ) )
+                    return ( IsValid( ent ) and LAMBDA_TF2:IsValidCharacter( ent ) and LAMBDA_TF2:IsBurning( ent ) and self:CanSee( ent ) )
                 end )
                 if #extinguishTargets > 0 then
                     local target = extinguishTargets[ random( #extinguishTargets ) ]
-                    self:LookTo( target, 1.0 )
-                    self:SimpleWeaponTimer( 0.5, function() self:UseWeapon( target ) end )
+                    self:LookTo( target, 0.5 )
+                    self:SimpleWeaponTimer( 0.33, function() self:UseWeapon( target ) end )
                 end
             end
 
-            return 1.5
+            return 0.5
         end,
 
         OnAttack = function( self, wepent, target )
             local throwPos = ( isvector( target ) and target or target:GetPos() )
-            local throwAng = ( throwPos - wepent:GetPos() ):Angle()
-            if self:GetForward():Dot( throwAng:Forward() ) <= 0.5 then self.l_WeaponUseCooldown = ( CurTime() + 0.1 ) return true end
+            local throwAng = ( throwPos - self:GetPos() ):Angle()
+            if target != self and self:GetForward():Dot( throwAng:Forward() ) <= 0.5 then self.l_WeaponUseCooldown = ( CurTime() + 0.1 ) return true end
 
             self.l_WeaponUseCooldown = ( CurTime() + 2 )
-            
             self:RemoveGesture( ACT_HL2MP_GESTURE_RANGE_ATTACK_GRENADE )
             self:AddGesture( ACT_HL2MP_GESTURE_RANGE_ATTACK_GRENADE, true )
 
             self:SimpleWeaponTimer( 0.25, function()
+                local spawnPos = self:GetAttachmentPoint( "eyes" ).Pos
                 throwPos = ( isvector( target ) and target or ( IsValid( target ) and target:GetPos() or ( self:GetPos() + self:GetForward() * 500 ) ) )
-                throwAng = ( throwPos - wepent:GetPos() ):Angle()
+                throwAng = ( throwPos - spawnPos ):Angle()
 
                 self:ClientSideNoDraw( wepent, true )
                 wepent:SetNoDraw( true )
                 wepent:DrawShadow( false )
 
                 local milkjar = ents_Create( "base_anim" )
-                milkjar:SetModel( wepent:GetModel() )
-                milkjar:SetPos( wepent:GetPos() )
+                milkjar:SetModel( "models/weapons/c_models/c_madmilk/c_madmilk.mdl" )
+                milkjar:SetPos( spawnPos )
                 milkjar:SetAngles( throwAng )
                 milkjar:SetOwner( self )
                 milkjar:Spawn()
 
-                milkjar:PhysicsInit( SOLID_BBOX )
-                milkjar:SetGravity( 0.4 )
+                milkjar:SetSolid( SOLID_BBOX )
+                milkjar:SetMoveType( MOVETYPE_FLYGRAVITY )
+                milkjar:SetMoveCollide( MOVECOLLIDE_FLY_CUSTOM )
+                LAMBDA_TF2:TakeNoDamage( milkjar )
+
                 milkjar:SetFriction( 0.2 )
                 milkjar:SetElasticity( 0.45 )
                 milkjar:SetCollisionGroup( COLLISION_GROUP_PROJECTILE )
-                LAMBDA_TF2:TakeNoDamage( milkjar )
 
-                local phys = milkjar:GetPhysicsObject()
-                if IsValid( phys ) then
-                    local throwVel = ( throwAng:Forward() * 1000 + throwAng:Up() * ( 200 + Rand( -10, 10 ) ) + throwAng:Right() * Rand( -10, 10 ) )
-                    phys:AddVelocity( throwVel )
-
-                    phys:AddAngleVelocity( angularImpulse )
-                    phys:AddGameFlag( FVPHYSICS_NO_IMPACT_DMG )
-                end
+                milkjar:SetLocalVelocity( throwAng:Forward() * 1000 + throwAng:Up() * ( 200 + Rand( -10, 10 ) ) + throwAng:Right() * Rand( -10, 10 ) )
+                milkjar:SetLocalAngularVelocity( angularImpulse )
 
                 milkjar.l_TF_Detonated = false
                 milkjar.l_TF_DecreasedCooldown = false
-                milkjar.PhysicsCollide = OnJarExplode
+                milkjar.Touch = OnJarExplode
 
                 LAMBDA_TF2:AddInventoryCooldown( self )
                 self:SimpleWeaponTimer( 0.8, function()

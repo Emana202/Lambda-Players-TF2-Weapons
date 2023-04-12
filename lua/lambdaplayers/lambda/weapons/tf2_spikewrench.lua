@@ -20,7 +20,6 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent:SetWeaponAttribute( "Sound", "weapons/wrench_swing.wav" )
             wepent:SetWeaponAttribute( "CritSound", ")weapons/wrench_swing_crit.wav" )
             wepent:SetWeaponAttribute( "BleedingDuration", 5 )
-            wepent:SetWeaponAttribute( "DamageType", DMG_SLASH )
 
             wepent:EmitSound( "weapons/draw_primary.wav", nil, nil, 0.5 )
             wepent:EmitSound( "weapons/draw_wrench_engineer.wav", nil, nil, nil, CHAN_STATIC )

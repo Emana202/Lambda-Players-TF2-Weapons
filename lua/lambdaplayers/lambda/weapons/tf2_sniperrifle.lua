@@ -70,8 +70,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         
                     if self:InCombat() then
                         local distMap = LAMBDA_TF2:RemapClamped( self:GetRangeTo( ene ), 128, 768, 0, 1 )
-                        local healthMap = Clamp( ene:Health() / wepent:GetWeaponAttribute( "Damage" ), 0, 1 )
-                        wepent.l_TF_ChargeTimeRequired = LAMBDA_TF2:RemapClamped( ( ( distMap + healthMap ) / 2 ), 0, 1, 0.5, Rand( 3.3, 4 ) )
+                        wepent.l_TF_ChargeTimeRequired = LAMBDA_TF2:RemapClamped( distMap, 0, 1, 0.5, Rand( 3.3, 4 ) )
                     else
                         wepent.l_TF_ChargeTimeRequired = 3.3
                     end
@@ -106,8 +105,8 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             local srcPos = wepent:GetPos()
             bulletTbl.Dir = ( targetPos - srcPos ):GetNormalized()
 
-            local spread = LAMBDA_TF2:RemapClamped( chargeStartTime, 0, 3.3, 0.125, 0.02 )
-            bulletTbl.Spread = Vector( spread, spread, 2 )
+            local spread = LAMBDA_TF2:RemapClamped( chargeStartTime, 0, 3.3, 0.1, 0.01 )
+            bulletTbl.Spread = Vector( spread, spread, 0 )
 
             local dmgMult = LAMBDA_TF2:RemapClamped( chargeStartTime, 0, 3.3, 1, 3 )
             local damage = ( wepent:GetWeaponAttribute( "Damage" ) * dmgMult )

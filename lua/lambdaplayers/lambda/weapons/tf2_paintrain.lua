@@ -28,7 +28,6 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
                 "weapons/blade_slice_3.wav",
                 "weapons/blade_slice_4.wav"
             } )
-            wepent:SetWeaponAttribute( "DamageType", DMG_SLASH )
 
             wepent:EmitSound( "weapons/draw_shovel_soldier.wav" )
         end,

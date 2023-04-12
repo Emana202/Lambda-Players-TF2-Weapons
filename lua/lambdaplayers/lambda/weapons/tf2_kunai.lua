@@ -1,4 +1,4 @@
-local floor = math.floor
+local Round = math.Round
 local max = math.max
 
 table.Merge( _LAMBDAPLAYERSWEAPONS, {
@@ -23,7 +23,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
 
             wepent:SetWeaponAttribute( "IsMelee", true )
             wepent:SetWeaponAttribute( "Damage", 25 )
-            wepent:SetWeaponAttribute( "Animation", false )
+            wepent:SetWeaponAttribute( "Animation", ACT_HL2MP_GESTURE_RANGE_ATTACK_KNIFE )
             wepent:SetWeaponAttribute( "HitDelay", 0 )
             wepent:SetWeaponAttribute( "Sound", ")weapons/knife_swing.wav" )
             wepent:SetWeaponAttribute( "CritSound", ")weapons/knife_swing_crit.wav" )
@@ -47,12 +47,12 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
 				dmginfo:SetDamage( wepent.l_TF_TargetHealth * 2 )
 				dmginfo:SetDamageCustom( TF_DMG_CUSTOM_BACKSTAB )
 			end )
-            
-			wepent.l_TF_TargetHealth = 0
-            wepent.l_TF_Kunai_PreEquipHealth = self:GetMaxHealth()
-            self:SetMaxHealth( wepent.l_TF_Kunai_PreEquipHealth * 0.55 )
-            self:SetHealth( floor( self:Health() * ( self:GetMaxHealth() / wepent.l_TF_Kunai_PreEquipHealth ) ) )
 
+            local newHP = Round( self:GetMaxHealth() * 0.55 )
+            self:SetHealth( Round( self:Health() * ( newHP / self:GetMaxHealth() ) ) )
+            self:SetMaxHealth( newHP )
+
+            wepent.l_TF_TargetHealth = 0
 			wepent:EmitSound( "weapons/draw_melee.wav", nil, nil, 0.5 )
 			self:SimpleWeaponTimer( 0.333333, function() wepent:EmitSound( "weapons/knife_open1.wav", nil, nil, 0.5, CHAN_STATIC ) end )
 			self:SimpleWeaponTimer( 0.533333, function() wepent:EmitSound( "weapons/knife_open5.wav", nil, nil, 0.5, CHAN_STATIC ) end )
@@ -60,8 +60,9 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         end,
 
         OnHolster = function( self, wepent )
-            self:SetHealth( floor( self:Health() * ( wepent.l_TF_Kunai_PreEquipHealth / self:GetMaxHealth() ) ) )
-            self:SetMaxHealth( wepent.l_TF_Kunai_PreEquipHealth )
+            local oldHP = Round( self:GetMaxHealth() / 0.55 )
+            self:SetHealth( Round( self:Health() * ( oldHP / self:GetMaxHealth() ) ) )
+            self:SetMaxHealth( oldHP )
         end,
 
 		OnAttack = function( self, wepent, target )
@@ -70,8 +71,12 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         end,
 
         OnDealDamage = function( self, wepent, target, dmginfo, tookDamage, lethal )
-            if !lethal or wepent.l_TF_TargetHealth == 0 then return end
-            LAMBDA_TF2:GiveHealth( self, max( wepent.l_TF_TargetHealth, 75 ), ( self:GetMaxHealth() * 3 ) )
+            if !lethal then return end
+            
+            local targetHP = wepent.l_TF_TargetHealth
+            if targetHP <= 0 then return end
+
+            LAMBDA_TF2:GiveHealth( self, max( targetHP, 45 ), ( self:GetMaxHealth() * 3 ) )
             wepent.l_TF_TargetHealth = 0
         end
     }

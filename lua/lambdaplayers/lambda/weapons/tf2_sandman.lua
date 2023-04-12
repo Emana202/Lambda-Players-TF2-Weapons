@@ -1,59 +1,71 @@
-local floor = math.floor
+local Round = math.Round
 local random = math.random
 local Rand = math.Rand
 local min = math.min
 local SimpleTimer = timer.Simple
+local IsValid = IsValid
+local CurTime = CurTime
+local DamageInfo = DamageInfo
 
-local function OnBallCollide( ball, data, collider )
-    if ball.l_Touched then return end
+local function OnBallTouch( self, ent )
+    if self.l_Touched then return end
+    if !ent or !ent:IsSolid() or ent:GetSolidFlags() == FSOLID_VOLUME_CONTENTS then return end
 
-    ball.l_Touched = true
-    SafeRemoveEntityDelayed( ball, 4 )
+    local touchTr = self:GetTouchTrace()
+    if touchTr.HitSky then self:Remove() return end
 
-    local owner = ball:GetOwner()
-    if !IsValid( owner ) then return end
+    local curVel = self:GetVelocity()
 
-    local hitEnt = data.HitEntity
-    if !IsValid( hitEnt ) or hitEnt == owner or !LAMBDA_TF2:IsValidCharacter( hitEnt ) then 
-        if IsValid( hitEnt ) and hitEnt != owner then
-            ball:EmitSound( "weapons/bat_baseball_hit_world" .. random( 1, 2 ) .. ".wav", nil, nil, nil, CHAN_STATIC )
-        end
-        return 
-    end
+    local owner = self:GetOwner()
+    if IsValid( owner ) then
+        if ent == owner then return end
 
-    local dmgTypes = DMG_CLUB
-    local critType = ball.l_TF_CritType
-    if critType == CRIT_FULL then 
-        dmgTypes = ( dmgTypes + DMG_CRITICAL )
-    elseif critType == CRIT_MINI then
-        dmgTypes = ( dmgTypes + DMG_MINICRITICAL )
-    end
+        if IsValid( ent ) then
+            local dmgTypes = DMG_CLUB
+            local critType = self.l_CritType
+            if critType == TF_CRIT_FULL then 
+                dmgTypes = ( dmgTypes + DMG_CRITICAL )
+            elseif critType == TF_CRIT_MINI then
+                dmgTypes = ( dmgTypes + DMG_MINICRITICAL )
+            end
+
+            if LAMBDA_TF2:IsValidCharacter( ent ) and owner:CanTarget( ent ) then
+                local lifeTimeRatio = ( min( CurTime() - self:GetCreationTime(), 1.0 ) / 1.0 )
+                if lifeTimeRatio > 0.1 then
+                    local isMoonShot = false
+                    local stunDuration = ( 6.0 * lifeTimeRatio )
+                    if critType == TF_CRIT_FULL then stunDuration = ( stunDuration + 2.0 ) end
+            
+                    if lifeTimeRatio >= 1.0 then
+                        isMoonShot = true
+                        stunDuration = ( stunDuration + 1.0 )
+                    end
+            
+                    LAMBDA_TF2:Stun( ent, stunDuration, isMoonShot )
+                end
+            end
+    
+            local dmginfo = DamageInfo()
+            dmginfo:SetAttacker( owner )
+            dmginfo:SetInflictor( self )
+            dmginfo:SetDamage( 15 )
+            dmginfo:SetDamageForce( curVel * 15 )
+            dmginfo:SetDamagePosition( self:GetPos() )
+            dmginfo:SetDamageType( dmgTypes )
         
-    local lifeTimeRatio = ( min( CurTime() - ball.l_CreationTime, 1.0 ) / 1.0 )
-    if lifeTimeRatio > 0.1 then
-        local isMoonShot = false
-        local stunDuration = ( 6.0 * lifeTimeRatio )
-        if critType == CRIT_FULL then stunDuration = ( stunDuration + 2.0 ) end
-
-        if lifeTimeRatio >= 1.0 then
-            isMoonShot = true
-            stunDuration = ( stunDuration + 1.0 )
+            ent:DispatchTraceAttack( dmginfo, touchTr, self:GetForward() )
+            ent:EmitSound( ")weapons/bat_baseball_hit_flesh.wav", nil, nil, nil, CHAN_STATIC )
+        elseif touchTr.HitWorld then
+            self:EmitSound( "weapons/bat_baseball_hit_world" .. random( 1, 2 ) .. ".wav", nil, nil, nil, CHAN_STATIC )
         end
-
-        LAMBDA_TF2:Stun( hitEnt, stunDuration, isMoonShot )
     end
 
-    local dmginfo = DamageInfo()
-    dmginfo:SetAttacker( owner )
-    dmginfo:SetInflictor( owner:GetWeaponENT() )
-    dmginfo:SetDamage( 15 )
-    dmginfo:SetDamageCustom( TF_DMG_CUSTOM_BASEBALL )
-    dmginfo:SetDamageForce( data.OurOldVelocity:GetNormalized() * 15 )
-    dmginfo:SetDamagePosition( ball:GetPos() )
-    dmginfo:SetDamageType( dmgTypes )
+    self.l_Touched = true
+    SafeRemoveEntityDelayed( self, 4 )
 
-    hitEnt:DispatchTraceAttack( dmginfo, ball:GetTouchTrace(), ball:GetForward() )
-    hitEnt:EmitSound( ")weapons/bat_baseball_hit_flesh.wav", nil, nil, nil, CHAN_STATIC )
+    self:PhysicsInit( SOLID_BBOX )
+    local phys = self:GetPhysicsObject()
+    if IsValid( phys ) then phys:AddVelocity( -curVel * 0.1 ) end
 end
 
 table.Merge( _LAMBDAPLAYERSWEAPONS, {
@@ -84,15 +96,15 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             self:SimpleWeaponTimer( 0.533333, function() wepent:EmitSound( "weapons/bat_draw_swoosh2.wav", nil, nil, 0.45, CHAN_STATIC ) end )
             self:SimpleWeaponTimer( 0.666667, function() wepent:EmitSound( "weapons/metal_hit_hand1.wav", nil, nil, nil, CHAN_WEAPON ) end )
         
-            wepent.l_TF_Sandman_PreEquipHealth = self:GetMaxHealth()
-            self:SetMaxHealth( wepent.l_TF_Sandman_PreEquipHealth * 0.85 )
-            self:SetHealth( floor( self:Health() * ( self:GetMaxHealth() / wepent.l_TF_Sandman_PreEquipHealth ) ) )
+            local newHP = Round( self:GetMaxHealth() * 0.9 )
+            self:SetHealth( Round( self:Health() * ( newHP / self:GetMaxHealth() ) ) )
+            self:SetMaxHealth( newHP )
         end,
         
         OnThink = function( self, wepent, isdead )
             if !isdead and !self.l_TF_ThrownBaseball and self:InCombat() and CurTime() > self.l_WeaponUseCooldown then 
                 local ene = self:GetEnemy()
-                if !self:IsInRange( ene, 150 ) and self:CanSee( ene ) then
+                if !self:IsInRange( ene, 150 ) and self:IsInRange( ene, 2000 ) and self:CanSee( ene ) then
                     local throwAnim = self:LookupSequence( "scout_range_ball" )
                     if throwAnim > 0 then
                         self:AddGestureSequence( throwAnim )
@@ -104,14 +116,20 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
                     self.l_WeaponUseCooldown = ( CurTime() + 0.75 )
                     self:LookTo( ene, 0.75 )
 
-                    self:SimpleWeaponTimer( 0.5, function()
+                    self:SimpleWeaponTimer( 0.45, function()
                         self.l_TF_ThrownBaseball = ( CurTime() + 10 )
                         wepent:EmitSound( ")weapons/bat_baseball_hit" .. random( 1, 2 ) .. ".wav", 75, nil, nil, CHAN_STATIC )
 
-                        local spawnPos = ( self:GetPos() + vector_up * 50 )
-                        local spawnAng = ( ene:GetPos() - spawnPos ):Angle()
+                        local spawnPos = self:GetAttachmentPoint( "eyes" ).Pos
+                        local targetPos = ene:GetPos()
+                        local dist = spawnPos:Distance( targetPos )
+                        
+                        targetPos = ( targetPos + ( vector_up * ( dist / 100 ) ) )
+                        targetPos = LAMBDA_TF2:CalculateEntityMovePosition( ene, spawnPos:Distance( targetPos ), 3000, Rand( 0.5, 1.1 ), targetPos )
+                        
+                        local spawnAng = ( targetPos - spawnPos ):Angle()
                         spawnPos = ( spawnPos + spawnAng:Forward() * 32 )
-                        spawnAng = ( ene:GetPos() - spawnPos ):Angle()
+                        spawnAng = ( targetPos - spawnPos ):Angle()
 
                         local ball = ents.Create( "base_anim" )
                         ball:SetModel( "models/weapons/w_models/w_baseball.mdl" )
@@ -119,24 +137,21 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
                         ball:SetAngles( spawnAng )
                         ball:SetOwner( self )
                         ball:Spawn()
-                        
-                        ball:PhysicsInit( SOLID_BBOX )
-                        ball:SetGravity( 0.4 )
+
+                        ball:SetSolid( SOLID_BBOX )
+                        ball:SetMoveType( MOVETYPE_FLYGRAVITY )
+                        ball:SetMoveCollide( MOVECOLLIDE_FLY_CUSTOM )
+                        LAMBDA_TF2:TakeNoDamage( ball )
+
                         ball:SetFriction( 0.2 )
                         ball:SetElasticity( 0.45 )
-                        ball:AddSolidFlags( FSOLID_NOT_STANDABLE )
-                        LAMBDA_TF2:TakeNoDamage( ball )
+                        ball:SetCollisionGroup( COLLISION_GROUP_PROJECTILE )
                         SafeRemoveEntityDelayed( ball, 15 )
 
-                        local phys = ball:GetPhysicsObject()
-                        if IsValid( phys ) then
-                            local spawnVel = ( ( spawnAng:Forward() * 10 + spawnAng:Up() * 1 ):GetNormalized() * 3000 )
-                            phys:SetVelocity( spawnVel )
-                            phys:AddAngleVelocity( Vector( 0, Rand( 0, 100 ), 0 ) )
-                            phys:AddGameFlag( FVPHYSICS_NO_IMPACT_DMG + FVPHYSICS_NO_PLAYER_PICKUP + FVPHYSICS_NO_NPC_IMPACT_DMG )
-                        end
+                        ball:SetLocalVelocity( ( spawnAng:Forward() * 10 + spawnAng:Up() * 1 ):GetNormalized() * 3000 )
+                        ball:SetLocalAngularVelocity( Angle( 0, Rand( 0, 100 ), 0 ) )
 
-                        local trail = LAMBDA_TF2:CreateSpriteTrailEntity( self:GetPlyColor():ToColor(), nil, 5.4, 0, 0.4, "trails/laser", ball:WorldSpaceCenter(), ball )
+                        local trail = LAMBDA_TF2:CreateSpriteTrailEntity( nil, nil, 5.4, 0, 0.4, "effects/baseballtrail_" .. ( self.l_TF_TeamColor == 1 and "blu" or "red" ), ball:WorldSpaceCenter(), ball )
                         SimpleTimer( 3, function()
                             if !IsValid( trail ) then return end
                             local curPos = trail:GetPos()
@@ -144,18 +159,21 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
                             SafeRemoveEntityDelayed( trail, 1 )
                             trail:SetPos( curPos )
                         end )
+
                         ball:DeleteOnRemove( trail )
-                        
                         ball.l_Trail = trail
-                        ball.l_CreationTime = CurTime()
+
+                        ball.l_IsTFWeapon = true
                         ball.l_Touched = false
-                        ball.l_IsTFProjectile = true
 
-                        local critType = LAMBDA_TF2:GetCritBoost( self )
-                        if wepent:CalcIsAttackCriticalHelper() then critType = CRIT_FULL end
-                        ball.l_TF_CritType = critType
+                        local critType = self:GetCritBoostType()
+                        if wepent:CalcIsAttackCriticalHelper() then critType = TF_CRIT_FULL end
+                        ball.l_CritType = critType
+                
+                        ball.IsLambdaWeapon = true
+                        ball.l_killiconname = "lambdaplayers_weaponkillicons_tf2_sandman_baseball"
 
-                        ball.PhysicsCollide = OnBallCollide
+                        ball.Touch = OnBallTouch
                     end )
                 end
             end
@@ -164,8 +182,9 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         end,
 
         OnHolster = function( self, wepent )
-            self:SetHealth( floor( self:Health() * ( wepent.l_TF_Sandman_PreEquipHealth / self:GetMaxHealth() ) ) )
-            self:SetMaxHealth( wepent.l_TF_Sandman_PreEquipHealth )
+            local oldHP = Round( self:GetMaxHealth() / 0.9 )
+            self:SetHealth( Round( self:Health() * ( oldHP / self:GetMaxHealth() ) ) )
+            self:SetMaxHealth( oldHP )
         end,
         
 		OnAttack = function( self, wepent, target )

@@ -20,6 +20,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent:SetWeaponAttribute( "IsMelee", true )
             wepent:SetWeaponAttribute( "DamageType", DMG_SLASH )
 
+            wepent:SetSkin( self.l_TF_TeamColor )
             wepent:EmitSound( "weapons/draw_melee.wav", nil, nil, 0.5 )
         end,
         
@@ -29,7 +30,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         end,
 
         OnThink = function( self, wepent, dead )
-            if dead or CurTime() <= self.l_TF_NextMedicHealthRegenT then return end
+            if dead or CurTime() <= self.l_TF_NextHealthRegenT then return end
             LAMBDA_TF2:GiveHealth( self, 2, false )
         end,
     }

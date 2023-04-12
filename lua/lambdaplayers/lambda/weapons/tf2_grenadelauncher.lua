@@ -8,6 +8,7 @@ local min = math.min
 local max = math.max
 local SpriteTrail = util.SpriteTrail
 local ParticleEffect = ParticleEffect
+local ParticleEffectAttach = ParticleEffectAttach
 local FindInSphere = ents.FindInSphere
 local ipairs = ipairs
 local util_Decal = util.Decal
@@ -24,31 +25,27 @@ local function OnPhysicsCollide( self, colData, collider )
 
     local owner = self:GetOwner()
     local hitEnt = colData.HitEntity
-    if IsValid( hitEnt ) and hitEnt != owner and !hitEnt.l_IsTF2PipeBomb then
+    if IsValid( hitEnt ) and hitEnt != owner and !hitEnt.l_IsTFWeapon then
         local hitPos, hitNormal = colData.HitPos, colData.HitNormal
         ParticleEffect( "ExplosionCore_MidAir", hitPos, ( ( hitPos + hitNormal ) - hitPos ):Angle() )
 
         if IsValid( owner ) then 
+            local wepent = owner:GetWeaponENT()
+
             local dmginfo = DamageInfo()
             dmginfo:SetDamage( self.l_ExplodeDamage )
             dmginfo:SetAttacker( owner )
-            dmginfo:SetInflictor( owner:GetWeaponENT() )
-            
-            local dmgTypes = ( DMG_BLAST + DMG_HALF_FALLOFF )
-            if self.l_TF_ExplodeCrit == 2 then
+            dmginfo:SetInflictor( wepent )
+
+            local dmgTypes = self.l_DamageType
+            if self.l_CritType == TF_CRIT_FULL then
                 dmgTypes = ( dmgTypes + DMG_CRITICAL )
-            elseif self.l_TF_ExplodeCrit == 1 then
+            elseif self.l_CritType == TF_CRIT_MINI then
                 dmgTypes = ( dmgTypes + DMG_MINICRITICAL )
             end
             dmginfo:SetDamageType(dmgTypes )
 
             LAMBDA_TF2:RadiusDamageInfo( dmginfo, hitPos, 150, hitEnt )
-        end
-
-        local trail = self.l_Trail
-        if IsValid( trail ) then
-            trail:SetParent()
-            SafeRemoveEntityDelayed( trail, 1 )
         end
 
         self:EmitSound( ")lambdaplayers/tf2/explode" .. random( 3 ) .. ".mp3", 95, nil, nil, CHAN_WEAPON )
@@ -86,14 +83,15 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
 
             wepent:SetWeaponAttribute( "FireBullet", false )
             wepent:SetWeaponAttribute( "Damage", 60 )
+            wepent:SetWeaponAttribute( "DamageType", ( DMG_BLAST + DMG_HALF_FALLOFF ) )
             wepent:SetWeaponAttribute( "RateOfFire", { 0.6, 1.0 } )
             wepent:SetWeaponAttribute( "Animation", ACT_HL2MP_GESTURE_RANGE_ATTACK_CROSSBOW )
-            wepent:SetWeaponAttribute( "Sound", "Weapon_GrenadeLauncher.Single" )
-            wepent:SetWeaponAttribute( "CritSound", "Weapon_GrenadeLauncher.SingleCrit" )
+            wepent:SetWeaponAttribute( "Sound", ")weapons/grenade_launcher_shoot.wav" )
+            wepent:SetWeaponAttribute( "CritSound", ")weapons/grenade_launcher_shoot_crit.wav" )
             wepent:SetWeaponAttribute( "MuzzleFlash", false )
             wepent:SetWeaponAttribute( "ShellEject", false )
 
-            wepent:EmitSound( "Weapon_GrenadeLauncher.Draw" )
+            wepent:EmitSound( "weapons/draw_secondary.wav", nil, nil, 0.5 )
         end,
 
         OnAttack = function( self, wepent, target )
@@ -107,7 +105,8 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             spawnAng = ( ( targetPos + spawnAng:Right() * random( -5, 5 ) + spawnAng:Up() * random( -5, 5 ) ) - spawnPos ):Angle()
             if self:GetForward():Dot( spawnAng:Forward() ) <= 0.5 then self.l_WeaponUseCooldown = ( CurTime() + 0.1 ) return true end
 
-            if !LAMBDA_TF2:WeaponAttack( self, wepent, target ) then return true end
+            local isCrit = wepent:CalcIsAttackCriticalHelper()
+            if !LAMBDA_TF2:WeaponAttack( self, wepent, target, isCrit ) then return true end
 
             local pipe = ents_Create( "base_anim" )
             if !IsValid( pipe ) then return true end
@@ -121,8 +120,12 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             pipe:SetOwner( self )
             pipe:Spawn()
 
+            pipe:SetSkin( self.l_TF_TeamColor )
             pipe:DrawShadow( false )
             pipe:PhysicsInit( SOLID_BBOX )
+            pipe:SetGravity( 0.4 )
+            pipe:SetFriction( 0.2 )
+            pipe:SetElasticity( 0.45 )
             pipe:SetCollisionBounds( -pipeBounds, pipeBounds )
             pipe:SetCollisionGroup( COLLISION_GROUP_PROJECTILE )
             LAMBDA_TF2:TakeNoDamage( pipe )
@@ -130,29 +133,26 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             local phys = pipe:GetPhysicsObject()
             if IsValid( phys ) then
                 phys:Wake()
-                phys:AddVelocity( spawnAng:Forward() * 750 + spawnAng:Up() * ( 200 + Rand( -10, 10 ) ) + spawnAng:Right() * Rand( -10, 10 ) )
+                phys:AddVelocity( spawnAng:Forward() * 1200 + spawnAng:Up() * ( 200 + Rand( -10, 10 ) ) + spawnAng:Right() * Rand( -10, 10 ) )
                 phys:AddAngleVelocity( Vector( 600, random( -1200, 1200 ), 0 ) )
             end
 
+            pipe.l_IsTFWeapon = true
+            pipe.l_CritType = critType
             pipe.l_HasTouched = false
-            pipe.l_IsTF2PipeBomb = true
-            pipe.PhysicsCollide = OnPhysicsCollide
             pipe.l_ExplodeDamage = wepent:GetWeaponAttribute( "Damage" )
+            pipe.l_DamageType = wepent:GetWeaponAttribute( "DamageType" )
+            
+            pipe.PhysicsCollide = OnPhysicsCollide
 
-            local critType = LAMBDA_TF2:GetCritBoost( self )
-            if wepent:CalcIsAttackCriticalHelper() then critType = CRIT_FULL end
-            pipe.l_TF_ExplodeCrit = critType
+            local critType = self:GetCritBoostType()
+            if isCrit then critType = TF_CRIT_FULL end
 
-            local plyColor = self:GetPlyColor():ToColor()
-            if critType == CRIT_FULL then
-                pipe:SetMaterial( "models/shiny" )
-                pipe:SetColor( plyColor )
-            elseif critType == CRIT_MINI then
-                pipe:SetMaterial( "lambdaplayers/models/weapons/tf2/criteffects/minicrit" )
-            end                
-        
-            local trail = LAMBDA_TF2:CreateSpriteTrailEntity( plyColor, nil, ( critType == CRIT_FULL and 15 or 7.5 ), ( critType == CRIT_FULL and 7.5 or 4.25 ), ( critType == CRIT_FULL and 1 or 0.5 ), "trails/laser", pipe:WorldSpaceCenter(), pipe )
-            pipe.l_Trail = trail
+            if critType == TF_CRIT_FULL then
+                ParticleEffectAttach( "critical_pipe_" .. ( self.l_TF_TeamColor == 1 and "blue" or "red" ), PATTACH_ABSORIGIN_FOLLOW, pipe, 0 )
+            end
+
+            ParticleEffectAttach( "pipebombtrail_" .. ( self.l_TF_TeamColor == 1 and "blue" or "red" ), PATTACH_ABSORIGIN_FOLLOW, pipe, 0 )
 
             SimpleTimer( 2.0, function()
                 if !IsValid( pipe ) then return end
@@ -177,14 +177,16 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
                     dmginfo:SetDamagePosition( pipePos )
                     dmginfo:SetAttacker( self )
                     dmginfo:SetInflictor( wepent )
-                    dmginfo:SetDamageType( DMG_BLAST + ( pipe.l_IsCritical and DMG_CRITICAL or 0 ) )
+            
+                    local dmgTypes = ( DMG_BLAST + DMG_HALF_FALLOFF )
+                    if pipe.l_CritType == TF_CRIT_FULL then
+                        dmgTypes = ( dmgTypes + DMG_CRITICAL )
+                    elseif pipe.l_CritType == TF_CRIT_MINI then
+                        dmgTypes = ( dmgTypes + DMG_MINICRITICAL )
+                    end
+                    dmginfo:SetDamageType(dmgTypes )
 
                     LAMBDA_TF2:RadiusDamageInfo( dmginfo, pipePos, 150 )
-                end
-
-                if IsValid( trail ) then
-                    trail:SetParent()
-                    SafeRemoveEntityDelayed( trail, 1 )
                 end
 
                 pipe:EmitSound( ")lambdaplayers/tf2/explode" .. random( 3 ) .. ".mp3", 85, nil, nil, CHAN_WEAPON )

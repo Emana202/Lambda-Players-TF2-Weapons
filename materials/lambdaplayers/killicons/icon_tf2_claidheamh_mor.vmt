@@ -1,8 +1,0 @@
-UnlitGeneric
-{
-	"$baseTexture" "lambdaplayers/killicons/icon_tf2_claidheamh_mor"
-	"$vertexcolor" 1
-	"$vertexalpha" 1
-	"$nolod" 1
-	"$additive" 1 // hldm style!
-}

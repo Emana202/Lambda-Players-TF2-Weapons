@@ -20,7 +20,6 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
 
             wepent:SetWeaponAttribute( "IsMelee", true )
             wepent:SetWeaponAttribute( "HitRange", 72 )
-            wepent:SetWeaponAttribute( "DamageType", DMG_SLASH )
             wepent:SetWeaponAttribute( "Animation", ACT_HL2MP_GESTURE_RANGE_ATTACK_MELEE )
             wepent:SetWeaponAttribute( "RandomCrits", false )
             wepent:SetWeaponAttribute( "Sound", {
@@ -50,7 +49,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
 
         OnDealDamage = function( self, wepent, target, dmginfo, tookDamage )
             if !tookDamage or !self.l_TF_Shield_IsEquipped and self.l_TF_Shield_ChargeMeterFull then return end
-            self.l_TF_Shield_ChargeMeter = ( self.l_TF_Shield_ChargeMeter + 20 )
+            self:SetShieldChargeMeter( self:GetShieldChargeMeter() + 20 )
         end
     }
 } )

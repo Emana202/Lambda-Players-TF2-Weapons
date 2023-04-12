@@ -12,7 +12,7 @@ local rocketAttributes = {
         ")weapons/rocket_directhit_explode3.wav"
     },
     OnDealDamage = function( rocket, hitEnt, dmginfo )
-        if LAMBDA_TF2:GetCritType( dmginfo ) != CRIT_NONE or !IsValid( hitEnt ) or !LAMBDA_TF2:IsValidCharacter( hitEnt ) or hitEnt:OnGround() then return end
+        if LAMBDA_TF2:GetCritType( dmginfo ) != TF_CRIT_NONE or !IsValid( hitEnt ) or !LAMBDA_TF2:IsValidCharacter( hitEnt ) or hitEnt:OnGround() then return end
         dmginfo:SetDamageType( dmginfo:GetDamageType() + DMG_MINICRITICAL )
     end
 }
@@ -28,8 +28,8 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
 
         clip = 4,
         islethal = true,
-        attackrange = 2000,
-        keepdistance = 500,
+        attackrange = 2500,
+        keepdistance = 750,
         deploydelay = 0.5,
 
         OnDeploy = function( self, wepent )
@@ -48,20 +48,20 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         end,
 
         OnAttack = function( self, wepent, target )
+            local targetPos = LAMBDA_TF2:CalculateEntityMovePosition( target, self:GetRangeTo( target ), 1980, Rand( 0.5, 1.1 ), target:WorldSpaceCenter() )
             local spawnPos = wepent:GetAttachment( wepent:LookupAttachment( "muzzle" ) ).Pos
-            local targetPos = target:WorldSpaceCenter()
-            targetPos = ( targetPos + ( target:IsNextBot() and target.loco or target ):GetVelocity() * ( ( self:GetRangeTo( target ) * Rand( 0.5, 1.1 ) ) / 1100 ) )
-
             local spawnAng = ( ( targetPos + ( ( target:IsNextBot() and target.loco or target ):GetVelocity() * ( ( self:GetRangeTo( targetPos ) * Rand( 0.66, 1.1 ) ) / 1100 ) ) ) - spawnPos ):Angle()
+            
             spawnAng = ( ( targetPos + spawnAng:Right() * random( -5, 5 ) + spawnAng:Up() * random( -5, 5 ) ) - spawnPos ):Angle()
-
             spawnPos = ( spawnPos + spawnAng:Forward() * ( self.loco:GetVelocity():Length() * FrameTime() * 4 ) )
             spawnAng = ( ( targetPos + spawnAng:Right() * random( -5, 5 ) + spawnAng:Up() * random( -5, 5 ) ) - spawnPos ):Angle()
 
             if self:GetForward():Dot( spawnAng:Forward() ) <= 0.5 then self.l_WeaponUseCooldown = ( CurTime() + 0.1 ) return true end
-            if !LAMBDA_TF2:WeaponAttack( self, wepent, target ) then return true end
+
+            local isCrit = wepent:CalcIsAttackCriticalHelper()
+            if !LAMBDA_TF2:WeaponAttack( self, wepent, target, isCrit ) then return true end
             
-            LAMBDA_TF2:CreateRocketProjectile( spawnPos, spawnAng, self, wepent, rocketAttributes )
+            LAMBDA_TF2:CreateRocketProjectile( spawnPos, spawnAng, self, wepent, isCrit, rocketAttributes )
             return true
         end,
 

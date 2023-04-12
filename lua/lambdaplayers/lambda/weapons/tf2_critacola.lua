@@ -18,7 +18,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         end,
 
         OnThink = function( self, wepent, isdead )
-            if !isdead and self:InCombat() and self:IsInRange( self:GetEnemy(), 1000 ) then
+            if !isdead and self:InCombat() and self:IsInRange( self:GetEnemy(), 1500 ) then
                 self:UseWeapon()
             end
         end,
@@ -40,7 +40,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             self:SetState( "UseTFItem" )
 
             self:SimpleWeaponTimer( waitTime, function()
-                LAMBDA_TF2:AddCritBoost( self, "Crit-A-Cola", CRIT_MINI, 8, 5 )
+                LAMBDA_TF2:AddCritBoost( self, "Crit-A-Cola", TF_CRIT_MINI, 8 )
 
                 local usedCan = ents_Create( "prop_physics" )
                 usedCan:SetPos( wepent:GetPos() )

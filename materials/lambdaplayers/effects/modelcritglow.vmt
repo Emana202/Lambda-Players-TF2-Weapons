@@ -1,0 +1,22 @@
+"UnlitTwoTexture"
+{
+	"$basetexture" "lambdaplayers\effects\modelcritglow"
+	"$texture2" "lambdaplayers\effects\modelcritglow"
+
+	"$iscustom" "1"
+
+	"Proxies"
+	{
+		"ModelGlowColor"
+		{
+			resultVar	$color2
+		}
+		"TextureScroll"
+		{
+			"texturescrollvar" "$texture2transform"
+			"texturescrollrate" -.2
+			"texturescrollangle" 60
+		}
+	}
+
+}

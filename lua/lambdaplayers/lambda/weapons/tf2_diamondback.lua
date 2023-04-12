@@ -44,9 +44,9 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             return true
         end,
 
-        OnThink = function( self, wepent )
-            if self.l_TF_DiamondbackCrits > 0 then
-                LAMBDA_TF2:AddCritBoost( self, "DiamondbackCrits", CRIT_FULL, 0.1 )
+        OnThink = function( self, wepent, isdead )
+            if !isdead and self.l_TF_DiamondbackCrits > 0 then
+                LAMBDA_TF2:AddCritBoost( self, "DiamondbackCrits", TF_CRIT_FULL, 0.1 )
             end
         end,
 
