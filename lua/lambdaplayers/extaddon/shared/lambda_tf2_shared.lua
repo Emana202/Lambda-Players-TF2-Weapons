@@ -615,7 +615,7 @@ local function TFState_TauntWithPartner( lambda )
     end
 end
 
-local function OnLambdaInitialize( lambda, weapon )        
+local function OnLambdaInitialize( lambda, weapon )
     LAMBDA_TF2:PseudoNetworkVar( lambda, "NextMeleeCrit", TF_CRIT_NONE )
     LAMBDA_TF2:PseudoNetworkVar( lambda, "IsShieldCharging", false ) 
     LAMBDA_TF2:PseudoNetworkVar( lambda, "ShieldChargeMeter", 100.001 ) 
@@ -642,13 +642,14 @@ local function OnLambdaInitialize( lambda, weapon )
         end
     end
 
-    LAMBDA_TF2:PseudoNetworkVar( lambda, "ObjectorImage", objectorPath )
-
-    if SERVER and !EndsWith( objectorPath, ".vtf" ) then
+    if !objectorPath then 
+        objectorPath = ""
+    elseif ( SERVER ) and !EndsWith( objectorPath, ".vtf" ) then
         net.Start( "lambda_tf2_addobjectorimage" )
             net.WriteString( objectorPath )
         net.Broadcast()
     end
+    LAMBDA_TF2:PseudoNetworkVar( lambda, "ObjectorImage", objectorPath )
 
     weapon.l_TF_Owner = lambda
 

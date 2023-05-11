@@ -130,6 +130,7 @@ matproxy.Add( {
         if !IsValid( owner ) or !owner.IsLambdaPlayer then return end
 
         local imagePath = owner:GetObjectorImage()
+        if #imagePath == 0 then return end
         mat:SetTexture( "$basetexture", ( LAMBDA_TF2.ObjectorSprayImages[ imagePath ] or StripExtension( imagePath ) ) )
     end
 } )
