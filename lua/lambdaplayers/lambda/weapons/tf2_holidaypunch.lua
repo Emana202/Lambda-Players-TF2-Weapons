@@ -28,18 +28,21 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent:SetWeaponAttribute( "HitCritSound", ")weapons/mittens_punch_crit.wav" )
 
 			wepent:SetWeaponAttribute( "PreHitCallback", function( lambda, weapon, target, dmginfo )
-                local isCrit = dmginfo:IsDamageType( DMG_CRITICAL )
+                local dmgCustom = dmginfo:GetDamageCustom()
+                local isCrit = LAMBDA_TF2:IsDamageCustom( dmgCustom, TF_DMG_CUSTOM_CRITICAL )
+
                 local toEnt = ( target:GetPos() - lambda:GetPos() ); toEnt:Normalize()
                 weapon.l_TF_MakeLaugh = ( isCrit or toEnt:Dot( target:GetForward() ) > 0.7071 )
 
                 if weapon.l_TF_MakeLaugh then
                     dmginfo:SetDamage( 0 )
-                    if isCrit then dmginfo:SetDamageType( dmginfo:GetDamageType() - DMG_CRITICAL ) end
+                    if isCrit then dmgCustom = ( dmgCustom - TF_DMG_CUSTOM_CRITICAL ) end
+                end
+                if target:IsPlayer() and target:IsPlayingTaunt() or target.IsLambdaPlayer and ( target:GetState() == "Schadenfreude" or target:GetState() == "Laughing" ) then
+                    dmgCustom = ( dmgCustom + TF_DMG_CUSTOM_GLOVES_LAUGHING )
                 end
 
-                if target:IsPlayer() and target:IsPlayingTaunt() or target.IsLambdaPlayer and ( target:GetState() == "Schadenfreude" or target:GetState() == "Laughing" ) then
-                    dmginfo:SetDamageCustom( TF_DMG_CUSTOM_GLOVES_LAUGHING )
-                end
+                dmginfo:SetDamageCustom( dmgCustom )
 			end )
 
             wepent:SetSkin( self.l_TF_TeamColor )

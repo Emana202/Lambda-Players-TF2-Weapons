@@ -42,14 +42,8 @@ local function OnCleaverTouch( self, ent )
             dmginfo:SetDamage( 30 )
             dmginfo:SetDamagePosition( self:GetPos() )
             dmginfo:SetDamageForce( self:GetVelocity() * dmginfo:GetDamage() )
-
-            local dmgTypes = DMG_GENERIC
-            if critType == TF_CRIT_FULL then 
-                dmgTypes = ( dmgTypes + DMG_CRITICAL )
-            elseif critType == TF_CRIT_MINI then
-                dmgTypes = ( dmgTypes + DMG_MINICRITICAL )
-            end
-            dmginfo:SetDamageType( dmgTypes )
+            dmginfo:SetDamageType( DMG_GENERIC )
+            LAMBDA_TF2:SetCritType( dmginfo, critType )
 
             ent:DispatchTraceAttack( dmginfo, touchTr, self:GetForward() )
         end

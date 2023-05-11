@@ -37,13 +37,8 @@ local function OnFlareTouch( flare, ent )
     end
 
     local flarePos = flare:GetPos()
-    local dmgType = flare.l_DamageType
     local critType = flare.l_CritType
-    if critType == TF_CRIT_FULL or LAMBDA_TF2:IsBurning( ent ) then 
-        dmgType = ( dmgType + DMG_CRITICAL ) 
-    elseif critType == TF_CRIT_MINI then
-        dmgType = ( dmgType + DMG_MINICRITICAL ) 
-    end
+    if LAMBDA_TF2:IsBurning( ent ) then critType = TF_CRIT_FULL end
 
     flare:AddSolidFlags( FSOLID_NOT_SOLID )
     LAMBDA_TF2:TakeNoDamage( flare )
@@ -52,10 +47,13 @@ local function OnFlareTouch( flare, ent )
         local dmginfo = DamageInfo()
         dmginfo:SetDamage( flare.l_Damage )
         dmginfo:SetAttacker( owner )
-        dmginfo:SetInflictor( owner:GetWeaponENT() )
-        dmginfo:SetDamageCustom( TF_DMG_CUSTOM_BURNING )
+        dmginfo:SetInflictor( flare )
         dmginfo:SetDamagePosition( flarePos )
-        dmginfo:SetDamageType( dmgType )
+        dmginfo:SetDamageType( DMG_BULLET )
+
+        dmginfo:SetDamageCustom( TF_DMG_CUSTOM_BURNING + TF_DMG_CUSTOM_IGNITE )
+        LAMBDA_TF2:SetCritType( dmginfo, critType )
+
         ent:TakeDamageInfo( dmginfo )
     end
 
@@ -82,23 +80,23 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
 
         clip = 1,
         islethal = true,
-        attackrange = 1000,
-        keepdistance = 500,
+        attackrange = 2000,
+        keepdistance = 750,
         deploydelay = 0.5,
 
         OnDeploy = function( self, wepent )
             LAMBDA_TF2:InitializeWeaponData( self, wepent )
 
             wepent:SetWeaponAttribute( "Damage", 20 )
-            wepent:SetWeaponAttribute( "DamageType", ( DMG_BULLET + DMG_IGNITE ) )
             wepent:SetWeaponAttribute( "RateOfFire", 2.0 )
             wepent:SetWeaponAttribute( "Animation", ACT_HL2MP_GESTURE_RANGE_ATTACK_REVOLVER )
             wepent:SetWeaponAttribute( "Sound", ")weapons/flaregun_shoot.wav" )
             wepent:SetWeaponAttribute( "CritSound", ")weapons/flaregun_shoot_crit.wav" )
             wepent:SetWeaponAttribute( "UseRapidFireCrits", true )
-            wepent:SetWeaponAttribute( "ShellEject", false )
             wepent:SetWeaponAttribute( "FireBullet", false )
-            wepent:SetWeaponAttribute( "IsFlareGun", true )
+
+            wepent:SetWeaponAttribute( "MuzzleFlash", "muzzle_shotgun" )
+            wepent:SetWeaponAttribute( "ShellEject", false )
 
             wepent:SetSkin( self.l_TF_TeamColor )
             wepent:EmitSound( "weapons/draw_secondary.wav", nil, nil, 0.5 )
@@ -108,14 +106,11 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         OnAttack = function( self, wepent, target )
             local spawnPos = wepent:GetAttachment( wepent:LookupAttachment( "muzzle" ) ).Pos
             local targetPos = target:WorldSpaceCenter()
-            targetPos = LAMBDA_TF2:CalculateEntityMovePosition( target, spawnPos:Distance( targetPos ), 2000, Rand( 0.5, 1.1 ), targetPos )
+            targetPos = LAMBDA_TF2:CalculateEntityMovePosition( target, spawnPos:Distance( targetPos ), 2000, Rand( 0.4, 1.2 ), targetPos )
+            targetPos = ( targetPos + vector_up * ( spawnPos:Distance( targetPos ) / random( 17.5, 25 ) ) )
 
             local spawnAng = ( targetPos - spawnPos ):Angle()
-            spawnAng = ( ( targetPos + spawnAng:Right() * random( -5, 5 ) + spawnAng:Up() * random( -5, 5 ) ) - spawnPos ):Angle()
-
-            spawnPos = ( spawnPos + spawnAng:Forward() * ( self.loco:GetVelocity():Length() * FrameTime() * 4 ) )
-            spawnAng = ( ( targetPos + spawnAng:Right() * random( -5, 5 ) + spawnAng:Up() * random( -5, 5 ) ) - spawnPos ):Angle()
-
+            spawnAng = ( ( targetPos + spawnAng:Right() * random( -15, 15 ) + spawnAng:Up() * random( -15, 15 ) ) - spawnPos ):Angle()
             if self:GetForward():Dot( spawnAng:Forward() ) <= 0.5 then self.l_WeaponUseCooldown = ( CurTime() + 0.1 ) return true end
 
             local isCrit = wepent:CalcIsAttackCriticalHelper()
@@ -154,10 +149,14 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             flare.l_ImpactTime = 0
             flare.l_ImpactNormal = vector_origin
             flare.l_Damage = wepent:GetWeaponAttribute( "Damage" )
-            flare.l_DamageType = wepent:GetWeaponAttribute( "DamageType" )
+            flare.l_TF_AfterburnDuration = 7.5
 
             flare.Touch = OnFlareTouch
             flare.Think = OnFlareThink
+
+            flare.IsLambdaWeapon = true
+            flare.l_IsTFWeapon = true
+            flare.l_killiconname = wepent.l_killiconname
 
             self:SimpleWeaponTimer( 0.8, function()
                 self:ReloadWeapon()

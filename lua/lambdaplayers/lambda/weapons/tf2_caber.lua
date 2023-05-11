@@ -70,15 +70,10 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             explodeinfo:SetInflictor( wepent )
             explodeinfo:SetDamagePosition( wepPos )
             explodeinfo:SetDamageForce( wepPos )
-            explodeinfo:SetDamageCustom( TF_DMG_CUSTOM_STICKBOMB_EXPLOSION )
+            explodeinfo:SetDamageType( DMG_BLAST )
 
-            local dmgTypes = ( DMG_BLAST + DMG_USEDISTANCEMOD )
-            if dmginfo:IsDamageType( DMG_CRITICAL ) then 
-                dmgTypes = ( dmgTypes + DMG_CRITICAL ) 
-            elseif dmginfo:IsDamageType( DMG_MINICRITICAL ) then 
-                dmgTypes = ( dmgTypes + DMG_MINICRITICAL ) 
-            end
-            explodeinfo:SetDamageType( dmgTypes )
+            explodeinfo:SetDamageCustom( TF_DMG_CUSTOM_USEDISTANCEMOD + TF_DMG_CUSTOM_STICKBOMB_EXPLOSION )
+            LAMBDA_TF2:SetCritType( explodeinfo, LAMBDA_TF2:GetCritType( dmginfo ) )
 
             LAMBDA_TF2:RadiusDamageInfo( explodeinfo, wepPos, 100 )
 

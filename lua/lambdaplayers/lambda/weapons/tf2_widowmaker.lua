@@ -12,7 +12,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         clip = 200,
         islethal = true,
         attackrange = 800,
-        keepdistance = 400,
+        keepdistance = 500,
         deploydelay = 0.5,
 
         OnDeploy = function( self, wepent )
@@ -32,11 +32,15 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
                 ")weapons/widow_maker_shot_crit_03.wav"
             } )
             wepent:SetWeaponAttribute( "Spread", 0.0675 )
-            wepent:SetWeaponAttribute( "ShellEject", false )
             wepent:SetWeaponAttribute( "ProjectileCount", 10 )
-            wepent:SetWeaponAttribute( "DamageType", ( DMG_BUCKSHOT + DMG_USEDISTANCEMOD ) )
+            wepent:SetWeaponAttribute( "DamageType", DMG_BUCKSHOT )
             wepent:SetWeaponAttribute( "FirstShotAccurate", true )
             wepent:SetWeaponAttribute( "ClipDrain", 30 )
+            wepent:SetWeaponAttribute( "DamageCustom", TF_DMG_CUSTOM_USEDISTANCEMOD )
+
+            wepent:SetWeaponAttribute( "MuzzleFlash", "muzzle_shotgun" )
+            wepent:SetWeaponAttribute( "TracerEffect", "bullet_shotgun_tracer01" )
+            wepent:SetWeaponAttribute( "ShellEject", false )
 
             wepent:EmitSound( "weapons/draw_secondary.wav" )
         end,

@@ -17,7 +17,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             LAMBDA_TF2:InitializeWeaponData( self, wepent )
 
             wepent:SetWeaponAttribute( "IsMelee", true )
-            wepent:SetWeaponAttribute( "DamageType", DMG_CLUB + DMG_IGNITE )
+            wepent:SetWeaponAttribute( "DamageType", DMG_CLUB )
             wepent:SetWeaponAttribute( "Animation", ACT_HL2MP_GESTURE_RANGE_ATTACK_MELEE2 )
             wepent:SetWeaponAttribute( "HitSound", {
                 ")weapons/axe_hit_flesh1.wav",
@@ -25,6 +25,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
                 ")weapons/axe_hit_flesh3.wav"
             } )
             wepent:SetWeaponAttribute( "Damage", 32 )
+            wepent:SetWeaponAttribute( "DamageCustom", TF_DMG_CUSTOM_IGNITE )
 
             wepent:EmitSound("weapons/draw_melee.wav", nil, nil, 0.5 )
         end,

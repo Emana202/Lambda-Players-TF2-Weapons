@@ -28,7 +28,7 @@ LAMBDA_TF2.InventoryItems = {
     [ "tf2_buffalosteak" ] = {
         Condition = function( lambda )
             local ene = lambda:GetEnemy()
-            return ( random( 1, 4 ) == 1 and lambda.l_HasMelee and lambda:GetCritBoostType() == TF_CRIT_NONE and lambda:InCombat() and ( !lambda:CanSee( ene ) or !lambda:IsInRange( ene, 1500 ) ) )
+            return ( random( 1, 20 ) == 1 and lambda.l_HasMelee and lambda:GetCritBoostType() == TF_CRIT_NONE and lambda:InCombat() and ( !lambda:CanSee( ene ) or !lambda:IsInRange( ene, 1500 ) ) )
         end,
         SwitchBackCond = function( lambda )
             local ene = lambda:GetEnemy()
@@ -46,7 +46,7 @@ LAMBDA_TF2.InventoryItems = {
     [ "tf2_jarate" ] = {             
         Condition = function( lambda )
             local ene = lambda:GetEnemy()
-            return ( random( 1, 4 ) == 1 and lambda:InCombat() and lambda:GetCritBoostType() == TF_CRIT_NONE and !LAMBDA_TF2:IsBurning( ene ) and !ene.l_TF_CoveredInMilk and !ene.l_TF_CoveredInUrine and !LAMBDA_TF2:IsBurning( ene ) and !lambda:IsInRange( ene, 200 ) and lambda:IsInRange( ene, 750 ) or !lambda:InCombat() and LAMBDA_TF2:IsBurning( lambda ) )
+            return ( random( 1, 5 ) == 1 and lambda:InCombat() and lambda:GetCritBoostType() == TF_CRIT_NONE and !LAMBDA_TF2:IsBurning( ene ) and !ene.l_TF_CoveredInMilk and !ene.l_TF_CoveredInUrine and !LAMBDA_TF2:IsBurning( ene ) and !lambda:IsInRange( ene, 200 ) and lambda:IsInRange( ene, 750 ) or !lambda:InCombat() and LAMBDA_TF2:IsBurning( lambda ) )
         end,
         SwitchBackCond = function( lambda )
             return ( ( !lambda:InCombat() or lambda:GetCritBoostType() != TF_CRIT_NONE ) and !LAMBDA_TF2:IsBurning( lambda )  )
@@ -56,7 +56,7 @@ LAMBDA_TF2.InventoryItems = {
     [ "tf2_madmilk" ] = {             
         Condition = function( lambda )
             local ene = lambda:GetEnemy()
-            return ( random( 1, 4 ) == 1 and lambda:InCombat() and lambda:GetCritBoostType() == TF_CRIT_NONE and !LAMBDA_TF2:IsBurning( ene ) and !ene.l_TF_CoveredInMilk and !ene.l_TF_CoveredInUrine and !LAMBDA_TF2:IsBurning( ene ) and !lambda:IsInRange( ene, 200 ) and lambda:IsInRange( ene, 750 ) or !lambda:InCombat() and LAMBDA_TF2:IsBurning( lambda ) )
+            return ( random( 1, 5 ) == 1 and lambda:InCombat() and lambda:GetCritBoostType() == TF_CRIT_NONE and !LAMBDA_TF2:IsBurning( ene ) and !ene.l_TF_CoveredInMilk and !ene.l_TF_CoveredInUrine and !LAMBDA_TF2:IsBurning( ene ) and !lambda:IsInRange( ene, 200 ) and lambda:IsInRange( ene, 750 ) or !lambda:InCombat() and LAMBDA_TF2:IsBurning( lambda ) )
         end,
         SwitchBackCond = function( lambda )
             return ( ( !lambda:InCombat() or lambda:GetCritBoostType() != TF_CRIT_NONE ) and !LAMBDA_TF2:IsBurning( lambda )  )
@@ -66,7 +66,7 @@ LAMBDA_TF2.InventoryItems = {
     [ "tf2_critacola" ] = {             
         Condition = function( lambda )
             local ene = lambda:GetEnemy()
-            return ( random( 1, 10 ) == 1 and lambda:InCombat() and lambda:GetCritBoostType() == TF_CRIT_NONE and !ene.l_TF_CoveredInMilk and !ene.l_TF_CoveredInUrine and ( !lambda:IsInRange( ene, 300 ) or !lambda:CanSee( ene ) ) )
+            return ( random( 1, 20 ) == 1 and lambda:InCombat() and lambda:GetCritBoostType() == TF_CRIT_NONE and !ene.l_TF_CoveredInMilk and !ene.l_TF_CoveredInUrine and ( !lambda:IsInRange( ene, 300 ) or !lambda:CanSee( ene ) ) )
         end,
         SwitchBackCond = function( lambda )
             return ( lambda:GetCritBoostType() != TF_CRIT_NONE )
@@ -78,7 +78,7 @@ LAMBDA_TF2.InventoryItems = {
             local ene = lambda:GetEnemy()
             local attackDist = lambda.l_CombatAttackRange
             if !attackDist then attackDist = ( lambda.l_HasMelee and 70 or 1000 ) end
-            return ( random( 1, 8 ) == 1 and lambda:InCombat() and lambda:CanSee( ene ) and lambda:IsInRange( ene, 1500 ) and ( lambda.l_Clip == 0 or lambda:GetIsReloading() or !lambda:IsInRange( ene, attackDist ) or random( 1, 10 ) == 1 ) )
+            return ( random( 1, 10 ) == 1 and lambda:InCombat() and lambda:CanSee( ene ) and lambda:IsInRange( ene, 1500 ) and ( lambda.l_Clip == 0 or lambda:GetIsReloading() or !lambda:IsInRange( ene, attackDist ) or random( 1, 10 ) == 1 ) )
         end,
         SwitchBackCond = function( lambda )
             local ene = lambda:GetEnemy()

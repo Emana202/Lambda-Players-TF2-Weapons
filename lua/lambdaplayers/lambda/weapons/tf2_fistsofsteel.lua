@@ -50,9 +50,10 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         end,
 
         OnTakeDamage = function( self, wepent, dmginfo )
-            if dmginfo:IsDamageType( DMG_MELEE ) then
+            local dmgCustom = dmginfo:GetDamageCustom()
+            if LAMBDA_TF2:IsDamageCustom( dmgCustom, TF_DMG_CUSTOM_MELEE ) or dmginfo:IsDamageType( DMG_CLUB + DMG_SLASH ) then
                 dmginfo:ScaleDamage( 2.0 )
-            elseif dmginfo:IsDamageType( DMG_BLAST + DMG_BULLET + DMG_BUCKSHOT + DMG_IGNITE + DMG_SONIC ) then
+            elseif LAMBDA_TF2:IsDamageCustom( dmgCustom, TF_DMG_CUSTOM_IGNITE ) or dmginfo:IsDamageType( DMG_BLAST + DMG_BULLET + DMG_BUCKSHOT + DMG_BURN + DMG_SONIC ) then
                 dmginfo:ScaleDamage( 0.6 )
             end
         end

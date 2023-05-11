@@ -34,7 +34,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         end,
 
         OnTakeDamage = function( self, wepent, dmginfo )
-            if dmginfo:IsDamageType( DMG_BURN + DMG_SLOWBURN + DMG_IGNITE ) or dmginfo:GetDamageCustom() == TF_DMG_CUSTOM_BURNING then
+            if dmginfo:IsDamageType( DMG_BURN + DMG_SLOWBURN ) or LAMBDA_TF2:IsDamageCustom( dmginfo, TF_DMG_CUSTOM_IGNITE + TF_DMG_CUSTOM_BURNING ) then
                 dmginfo:ScaleDamage( 1.2 )
             end
         end

@@ -35,10 +35,10 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
                 "weapons/blade_slice_3.wav",
                 "weapons/blade_slice_4.wav"
             } )
-            wepent:SetWeaponAttribute( "CustomDamage", TF_DMG_CUSTOM_DECAPITATION )
+            wepent:SetWeaponAttribute( "DamageCustom", TF_DMG_CUSTOM_DECAPITATION )
 
             local newHP = Round( self:GetMaxHealth() * 0.75 )
-            local giveHP = ( ( self:GetMaxHealth() - newHP ) * 0.6 )
+            local giveHP = Round( ( self:GetMaxHealth() - newHP ) * 0.6 )
 
             wepent.l_TF_Eyelander_GiveHealth = giveHP
             newHP = Round( min( newHP + ( giveHP * self.l_TF_Decapitations ), newHP + ( giveHP * 4 ) ) )
@@ -61,6 +61,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             self:SetHealth( Round( self:Health() * ( oldHP / self:GetMaxHealth() ) ) )
             self:SetMaxHealth( oldHP )
             self.l_WeaponSpeedMultiplier = 1
+            wepent.l_TF_Eyelander_GiveHealth = nil
         end,
 
         OnDeath = function( self, wepent, dmginfo )

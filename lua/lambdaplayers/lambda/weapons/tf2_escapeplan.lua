@@ -39,7 +39,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
 
         OnThink = function( self, wepent, dead )
             if dead then return end
-            self.l_TF_MarkedForDeath = ( CurTime() + 1 )
+            LAMBDA_TF2:MarkForDeath( self, 1, true )
 
             local healthRatio = ( self:Health() / self:GetMaxHealth() )
             self.l_WeaponSpeedMultiplier = LAMBDA_TF2:RemapClamped( healthRatio, 0.2, 0.8, 1.6, 1 )

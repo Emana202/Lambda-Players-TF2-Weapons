@@ -15,6 +15,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
 		islethal = true,
         ismelee = true,
         deploydelay = 0.5,
+        healthmultiplier = 0.9,
 
         OnDeploy = function( self, wepent )
             LAMBDA_TF2:InitializeWeaponData( self, wepent )
@@ -28,10 +29,6 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
                 "weapons/ubersaw_hit3.wav",
                 "weapons/ubersaw_hit4.wav"
             } )
-            
-            local newHP = Round( self:GetMaxHealth() * 0.9 )
-            self:SetHealth( Round( self:Health() * ( newHP / self:GetMaxHealth() ) ) )
-            self:SetMaxHealth( newHP )
 
             wepent:SetSkin( self.l_TF_TeamColor )
             wepent:EmitSound( "weapons/draw_melee.wav", nil, nil, 0.5 )
@@ -40,12 +37,6 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
 		OnAttack = function( self, wepent, target )
             LAMBDA_TF2:WeaponAttack( self, wepent, target )
             return true 
-        end,
-
-        OnHolster = function( self, wepent )
-            local oldHP = Round( self:GetMaxHealth() / 0.9 )
-            self:SetHealth( Round( self:Health() * ( oldHP / self:GetMaxHealth() ) ) )
-            self:SetMaxHealth( oldHP )
         end,
 
         OnThink = function( self, wepent )

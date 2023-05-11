@@ -108,6 +108,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             self:SimpleWeaponTimer( 0.25, function()
                 local spawnPos = self:GetAttachmentPoint( "eyes" ).Pos
                 throwPos = ( isvector( target ) and target or ( IsValid( target ) and target:GetPos() or ( self:GetPos() + self:GetForward() * 500 ) ) )
+                throwPos = ( throwPos + vector_up * ( spawnPos:Distance( throwPos ) / random( 30, 40 ) ) )
                 throwAng = ( throwPos - spawnPos ):Angle()
 
                 self:ClientSideNoDraw( wepent, true )

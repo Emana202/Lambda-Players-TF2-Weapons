@@ -1,4 +1,5 @@
 local random = math.random
+local reloadData = { InterruptCondition = false }
 
 table.Merge( _LAMBDAPLAYERSWEAPONS, {
     tf2_frontierjustice = {
@@ -24,11 +25,15 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent:SetWeaponAttribute( "Sound", ")weapons/frontier_justice_shoot.wav" )
             wepent:SetWeaponAttribute( "CritSound", ")weapons/frontier_justice_shoot_crit.wav" )
             wepent:SetWeaponAttribute( "Spread", 0.0675 )
-            wepent:SetWeaponAttribute( "ShellEject", false )
             wepent:SetWeaponAttribute( "ProjectileCount", 10 )
-            wepent:SetWeaponAttribute( "DamageType", ( DMG_BUCKSHOT + DMG_USEDISTANCEMOD ) )
+            wepent:SetWeaponAttribute( "DamageType", DMG_BUCKSHOT )
             wepent:SetWeaponAttribute( "FirstShotAccurate", true )
             wepent:SetWeaponAttribute( "RandomCrits", false )
+            wepent:SetWeaponAttribute( "DamageCustom", TF_DMG_CUSTOM_USEDISTANCEMOD )
+
+            wepent:SetWeaponAttribute( "MuzzleFlash", "muzzle_shotgun" )
+            wepent:SetWeaponAttribute( "TracerEffect", "bullet_shotgun_tracer01" )
+            wepent:SetWeaponAttribute( "ShellEject", false )
 
             wepent:SetSkin( self.l_TF_TeamColor )
             wepent:EmitSound( "weapons/draw_secondary.wav", nil, nil, 0.5 )
@@ -62,9 +67,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         end,
 
         OnReload = function( self, wepent )
-            LAMBDA_TF2:ShotgunReload( self, wepent, {
-                InterruptCondition = false
-            } )
+            LAMBDA_TF2:ShotgunReload( self, wepent, reloadData )
             return true
         end
     }

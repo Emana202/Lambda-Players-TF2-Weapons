@@ -12,7 +12,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         clip = 6,
         islethal = true,
         attackrange = 800,
-        keepdistance = 400,
+        keepdistance = 500,
         deploydelay = 0.25,
 
         OnDeploy = function( self, wepent )
@@ -24,10 +24,14 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent:SetWeaponAttribute( "Sound", ")weapons/tf2_backshot_shotty.wav" )
             wepent:SetWeaponAttribute( "CritSound", ")weapons/tf2_backshot_shotty_crit.wav" )
             wepent:SetWeaponAttribute( "Spread", 0.0675 )
-            wepent:SetWeaponAttribute( "ShellEject", false )
             wepent:SetWeaponAttribute( "ProjectileCount", 15 )
-            wepent:SetWeaponAttribute( "DamageType", ( DMG_BUCKSHOT + DMG_USEDISTANCEMOD ) )
+            wepent:SetWeaponAttribute( "DamageType", DMG_BUCKSHOT  )
             wepent:SetWeaponAttribute( "FixedSpread", true )
+            wepent:SetWeaponAttribute( "DamageCustom", TF_DMG_CUSTOM_USEDISTANCEMOD )
+
+            wepent:SetWeaponAttribute( "MuzzleFlash", "muzzle_shotgun" )
+            wepent:SetWeaponAttribute( "TracerEffect", "bullet_shotgun_tracer01" )
+            wepent:SetWeaponAttribute( "ShellEject", false )
 
             wepent:EmitSound( random( 1, 4 ) != 1 and "weapons/draw_secondary.wav" or "weapons/draw_shotgun_pyro.wav", nil, nil, 0.5 )
         end,

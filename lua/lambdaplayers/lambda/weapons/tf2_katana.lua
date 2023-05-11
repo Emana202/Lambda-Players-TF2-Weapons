@@ -35,7 +35,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
                 ")weapons/samurai/TF_katana_slice_02.wav",
                 ")weapons/samurai/TF_katana_slice_03.wav"
             } )
-            wepent:SetWeaponAttribute( "CustomDamage", TF_DMG_CUSTOM_DECAPITATION )
+            wepent:SetWeaponAttribute( "DamageCustom", TF_DMG_CUSTOM_DECAPITATION )
 
             wepent:SetWeaponAttribute( "PreHitCallback", function( lambda, weapon, target, dmginfo )
 				if !target.IsLambdaPlayer or target:GetWeaponName() != "tf2_katana" then return end

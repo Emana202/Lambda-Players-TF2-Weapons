@@ -23,7 +23,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
 
 			wepent:SetWeaponAttribute( "PreHitCallback", function( lambda, weapon, target, dmginfo )
                 if !LAMBDA_TF2:IsBurning( target ) then return end
-				dmginfo:SetDamageType( dmginfo:GetDamageType() + DMG_CRITICAL )
+                LAMBDA_TF2:SetCritType( dmginfo, TF_CRIT_FULL )
 			end )
 
             wepent:EmitSound( "weapons/bat_draw.wav", nil, nil, 0.5 )
@@ -38,7 +38,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         end,
 
         OnTakeDamage = function( self, wepent, dmginfo )
-            if dmginfo:IsDamageType( DMG_BURN + DMG_SLOWBURN + DMG_IGNITE ) then
+            if dmginfo:IsDamageType( DMG_BURN + DMG_SLOWBURN ) or LAMBDA_TF2:IsDamageCustom( dmginfo, TF_DMG_CUSTOM_IGNITE ) then
                 dmginfo:ScaleDamage( 0.75 )
             end
         end

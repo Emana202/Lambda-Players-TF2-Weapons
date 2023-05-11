@@ -24,7 +24,10 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent:SetWeaponAttribute( "Spread", 0.04 )
             wepent:SetWeaponAttribute( "FirstShotAccurate", true )
             wepent:SetWeaponAttribute( "UseRapidFireCrits", true )
-            wepent:SetWeaponAttribute( "DamageType", DMG_USEDISTANCEMOD )
+            wepent:SetWeaponAttribute( "DamageCustom", TF_DMG_CUSTOM_USEDISTANCEMOD )
+
+            wepent:SetWeaponAttribute( "MuzzleFlash", "muzzle_pistol" )
+            wepent:SetWeaponAttribute( "TracerEffect", "bullet_pistol_tracer01" )
 
             self.loco:SetJumpHeight( self.loco:GetJumpHeight() * 1.25 )
             wepent:EmitSound( "weapons/draw_secondary.wav", nil, nil, 0.5 )

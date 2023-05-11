@@ -6,6 +6,14 @@ local rocketAttributes = {
     Speed = 1540,
     Damage = 41.25
 }
+local reloadData = {
+    StartDelay = 0.5,
+    CycleSound = "weapons/rocket_reload.wav",
+    CycleDelay = 0.8,
+    LayerCycle = 0.1,
+    LayerPlayRate = 1.2,
+    EndFunction = false
+}
 
 table.Merge( _LAMBDAPLAYERSWEAPONS, {
     tf2_libertylauncher = {
@@ -38,16 +46,12 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         end,
 
         OnAttack = function( self, wepent, target )
-            local targetPos = ( ( !target:IsOnGround() or random( 1, 2 ) == 1 and self:IsInRange( target, 500 ) ) and target:WorldSpaceCenter() or target:GetPos() )
-            targetPos = LAMBDA_TF2:CalculateEntityMovePosition( target, self:GetRangeTo( target ), 1540, Rand( 0.5, 1.1 ), targetPos )
-
             local spawnPos = wepent:GetAttachment( wepent:LookupAttachment( "muzzle" ) ).Pos
+            local targetPos = ( ( !target:IsOnGround() or random( 1, 2 ) == 1 and self:IsInRange( target, 500 ) ) and target:WorldSpaceCenter() or target:GetPos() )
+            targetPos = LAMBDA_TF2:CalculateEntityMovePosition( target, spawnPos:Distance( targetPos ), 1100, Rand( 0.5, 1.1 ), targetPos )
+
             local spawnAng = ( ( targetPos + ( ( target:IsNextBot() and target.loco or target ):GetVelocity() * ( ( self:GetRangeTo( targetPos ) * Rand( 0.66, 1.1 ) ) / 1100 ) ) ) - spawnPos ):Angle()
             spawnAng = ( ( targetPos + spawnAng:Right() * random( -5, 5 ) + spawnAng:Up() * random( -5, 5 ) ) - spawnPos ):Angle()
-
-            spawnPos = ( spawnPos + spawnAng:Forward() * ( self.loco:GetVelocity():Length() * FrameTime() * 4 ) )
-            spawnAng = ( ( targetPos + spawnAng:Right() * random( -5, 5 ) + spawnAng:Up() * random( -5, 5 ) ) - spawnPos ):Angle()
-
             if self:GetForward():Dot( spawnAng:Forward() ) <= 0.5 then self.l_WeaponUseCooldown = ( CurTime() + 0.1 ) return true end
 
             local isCrit = wepent:CalcIsAttackCriticalHelper()
@@ -58,19 +62,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         end,
 
         OnReload = function( self, wepent )
-            LAMBDA_TF2:ShotgunReload( self, wepent, {
-                StartSound = "weapons/rocket_reload.wav",
-                StartDelay = 0.92,
-                StartFunction = function( lambda, weapon )
-                    lambda.l_Clip = ( lambda.l_Clip + 1 )
-                end,
-                CycleSound = "weapons/rocket_reload.wav",
-                CycleDelay = 0.8,
-                LayerCycle = 0.1,
-                LayerPlayRate = 1.2,
-                EndFunction = false
-            } )
-
+            LAMBDA_TF2:ShotgunReload( self, wepent, reloadData )
             return true
         end
     }

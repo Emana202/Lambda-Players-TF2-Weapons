@@ -14,13 +14,7 @@ local function OnSyringeTouch( self, ent )
     local touchTr = self:GetTouchTrace()
     if touchTr.HitSky then self:Remove() return end
     
-    local dmgType = self.l_DamageType
-    if self.l_CritType == TF_CRIT_FULL then 
-        dmgType = ( dmgType + DMG_CRITICAL ) 
-    elseif self.l_CritType == TF_CRIT_MINI then
-        dmgType = ( dmgType + DMG_MINICRITICAL ) 
-    end
-
+    local dmgType = ( DMG_BULLET + DMG_PREVENT_PHYSICS_FORCE )
     local owner = self:GetOwner()
     if IsValid( owner ) then 
         if ent == owner then return end
@@ -32,7 +26,10 @@ local function OnSyringeTouch( self, ent )
         dmginfo:SetDamagePosition( self:GetPos() )
         dmginfo:SetDamageForce( self:GetVelocity() * self.l_Damage )
         dmginfo:SetDamageType( dmgType )
-    
+   
+        dmginfo:SetDamageCustom( TF_DMG_CUSTOM_USEDISTANCEMOD + TF_DMG_CUSTOM_NOCLOSEDISTANCEMOD )
+        LAMBDA_TF2:SetCritType( dmginfo, self.l_CritType )
+
         ent:DispatchTraceAttack( dmginfo, touchTr, self:GetForward() )
     end
     
@@ -83,7 +80,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         clip = 40,
         islethal = true,
         attackrange = 1750,
-        keepdistance = 500,
+        keepdistance = 750,
         deploydelay = 0.5,
 
         OnDeploy = function( self, wepent )
@@ -91,14 +88,14 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
 
             wepent:SetWeaponAttribute( "FireBullet", false )
             wepent:SetWeaponAttribute( "Damage", 5.1 )
-            wepent:SetWeaponAttribute( "DamageType", ( DMG_BULLET + DMG_USEDISTANCEMOD + DMG_NOCLOSEDISTANCEMOD + DMG_PREVENT_PHYSICS_FORCE ) )
             wepent:SetWeaponAttribute( "RateOfFire", 0.105 )
             wepent:SetWeaponAttribute( "Animation", ACT_HL2MP_GESTURE_RANGE_ATTACK_SMG1 )
             wepent:SetWeaponAttribute( "Sound", ")weapons/syringegun_shoot.wav" )
             wepent:SetWeaponAttribute( "CritSound", ")weapons/syringegun_shoot_crit.wav" )
-            wepent:SetWeaponAttribute( "MuzzleFlash", false )
-            wepent:SetWeaponAttribute( "ShellEject", false )
             wepent:SetWeaponAttribute( "UseRapidFireCrits", true )
+
+            wepent:SetWeaponAttribute( "MuzzleFlash", "muzzle_syringe" )
+            wepent:SetWeaponAttribute( "ShellEject", false )
 
             wepent:SetSkin( self.l_TF_TeamColor )
             wepent:EmitSound( "weapons/draw_primary.wav", nil, nil, 0.5 )
@@ -150,7 +147,6 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             syringe.l_CritType = critType
             syringe.l_Stopped = false
             syringe.l_Damage = wepent:GetWeaponAttribute( "Damage" )
-            syringe.l_DamageType = wepent:GetWeaponAttribute( "DamageType" )
 
             syringe.IsLambdaWeapon = true
             syringe.l_killiconname = wepent.l_killiconname

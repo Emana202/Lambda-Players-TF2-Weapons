@@ -44,8 +44,10 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent:SetWeaponAttribute( "Sound", ")weapons/sniper_shoot.wav" )
             wepent:SetWeaponAttribute( "CritSound", ")weapons/sniper_shoot_crit.wav" )
             wepent:SetWeaponAttribute( "RandomCrits", false )
-            wepent:SetWeaponAttribute( "ShellEject", false )
             wepent:SetWeaponAttribute( "ClipDrain", false )
+            
+            wepent:SetWeaponAttribute( "MuzzleFlash", "muzzle_sniperrifle" )
+            wepent:SetWeaponAttribute( "ShellEject", false )
 
             wepent.l_TF_IsCharging = false
             wepent.l_TF_NextZoomTime = CurTime()
@@ -77,7 +79,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
 
                     if !wepent.l_TF_ChargeIsFull and ( CurTime() - wepent.l_TF_ChargeStartTime ) >= 3.3 then
                         wepent.l_TF_ChargeIsFull = true
-                        wepent:EmitSound( "player/recharged.wav", 65, nil, nil, CHAN_STATIC )
+                        wepent:EmitSound( "player/recharged.wav", 65, nil, 0.5, CHAN_STATIC )
                     end
                 else
                     if CurTime() >= self.l_WeaponUseCooldown then self.l_WeaponUseCooldown = CurTime() + 1.0 end
@@ -98,8 +100,8 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent.l_TF_ChargeStartTime = CurTime()
             wepent.l_TF_NextZoomTime = ( CurTime() + 1 )
 
-            local headBone = target:LookupBone( "ValveBiped.Bip01_Head1" )
-            local targetPos = ( ( wepent.l_TF_IsCharging and isnumber( headBone ) and ( wepent.l_TF_ChargeIsFull or random( 1, 3 ) != 1 ) ) and LAMBDA_TF2:GetBoneTransformation( target, headBone ) or target:WorldSpaceCenter() )
+            local headHitBox = target:GetHitBoxBone( HITGROUP_HEAD, target:GetHitboxSet() )
+            local targetPos = ( ( wepent.l_TF_IsCharging and headHitBox and ( wepent.l_TF_ChargeIsFull or random( 1, 3 ) != 1 ) ) and LAMBDA_TF2:GetBoneTransformation( target, headHitBox ) or target:WorldSpaceCenter() )
             wepent.l_TF_ChargeIsFull = false
 
             local srcPos = wepent:GetPos()

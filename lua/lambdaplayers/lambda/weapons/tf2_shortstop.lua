@@ -26,12 +26,15 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent:SetWeaponAttribute( "Sound", ")weapons/short_stop_shoot.wav" )
             wepent:SetWeaponAttribute( "CritSound", ")weapons/short_stop_shoot_crit.wav" )
             wepent:SetWeaponAttribute( "Spread", 0.04 )
-            wepent:SetWeaponAttribute( "ShellEject", false )
             wepent:SetWeaponAttribute( "ProjectileCount", 4 )
-            wepent:SetWeaponAttribute( "DamageType", DMG_USEDISTANCEMOD )
+            wepent:SetWeaponAttribute( "DamageCustom", TF_DMG_CUSTOM_USEDISTANCEMOD )
             wepent:SetWeaponAttribute( "FirstShotAccurate", true )
             wepent:SetWeaponAttribute( "UseRapidFireCrits", true )
-
+            
+            wepent:SetWeaponAttribute( "MuzzleFlash", "muzzle_bignasty" )
+            wepent:SetWeaponAttribute( "TracerEffect", "bullet_bignasty_tracer01" )
+            wepent:SetWeaponAttribute( "ShellEject", false )
+            
             wepent:EmitSound( "weapons/draw_secondary.wav", nil, nil, 0.5 )
         end,
 

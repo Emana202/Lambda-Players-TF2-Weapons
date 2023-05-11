@@ -10,7 +10,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         clip = 200,
         islethal = true,
         attackrange = 350,
-        keepdistance = 200,
+        keepdistance = 250,
         deploydelay = 0.5,
 
         OnDeploy = function( self, wepent )
@@ -19,7 +19,8 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent:SetWeaponAttribute( "Damage", 100 )
             wepent:SetWeaponAttribute( "RateOfFire", 0.04 )
             wepent:SetWeaponAttribute( "UseRapidFireCrits", true )
-            wepent:SetWeaponAttribute( "DamageType", ( DMG_IGNITE + DMG_PREVENT_PHYSICS_FORCE ) )
+            wepent:SetWeaponAttribute( "DamageType", DMG_PREVENT_PHYSICS_FORCE )
+            wepent:SetWeaponAttribute( "DamageCustom", TF_DMG_CUSTOM_IGNITE )
 
             wepent:SetWeaponAttribute( "StartFireSound", ")weapons/flame_thrower_start.wav" )
             wepent:SetWeaponAttribute( "FireSound", ")weapons/flame_thrower_loop.wav" )

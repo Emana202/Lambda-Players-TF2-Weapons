@@ -20,7 +20,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent:SetWeaponAttribute( "DamageType", DMG_SLASH )
             wepent:SetWeaponAttribute( "Sound", ")weapons/machete_swing.wav" )
             wepent:SetWeaponAttribute( "CritSound", ")weapons/machete_swing_crit.wav" )
-            wepent:SetWeaponAttribute( "CustomDamage", TF_DMG_CUSTOM_TURNGOLD )
+            wepent:SetWeaponAttribute( "DamageCustom", TF_DMG_CUSTOM_TURNGOLD )
 
             wepent:EmitSound( "weapons/draw_melee.wav", nil, nil, 0.5 )
         end,

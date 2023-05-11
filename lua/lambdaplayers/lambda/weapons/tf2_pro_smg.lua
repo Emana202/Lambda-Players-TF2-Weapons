@@ -19,7 +19,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         clip = 20,
         islethal = true,
         attackrange = 1500,
-        keepdistance = 500,
+        keepdistance = 750,
         deploydelay = 0.5,
 
         OnDeploy = function( self, wepent )
@@ -33,8 +33,11 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent:SetWeaponAttribute( "Spread", 0.025 )
             wepent:SetWeaponAttribute( "FirstShotAccurate", true )
             wepent:SetWeaponAttribute( "UseRapidFireCrits", true )
-            wepent:SetWeaponAttribute( "DamageType", DMG_USEDISTANCEMOD )
+            wepent:SetWeaponAttribute( "DamageCustom", TF_DMG_CUSTOM_USEDISTANCEMOD )
             wepent:SetWeaponAttribute( "RandomCrits", false )
+            
+            wepent:SetWeaponAttribute( "MuzzleFlash", "muzzle_smg" )
+            wepent:SetWeaponAttribute( "TracerEffect", "bullet_pistol_tracer01" )
 
             wepent:SetWeaponAttribute( "BulletCallback", function( lambda, weapon, tr, dmginfo )
                 if !lambda.l_TF_CrikeyMeterFull or lambda:GetCritBoostType() != TF_CRIT_NONE then return end
@@ -58,7 +61,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
 
             if self.l_TF_CrikeyMeter >= 100 and !self.l_TF_CrikeyMeterFull then
                 self.l_TF_CrikeyMeterFull = true
-                wepent:EmitSound( "player/recharged.wav", 65, nil, nil, CHAN_STATIC )
+                wepent:EmitSound( "player/recharged.wav", 65, nil, 0.5, CHAN_STATIC )
             end
         end,
 

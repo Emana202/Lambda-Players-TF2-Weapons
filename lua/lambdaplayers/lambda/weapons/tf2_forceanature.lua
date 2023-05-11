@@ -24,10 +24,14 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent:SetWeaponAttribute( "Sound", ")weapons/scatter_gun_double_shoot.wav" )
             wepent:SetWeaponAttribute( "CritSound", ")weapons/scatter_gun_double_shoot_crit.wav" )
             wepent:SetWeaponAttribute( "Spread", 0.0675 )
-            wepent:SetWeaponAttribute( "ShellEject", false )
             wepent:SetWeaponAttribute( "ProjectileCount", 12 )
-            wepent:SetWeaponAttribute( "DamageType", ( DMG_BUCKSHOT + DMG_USEDISTANCEMOD ) )
+            wepent:SetWeaponAttribute( "DamageType", DMG_BUCKSHOT )
             wepent:SetWeaponAttribute( "FirstShotAccurate", true )
+            wepent:SetWeaponAttribute( "DamageCustom", TF_DMG_CUSTOM_USEDISTANCEMOD )
+
+            wepent:SetWeaponAttribute( "MuzzleFlash", "muzzle_bignasty" )
+            wepent:SetWeaponAttribute( "TracerEffect", "bullet_bignasty_tracer01" )
+            wepent:SetWeaponAttribute( "ShellEject", false )
 
             wepent:EmitSound( "weapons/draw_secondary.wav", nil, nil, 0.5 )
         end,
@@ -51,22 +55,10 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
 
             local size = ( target:OBBMaxs() - target:OBBMins() )
             local force = min( 1000, dmginfo:GetDamage() * ( 73728 / ( size.x * size.y * size.z ) ) * 3 )
+            
             local vecForce = ( vecDir * -force )
-
-            local jumpSpeed = 268.3281572999747
-            vecForce.z = ( vecForce.z + jumpSpeed )
-            if target:IsOnGround() and vecForce.z < jumpSpeed then
-                vecForce.z = jumpSpeed
-            end
-
-            if target:IsNextBot() then
-                target.loco:Jump()
-
-                local entVel = target.loco:GetVelocity(); entVel.z = 0
-                target.loco:SetVelocity( entVel + vecForce )
-            else
-                target:SetVelocity( vecForce )
-            end
+            vecForce.z = ( vecForce.z + 268.3281572999747 )
+            LAMBDA_TF2:ApplyAirBlastImpulse( target, vecForce )
         end,
 
         reloadtime = 1.4,

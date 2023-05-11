@@ -1,4 +1,10 @@
 local ismatrix = ismatrix
+local isvector = isvector
+local isnumber = isnumber
+local isentity = isentity
+local isbool = isbool
+local isangle = isangle
+local isstring = isstring
 local ipairs = ipairs
 local IsValid = IsValid
 local net = net
@@ -16,6 +22,9 @@ local Round = math.Round
 local max = math.max
 local Clamp = math.Clamp
 local Rand = math.Rand
+local table_Count = table.Count
+local CreateSound = CreateSound
+local ParticleEffectAttach = ParticleEffectAttach
 local RandomPairs = RandomPairs
 local random = math.random
 local table_Random = table.Random
@@ -23,6 +32,7 @@ local isfunction = isfunction
 local FindInSphere = ents.FindInSphere
 local GetAmmoMax = game.GetAmmoMax
 local TraceLine = util.TraceLine
+local LocalPlayer = ( CLIENT and LocalPlayer )
 
 local lockerTrTbl = { filter = { NULL, NULL } }
 
@@ -44,6 +54,7 @@ CreateLambdaConvar( "lambdaplayers_tf2_deathanimchance", 25, true, false, false,
 CreateLambdaConvar( "lambdaplayers_tf2_alwaysuseschadenfreude", 0, true, false, false, "If Lambda Players should always use play the Schadenfreude taunt when laughing instead of when holding a TF2 weapon", 0, 1, { type = "Bool", name = "Always Use Schadenfreude", category = "TF2 Stuff" } )
 CreateLambdaConvar( "lambdaplayers_tf2_allowdominations", 0, true, false, false, "Enables the domination and revenge mechanic from TF2 to Lambda Players and real players", 0, 1, { type = "Bool", name = "Enable Dominations & Revenges", category = "TF2 Stuff" } )
 CreateLambdaConvar( "lambdaplayers_tf2_alwaysplayrivalrysnd", 0, true, true, false, "Should the domination and revenge sound cues play no matter if you were involved in it?", 0, 1, { type = "Bool", name = "Always Play Rivalry Sounds", category = "TF2 Stuff" } )
+CreateLambdaConvar( "lambdaplayers_tf2_capbackstabdamage", 0, true, false, false, "If the damage from backstabs should be capped at 1000 damage?", 0, 1, { type = "Bool", name = "Cap Backstab's Damage", category = "TF2 Stuff" } )
 
 local shieldSpawnChance = CreateLambdaConvar( "lambdaplayers_tf2_shieldspawnchance", 10, true, false, false, "The chance that the next spawned Lambda Player will have a random charge shield equipped with them. Note that the Demoman's melee weapons have their own chance instead of this", 0, 100, { type = "Slider", decimals = 0, name = "Shield Spawn Chance", category = "TF2 Stuff" } )
 local schadenfreudeClassLaugh = CreateLambdaConvar( "lambdaplayers_tf2_schadenfreudeplaysclasslaughter", 0, true, false, false, "If Lambda Players using Schadenfreude should also play the laugh that animation belongs to alongside their own laughter", 0, 1, { type = "Bool", name = "Schadenfreude Uses Class-Specific Laughter", category = "TF2 Stuff" } )
@@ -89,9 +100,7 @@ function LAMBDA_TF2:PseudoNetworkVar( ent, name, initVar )
     if !typeIndex then return end
 
     local varName = "lambda_tf2_" .. lower( name )
-    if ( SERVER ) then
-        setFunc( ent, varName, initVar )
-    end
+    if ( SERVER ) then setFunc( ent, varName, initVar ) end
 
     ent[ "Get" .. name ] = function( self ) return getFunc( ent, varName ) end
     ent[ "Set" .. name ] = function( self, value ) setFunc( ent, varName, value ) end
@@ -198,6 +207,12 @@ function LAMBDA_TF2:GetCritGlowMaterial()
     return "lambdaplayers/effects/modelcritglow"
 end
 
+function LAMBDA_TF2:IsValidCharacter( ent, alive, ignoreInitialize )
+    if alive == nil then alive = true end
+    if !ignoreInitialize and !ent.l_TF_IsInitialized then return false end
+    return ( ( ent:IsPlayer() or ent.IsLambdaPlayer ) and ( !alive or ent:Alive() ) or ( ent:IsNPC() or ent:IsNextBot() ) and ( !alive or ent:Health() > 0 ) )
+end
+
 function LAMBDA_TF2:RemapClamped( value, inMin, inMax, outMin, outMax )
     if inMin == inMax then return ( value >= inMax and outMax or outMin ) end
     local clampedValue = ( ( value - inMin ) / ( inMax - inMin ) )
@@ -216,14 +231,135 @@ function LAMBDA_TF2:StopParticlesNamed( ent, name )
     end
 end
 
+function LAMBDA_TF2:CreateSound( targetEnt, soundName, filter )
+    local sndTbl = targetEnt.l_TF_LoopingSounds
+
+    if sndTbl == nil then
+        targetEnt.l_TF_LoopingSounds = {}
+    else
+        local soundData = sndTbl[ soundName ]
+        if soundData then 
+            soundData[ 1 ]:Stop() 
+            targetEnt.l_TF_LoopingSounds[ soundName ] = nil
+            targetEnt:RemoveCallOnRemove( soundData[ 2 ] )
+        end
+    end
+
+    local soundPatch = CreateSound( targetEnt, soundName, filter )
+    if soundPatch then 
+        local callName = "LambdaTF2_StopLoopingSound_" .. targetEnt:GetClass() .. "_" .. CurTime() .. "_" .. random( 9999 ) .. "_'" .. soundName .. "'"
+        targetEnt.l_TF_LoopingSounds[ soundName ] = { soundPatch, callName }
+
+        targetEnt:CallOnRemove( callName, function()
+            if soundPatch then soundPatch:Stop() end
+            targetEnt.l_TF_LoopingSounds[ soundName ] = nil
+        end )
+    end
+    return soundPatch
+end
+
+function LAMBDA_TF2:StopSound( ent, soundPatch )
+    if !soundPatch then return end
+
+    if IsValid( ent ) then
+        local loopingSnds = ent.l_TF_LoopingSounds
+        if loopingSnds then
+            for soundName, soundData in pairs( loopingSnds ) do
+                if soundData[ 1 ] != soundPatch then continue end
+                ent:RemoveCallOnRemove( soundData[ 2 ] )
+                ent.l_TF_LoopingSounds[ soundName ] = nil
+                break
+            end
+        end
+    end
+
+    soundPatch:Stop()
+    soundPatch = nil
+end
+
 function LAMBDA_TF2:AttachFlameParticle( ent, removeTime, teamClr )
-    local partName = "burningplayer_" .. ( teamClr == 1 and "blue" or "red" )
+    local partName = ( isstring( teamClr ) and teamClr or "burningplayer_" .. ( teamClr == 1 and "blue" or "red" ) )
     ParticleEffectAttach( partName, PATTACH_ABSORIGIN_FOLLOW, ent, 0 )
 
-    SimpleTimer( removeTime, function()
-        if !IsValid( ent ) then return end
-        LAMBDA_TF2:StopParticlesNamed( ent, partName )
+    local burningSnd = LAMBDA_TF2:CreateSound( ent, "ambient/fire/fire_small_loop" .. random( 2 ) .. ".wav" )
+    burningSnd:PlayEx( 0.8, 100 )
+    burningSnd:SetSoundLevel( 75 )
+
+    local hookName = "LambdaTF2_ExtinguishFlame_" .. ent:GetClass() .. CurTime() .. random( 9999 )
+    local removeFlameTime = ( CurTime() + removeTime )
+    hook_Add( "Tick", hookName, function() 
+        if IsValid( ent ) and CurTime() < removeFlameTime and ent:WaterLevel() < 2 then return end
+        if IsValid( ent ) then LAMBDA_TF2:StopParticlesNamed( ent, partName ) end
+        LAMBDA_TF2:StopSound( ent, burningSnd )
+        hook_Remove( "Tick", hookName )
     end )
+end
+
+local eyeOffsetVec = Vector( 0, 0, 0 )
+
+function LAMBDA_TF2:GetOverheadEffectPosition( ent )
+    local eyePos
+    if ent.IsLambdaPlayer then 
+        eyePos = ent:GetAttachmentPoint( "eyes" ).Pos
+    else
+        eyePos = ent:EyePos()
+    end
+
+    eyeOffsetVec.z = ( eyePos.z - ent:GetPos().z + 20 )
+    return eyeOffsetVec
+end
+
+function LAMBDA_TF2:AddOverheadEffect( ent, effectName )
+    if ( CLIENT ) then
+        if !ent.l_TF_OverheadEffects or IsValid( ent.l_TF_OverheadEffects[ effectName ] ) then return end
+
+        local effect = CreateParticleSystem( ent, effectName, PATTACH_ABSORIGIN_FOLLOW, 0, LAMBDA_TF2:GetOverheadEffectPosition( ent ) )
+        if !IsValid( effect ) then return end
+
+        ent.l_TF_OverheadEffects[ effectName ] = effect
+    else
+        net.Start( "lambda_tf2_addoverheadeffect" )
+            net.WriteEntity( ent )
+            net.WriteString( effectName )
+        net.Broadcast()
+    end
+end
+
+function LAMBDA_TF2:RemoveOverheadEffect( ent, effectName, removeInstantly )
+    if ( CLIENT ) then
+        if !ent.l_TF_OverheadEffects then return end
+
+        local effect = ent.l_TF_OverheadEffects[ effectName ]
+        if !IsValid( effect ) then return end
+
+        effect:StopEmission( false, ( removeInstantly or false ) )
+        ent.l_TF_OverheadEffects[ effectName ] = nil
+    else
+        net.Start( "lambda_tf2_removeoverheadeffect" )
+            net.WriteEntity( ent )
+            net.WriteString( effectName )
+            net.WriteBool( removeInstantly or false )
+        net.Broadcast()
+    end
+end
+
+function LAMBDA_TF2:RemoveEntity( ent )
+    local loopingSnds = ent.l_TF_LoopingSounds
+    if loopingSnds then
+        for soundName, soundData in pairs( loopingSnds ) do
+            if soundData[ 1 ] then soundData[ 1 ]:Stop() end
+            ent:RemoveCallOnRemove( soundData[ 2 ] )
+            ent.l_TF_LoopingSounds[ soundName ] = nil
+        end
+    end
+
+    if ent:GetClass() == "class C_HL2MPRagdoll" then
+        net.Start( "lambda_tf2_removempragdoll" )
+            net.WriteEntity( ent )
+        net.SendToServer()
+    else
+        ent:Remove()
+    end
 end
 
 local function OnEntityCreated( ent )
@@ -236,39 +372,14 @@ local function OnEntityCreated( ent )
     SimpleTimer( 0, function()
         if !IsValid( ent ) then return end
 
-        if ( CLIENT ) then
-            ent.l_TF_LastCritEffectTime = CurTime()
-        end
-
         if ( SERVER ) then
-            if ent:GetClass() == "prop_dynamic" and ent:GetModel() == "models/props_gameplay/resupply_locker.mdl" then
-                local locker = ents_Create( "lambda_tf_resupplylocker" )
-                locker:SetPos( ent:GetPos() )
-                locker:SetAngles( ent:GetAngles() )
-                locker:Spawn()
-
-                ent:Remove()
-                return
-            end
-
             ent.l_TF_HasOverheal = false
             ent.l_TF_HealFraction = 0
 
-            ent.l_TF_LoopingSounds = {}
-
-            ent:CallOnRemove( "LambdaTF2_StopLoopingSounds" .. ent:GetCreationID(), function()
-                local loopingSnds = ent.l_TF_LoopingSounds
-                if !loopingSnds then return end
-
-                for _, snd in pairs( loopingSnds ) do
-                    if snd then snd:Stop(); snd = nil end
-                end
-            end )
-
             ent.l_TF_BleedInfo = {}
 
-            ent.l_TF_MarkedForDeath = 0
-            ent.l_TF_MarkedForDeathSilent = 0
+            ent.l_TF_MarkedForDeath = false
+            ent.l_TF_MarkedForDeathSilent = false
             ent.l_TF_MarkedForDeathTarget = nil
 
             ent.l_TF_FlameBurnTime = 0
@@ -278,6 +389,8 @@ local function OnEntityCreated( ent )
             ent.l_TF_AfterburnImmunity = 0
             ent.l_TF_FireImmunity = 0
             ent.l_TF_FireEngulfSound = nil
+            ent.l_TF_BurnDamage = 3
+            ent.l_TF_BurnDamageCustom = TF_DMG_CUSTOM_BURNING
 
             ent.l_TF_CoveredInUrine = false
             ent.l_TF_CoveredInMilk = false
@@ -297,6 +410,7 @@ local function OnEntityCreated( ent )
             ent.l_TF_StunStateChangeT = 0
             ent.l_TF_PreStunState = nil
             ent.l_TF_StunMovement = false
+            ent.l_TF_StunSpeedReduction = 1
 
             ent.l_TF_CritBoosts = {}
             ent.l_TF_LastCritBoost = TF_CRIT_NONE
@@ -310,17 +424,22 @@ local function OnEntityCreated( ent )
             ent.l_TF_DefenseBuffActive = false
             ent.l_TF_SpeedBuffActive = false
 
+            ent.l_TF_LastDamageResistSoundTime = 0
             ent.l_TF_NextLockerResupplyTime = 0
             ent.l_TF_UnansweredKills = {}
+            ent.l_TF_AttackBonusEffect = {}
+            
+            ent.l_TF_WaterExitTime = false
+            ent.l_TF_OldWaterLevel = 0
 
             ent:SetNW2Bool( "lambda_tf2_decapitatehead", false )
             ent:SetNW2Bool( "lambda_tf2_turnintoice", false )
             ent:SetNW2Bool( "lambda_tf2_turnintogold", false )
-            
+            ent:SetNW2Bool( "lambda_tf2_turnintoashes", false )
+            ent:SetNW2Bool( "lambda_tf2_dissolve", false )
             ent:SetNW2Bool( "lambda_tf2_bleeding", false )
-            ent:SetNW2Bool( "lambda_tf2_burning", false )
 
-            if LAMBDA_TF2:IsValidCharacter( ent, false ) then
+            if LAMBDA_TF2:IsValidCharacter( ent, false, true ) then
                 local hookName = "LambdaTF2_EntityThink_" .. ent:GetClass() .. "_" .. ent:GetCreationID()
                 hook_Add( "Think", hookName, function() 
                     if !IsValid( ent ) then hook_Remove( "Think", hookName ) return end
@@ -328,6 +447,58 @@ local function OnEntityCreated( ent )
                 end )
             end
         end
+
+        if ( CLIENT ) then
+            ent.l_TF_LastAttackBonusEffectT = CurTime()
+            ent.l_TF_OverheadEffects = {}
+
+            if LAMBDA_TF2:IsValidCharacter( ent, false, true ) then
+                local hookName = "LambdaTF2_UpdateOverheadEffects_" .. ent:GetClass() .. ent:EntIndex()
+                hook_Add( "Tick", hookName, function()
+                    if !IsValid( ent ) then hook_Remove( "Tick", hookName ) return end
+
+                    local effectTbl = ent.l_TF_OverheadEffects
+                    local effectCount = table_Count( effectTbl )
+                    if effectCount == 0 then return end
+
+                    local shouldDraw = ( !ent:GetNoDraw() and !ent:IsDormant() )
+                    local rightOffset, firstEffectOffset
+                    if shouldDraw then
+                        firstEffectOffset = ( -12 * ( effectCount - 1 ) )
+
+                        local eyePos
+                        if ent.IsLambdaPlayer then 
+                            eyePos = ent:GetAttachmentPoint( "eyes" ).Pos
+                        else
+                            eyePos = ent:EyePos()
+                        end
+                        eyeOffsetVec.z = ( eyePos.z - ent:GetPos().z + 20 )
+
+                        local headDir = ( eyePos - LocalPlayer():EyePos() )
+                        rightOffset = headDir:Cross( vector_up ):GetNormalized()
+                    end
+
+                    local validEffectCount = 0
+                    for name, effect in pairs( effectTbl ) do
+                        if !IsValid( effect ) then
+                            ent.l_TF_OverheadEffects[ name ] = nil
+                            continue 
+                        end
+
+                        if shouldDraw then
+                            local curOffset = ( firstEffectOffset + 24 * validEffectCount )
+                            local finOffset = ( eyeOffsetVec + curOffset * rightOffset )
+                            effect:AddControlPoint( 0, ent, PATTACH_ABSORIGIN_FOLLOW, 0, finOffset )
+                            validEffectCount = ( validEffectCount + 1 )
+                        end
+                        effect:SetShouldDraw( shouldDraw )
+                    end
+                end )
+            end
+        end
+
+        ent.l_TF_LoopingSounds = {}
+        ent.l_TF_IsInitialized = true
     end )
 end
 
@@ -530,12 +701,17 @@ local function OnLambdaInitialize( lambda, weapon )
 
         lambda.l_TF_CollectedOrgans = 0
 
+        lambda.l_TF_DonkVictims = {}
+
         lambda.l_TF_RageActivated = false
         lambda.l_TF_RageBuffType = nil
         lambda.l_TF_RageMeter = 0
         lambda.l_TF_RagePulseCount = 0
         lambda.l_TF_RageNextPulseTime = 0
         lambda.l_TF_RageBuffPack = NULL
+
+        lambda.l_TF_MmmphActivated = false
+        lambda.l_TF_MmmphMeter = 0
 
         lambda.l_TF_SniperShieldType = nil
         lambda.l_TF_SniperShieldModel = NULL
@@ -591,7 +767,11 @@ local function OnLambdaInitialize( lambda, weapon )
                 local itemInitialize = data.Initialize
                 if itemInitialize and itemInitialize( lambda ) == true then continue end
 
-                local itemData = { IsWeapon = ( data.IsWeapon == nil and true or data.IsWeapon ), NextUseTime = CurTime(), IsReady = true }
+                local itemData = { 
+                    IsWeapon = ( data.IsWeapon == nil and true or data.IsWeapon ), 
+                    IsReady = true,
+                    NextUseTime = CurTime()
+                }
 
                 local cooldownType = data.Cooldown
                 if isfunction( data.Cooldown ) then

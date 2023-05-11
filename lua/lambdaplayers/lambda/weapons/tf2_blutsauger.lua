@@ -14,12 +14,13 @@ local function OnSyringeTouch( self, ent )
 
     local touchTr = self:GetTouchTrace()
     if touchTr.HitSky then self:Remove() return end
-    
-    local dmgType = self.l_DamageType
-    if self.l_CritType == TF_CRIT_FULL then 
-        dmgType = ( dmgType + DMG_CRITICAL ) 
-    elseif self.l_CritType == TF_CRIT_MINI then
-        dmgType = ( dmgType + DMG_MINICRITICAL ) 
+
+    local dmgCustom = self.l_DamageCustom
+    local critType = self.l_CritType
+    if critType == TF_CRIT_FULL then
+        dmgCustom = ( dmgCustom + TF_DMG_CUSTOM_CRITICAL )
+    elseif critType == TF_CRIT_MINI then
+        dmgCustom = ( dmgCustom + TF_DMG_CUSTOM_MINICRITICAL )
     end
 
     local owner = self:GetOwner()
@@ -32,7 +33,8 @@ local function OnSyringeTouch( self, ent )
         dmginfo:SetInflictor( self )
         dmginfo:SetDamagePosition( self:GetPos() )
         dmginfo:SetDamageForce( self:GetVelocity() * self.l_Damage )
-        dmginfo:SetDamageType( dmgType )
+        dmginfo:SetDamageType( self.l_DamageType )
+        dmginfo:SetDamageCustom( dmgCustom )
     
         ent:DispatchTraceAttack( dmginfo, touchTr, self:GetForward() )
     end
@@ -49,7 +51,7 @@ local function OnSyringeTouch( self, ent )
         effectData:SetStart( touchTr.StartPos )
         effectData:SetSurfaceProp( touchTr.SurfaceProps )
         effectData:SetHitBox( touchTr.HitBox )
-        effectData:SetDamageType( dmgType )
+        effectData:SetDamageType( self.l_DamageType )
         effectData:SetEntity( touchTr.Entity )
         util_Effect( "Impact", effectData )
     end
@@ -84,7 +86,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         clip = 40,
         islethal = true,
         attackrange = 1750,
-        keepdistance = 500,
+        keepdistance = 750,
         deploydelay = 0.5,
 
         OnDeploy = function( self, wepent )
@@ -92,14 +94,16 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
 
             wepent:SetWeaponAttribute( "FireBullet", false )
             wepent:SetWeaponAttribute( "Damage", 6 )
-            wepent:SetWeaponAttribute( "DamageType", ( DMG_BULLET + DMG_USEDISTANCEMOD + DMG_NOCLOSEDISTANCEMOD + DMG_PREVENT_PHYSICS_FORCE ) )
+            wepent:SetWeaponAttribute( "DamageType", ( DMG_BULLET + DMG_PREVENT_PHYSICS_FORCE ) )
             wepent:SetWeaponAttribute( "RateOfFire", 0.105 )
             wepent:SetWeaponAttribute( "Animation", ACT_HL2MP_GESTURE_RANGE_ATTACK_SMG1 )
             wepent:SetWeaponAttribute( "Sound", ")weapons/syringegun_shoot.wav" )
             wepent:SetWeaponAttribute( "CritSound", ")weapons/syringegun_shoot_crit.wav" )
-            wepent:SetWeaponAttribute( "MuzzleFlash", false )
-            wepent:SetWeaponAttribute( "ShellEject", false )
             wepent:SetWeaponAttribute( "UseRapidFireCrits", true )
+            wepent:SetWeaponAttribute( "DamageCustom", ( TF_DMG_CUSTOM_USEDISTANCEMOD + TF_DMG_CUSTOM_NOCLOSEDISTANCEMOD ) )
+
+            wepent:SetWeaponAttribute( "MuzzleFlash", "muzzle_syringe" )
+            wepent:SetWeaponAttribute( "ShellEject", false )
 
             wepent:SetSkin( self.l_TF_TeamColor )
             wepent:EmitSound( "weapons/draw_primary.wav", nil, nil, 0.5 )
@@ -148,6 +152,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             syringe.l_Stopped = false
             syringe.l_Damage = wepent:GetWeaponAttribute( "Damage" )
             syringe.l_DamageType = wepent:GetWeaponAttribute( "DamageType" )
+            syringe.l_DamageCustom = wepent:GetWeaponAttribute( "DamageCustom" )
             
             syringe.IsLambdaWeapon = true
             syringe.l_killiconname = wepent.l_killiconname

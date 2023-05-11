@@ -54,7 +54,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         end,
 
         OnTakeDamage = function( self, wepent, dmginfo )
-            if dmginfo:IsDamageType( DMG_BURN + DMG_SLOWBURN + DMG_IGNITE ) then
+            if dmginfo:IsDamageType( DMG_BURN + DMG_SLOWBURN ) or LAMBDA_TF2:IsDamageCustom( dmginfo, TF_DMG_CUSTOM_IGNITE ) then
                 self.l_TF_FireImmunity = ( CurTime() + 1.0 )
                 self.l_TF_AfterburnImmunity = ( CurTime() + 10 )
 

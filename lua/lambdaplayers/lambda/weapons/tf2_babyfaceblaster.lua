@@ -1,3 +1,13 @@
+local reloadData = {
+    Animation = "reload_smg1_alt",
+    StartDelay = 0.7,
+    CycleSound = "weapons/scatter_gun_worldreload.wav",
+    CycleFunction = function( lambda, weapon )
+        LAMBDA_TF2:CreateShellEject( weapon, "ShotgunShellEject" )
+    end,
+    EndFunction = false
+}
+
 table.Merge( _LAMBDAPLAYERSWEAPONS, {
     tf2_babyfaceblaster = {
         model = "models/lambdaplayers/tf2/weapons/w_babyface_blaster.mdl",
@@ -10,7 +20,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         clip = 4,
         islethal = true,
         attackrange = 800,
-        keepdistance = 200,
+        keepdistance = 300,
         deploydelay = 0.5,
 		speedmultiplier = 0.9,
 
@@ -25,8 +35,12 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent:SetWeaponAttribute( "Spread", 0.0675 )
             wepent:SetWeaponAttribute( "ShellEject", false )
             wepent:SetWeaponAttribute( "ProjectileCount", 10 )
-            wepent:SetWeaponAttribute( "DamageType", ( DMG_BUCKSHOT + DMG_USEDISTANCEMOD ) )
+            wepent:SetWeaponAttribute( "DamageType", DMG_BUCKSHOT )
             wepent:SetWeaponAttribute( "FirstShotAccurate", true )
+            wepent:SetWeaponAttribute( "DamageCustom", TF_DMG_CUSTOM_USEDISTANCEMOD )
+
+            wepent:SetWeaponAttribute( "MuzzleFlash", "muzzle_scattergun" )
+            wepent:SetWeaponAttribute( "TracerEffect", "bullet_scattergun_tracer01" )
 
             wepent:EmitSound( "weapons/draw_secondary.wav", nil, nil, 0.5 )
         end,
@@ -41,16 +55,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         end,
 
         OnReload = function( self, wepent )
-            LAMBDA_TF2:ShotgunReload( self, wepent, {
-                Animation = "reload_smg1_alt",
-                StartDelay = 0.7,
-                CycleSound = "weapons/scatter_gun_worldreload.wav",
-                CycleFunction = function( lambda, weapon )
-                    LAMBDA_TF2:CreateShellEject( weapon, "ShotgunShellEject" )
-                end,
-                EndFunction = false
-            } )
-
+            LAMBDA_TF2:ShotgunReload( self, wepent, reloadData )
             return true
         end
     }

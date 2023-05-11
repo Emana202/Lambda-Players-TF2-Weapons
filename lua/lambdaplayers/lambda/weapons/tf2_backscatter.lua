@@ -1,6 +1,16 @@
 local random = math.random
 local coroutine_wait = coroutine.wait
 
+local reloadData = {
+    Animation = "reload_smg1_alt",
+    StartDelay = 0.7,
+    CycleSound = "weapons/scatter_gun_worldreload.wav",
+    CycleFunction = function( lambda, weapon )
+        LAMBDA_TF2:CreateShellEject( weapon, "ShotgunShellEject" )
+    end,
+    EndFunction = false
+}
+
 table.Merge( _LAMBDAPLAYERSWEAPONS, {
     tf2_backscatter = {
         model = "models/lambdaplayers/tf2/weapons/w_scatterdrum.mdl",
@@ -13,7 +23,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         clip = 4,
         islethal = true,
         attackrange = 800,
-        keepdistance = 200,
+        keepdistance = 300,
         deploydelay = 0.5,
 
         OnDeploy = function( self, wepent )
@@ -27,12 +37,16 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent:SetWeaponAttribute( "Spread", 0.0675 * 1.20 )
             wepent:SetWeaponAttribute( "ShellEject", false )
             wepent:SetWeaponAttribute( "ProjectileCount", 10 )
-            wepent:SetWeaponAttribute( "DamageType", ( DMG_BUCKSHOT + DMG_USEDISTANCEMOD ) )
+            wepent:SetWeaponAttribute( "DamageType", DMG_BUCKSHOT )
             wepent:SetWeaponAttribute( "FirstShotAccurate", true )
             wepent:SetWeaponAttribute( "RandomCrits", false )
+            wepent:SetWeaponAttribute( "DamageCustom", TF_DMG_CUSTOM_USEDISTANCEMOD )
+
+            wepent:SetWeaponAttribute( "MuzzleFlash", "muzzle_scattergun" )
+            wepent:SetWeaponAttribute( "TracerEffect", "bullet_scattergun_tracer01" )
 
             wepent:SetWeaponAttribute( "BulletCallback", function( lambda, weapon, tr, dmginfo )
-                if LAMBDA_TF2:GetCritType( dmginfo ) != 0 then return end
+                if LAMBDA_TF2:GetCritType( dmginfo ) != TF_CRIT_NONE then return end
 
                 local hitEnt = tr.Entity
                 if !IsValid( hitEnt ) or !LAMBDA_TF2:IsValidCharacter( hitEnt ) then return end
@@ -43,7 +57,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
                 toEnt.z = 0; toEnt:Normalize()
                 if toEnt:Dot( hitEnt:GetForward() ) <= 0.259 then return end
 
-                dmginfo:SetDamageType( dmginfo:GetDamageType() + DMG_MINICRITICAL )
+                LAMBDA_TF2:SetCritType( dmginfo, TF_CRIT_MINI )
             end )
 
             wepent:EmitSound( "weapons/draw_secondary.wav", nil, nil, 0.5 )
@@ -55,16 +69,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         end,
 
         OnReload = function( self, wepent )
-            LAMBDA_TF2:ShotgunReload( self, wepent, {
-                Animation = "reload_smg1_alt",
-                StartDelay = 0.7,
-                CycleSound = "weapons/scatter_gun_worldreload.wav",
-                CycleFunction = function( lambda, weapon )
-                    LAMBDA_TF2:CreateShellEject( weapon, "ShotgunShellEject" )
-                end,
-                EndFunction = false
-            } )
-
+            LAMBDA_TF2:ShotgunReload( self, wepent, reloadData )
             return true
         end
     }

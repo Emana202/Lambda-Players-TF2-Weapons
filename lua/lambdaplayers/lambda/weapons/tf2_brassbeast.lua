@@ -10,7 +10,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         clip = 200,
         islethal = true,
         attackrange = 1500,
-        keepdistance = 400,
+        keepdistance = 600,
 		speedmultiplier = 0.77,
         deploydelay = 0.5,
 
@@ -24,7 +24,11 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent:SetWeaponAttribute( "Spread", 0.08 )
             wepent:SetWeaponAttribute( "UseRapidFireCrits", true )
             wepent:SetWeaponAttribute( "ClipDrain", false )
-            wepent:SetWeaponAttribute( "DamageType", DMG_USEDISTANCEMOD )
+            wepent:SetWeaponAttribute( "DamageCustom", TF_DMG_CUSTOM_USEDISTANCEMOD )
+
+            wepent:SetWeaponAttribute( "MuzzleFlash", false )
+            wepent:SetWeaponAttribute( "ShellEject", false )
+            wepent:SetWeaponAttribute( "TracerEffect", "bullet_tracer01" )
 
             wepent:SetWeaponAttribute( "Damage", 6 )
             wepent:SetWeaponAttribute( "ProjectileCount", 4 )

@@ -49,7 +49,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         end,
 
         OnDealDamage = function( self, wepent, target, dmginfo )
-            if wepent.l_TF_Broken or !dmginfo:IsDamageType( DMG_CRITICAL ) then return end
+            if wepent.l_TF_Broken or !LAMBDA_TF2:IsDamageCustom( dmginfo, TF_DMG_CUSTOM_CRITICAL ) then return end
             wepent.l_TF_Broken = true
             wepent:SetBodygroup( 0, 1 )
             wepent:EmitSound( "weapons/bottle_break.wav", 80, nil, nil, CHAN_WEAPON )

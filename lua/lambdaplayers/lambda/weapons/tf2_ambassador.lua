@@ -27,19 +27,23 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent:SetWeaponAttribute( "FirstShotAccurate", true )
             wepent:SetWeaponAttribute( "RandomCrits", false )
             wepent:SetWeaponAttribute( "SpreadRecovery", 1.0 )
-            wepent:SetWeaponAttribute( "DamageType", DMG_USEDISTANCEMOD )
+            wepent:SetWeaponAttribute( "DamageCustom", TF_DMG_CUSTOM_USEDISTANCEMOD )
+
+            wepent:SetWeaponAttribute( "MuzzleFlash", "muzzle_revolver" )
+            wepent:SetWeaponAttribute( "TracerEffect", "bullet_pistol_tracer01" )
+            wepent:SetWeaponAttribute( "ShellEject", false )
 
             wepent:SetWeaponAttribute( "PreFireBulletCallback", function( lambda, weapon, target, dmginfo, bulletTbl )
                 local spread = LAMBDA_TF2:RemapClamped( ( CurTime() - wepent.l_NextAccuracyCheckT ), 1.0, 0.5, 0.0, ( 0.0 + weapon:GetWeaponAttribute( "Spread" ) ) )
                 bulletTbl.Spread.x = spread
                 bulletTbl.Spread.y = spread
 
-                local headBone = target:LookupBone( "ValveBiped.Bip01_Head1" )
-                if headBone then return LAMBDA_TF2:GetBoneTransformation( target, headBone ) end
+                local headHitBox = target:GetHitBoxBone( HITGROUP_HEAD, target:GetHitboxSet() )
+                if headHitBox then return LAMBDA_TF2:GetBoneTransformation( target, headHitBox ) end
             end )
             wepent:SetWeaponAttribute( "BulletCallback", function( lambda, weapon, tr, dmginfo )
                 if ( CurTime() - wepent.l_NextAccuracyCheckT ) >= 1 and LambdaIsValid( tr.Entity ) and tr.HitGroup == HITGROUP_HEAD and tr.StartPos:DistToSqr( tr.HitPos ) <= 1440000 then 
-                    dmginfo:SetDamageCustom( TF_DMG_CUSTOM_HEADSHOT_REVOLVER )
+                    dmginfo:SetDamageCustom( dmginfo:GetDamageCustom() + TF_DMG_CUSTOM_HEADSHOT_REVOLVER )
                 end
 
                 wepent.l_NextAccuracyCheckT = CurTime()

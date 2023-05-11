@@ -17,6 +17,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         isspyknife = true,
 		speedmultiplier = 1.07,
         deploydelay = 0.5,
+        healthmultiplier = 0.8,
 
         OnDeploy = function( self, wepent )
             LAMBDA_TF2:InitializeWeaponData( self, wepent )
@@ -46,21 +47,11 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
 				dmginfo:SetDamage( target:Health() * 2 )
 				dmginfo:SetDamageCustom( TF_DMG_CUSTOM_BACKSTAB )
 			end )
-            
-            local newHP = Round( self:GetMaxHealth() * 0.8 )
-            self:SetHealth( Round( self:Health() * ( newHP / self:GetMaxHealth() ) ) )
-            self:SetMaxHealth( newHP )
 
             wepent:EmitSound( "weapons/draw_melee.wav", nil, nil, 0.5 )
 			self:SimpleWeaponTimer( 0.333333, function() wepent:EmitSound( "weapons/knife_open1.wav", nil, nil, 0.5, CHAN_STATIC ) end )
 			self:SimpleWeaponTimer( 0.533333, function() wepent:EmitSound( "weapons/knife_open5.wav", nil, nil, 0.5, CHAN_STATIC ) end )
 			self:SimpleWeaponTimer( 0.733333, function() wepent:EmitSound( "weapons/knife_open8.wav", nil, nil, 0.5, CHAN_STATIC ) end )
-        end,
-
-        OnHolster = function( self, wepent )
-            local oldHP = Round( self:GetMaxHealth() / 0.8 )
-            self:SetHealth( Round( self:Health() * ( oldHP / self:GetMaxHealth() ) ) )
-            self:SetMaxHealth( oldHP )
         end,
 
 		OnAttack = function( self, wepent, target )

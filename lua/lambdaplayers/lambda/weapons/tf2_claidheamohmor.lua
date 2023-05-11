@@ -34,7 +34,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
                 "weapons/blade_slice_3.wav",
                 "weapons/blade_slice_4.wav"
             } )
-            wepent:SetWeaponAttribute( "CustomDamage", TF_DMG_CUSTOM_DECAPITATION )
+            wepent:SetWeaponAttribute( "DamageCustom", TF_DMG_CUSTOM_DECAPITATION )
 
             if !self.l_TF_Shield_IsEquipped and random( 3 ) != 1 then
                 LAMBDA_TF2:GiveRemoveChargeShield( self, true )

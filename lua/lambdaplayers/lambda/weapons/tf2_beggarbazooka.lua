@@ -5,6 +5,17 @@ local CurTime = CurTime
 local rocketAttributes = {
     Radius = 116.8
 }
+local reloadData = {
+    StartDelay = 0.65,
+    CycleSound = "weapons/dumpster_rocket_reload.wav",
+    CycleDelay = 1.04,
+    LayerCycle = 0.076923,
+    LayerPlayRate = 0.923077,
+    InterruptCondition = function( lambda, weapon )
+        return ( lambda.l_Clip > 0 and ( !lambda:InCombat() and CurTime() > weapon.l_FireTime or lambda:InCombat() and random( 1, 3 ) == 1 and lambda:IsInRange( lambda:GetEnemy(), 512 ) and lambda:CanSee( lambda:GetEnemy() ) ) )
+    end,
+    EndFunction = false
+}
 
 table.Merge( _LAMBDAPLAYERSWEAPONS, {
     tf2_beggarbazooka = {
@@ -57,8 +68,8 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         end,
 
         OnAttack = function( self, wepent, target )
-            local targetPos
             local spawnPos = wepent:GetAttachment( wepent:LookupAttachment( "muzzle" ) ).Pos
+            local targetPos
             if isvector( target ) then
                 targetPos = target
             else
@@ -66,15 +77,17 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
                 targetPos = LAMBDA_TF2:CalculateEntityMovePosition( target, spawnPos:Distance( targetPos ), 1100, Rand( 0.5, 1.1 ), targetPos )
             end
 
-            local spawnAng = ( targetPos - spawnPos ):Angle()
-            if self.l_Clip == 0 and !self:GetIsReloading() and self:GetForward():Dot( spawnAng:Forward() ) <= 0.5 then self.l_WeaponUseCooldown = ( CurTime() + 0.1 ) return true end
 
+            local spawnAng = ( targetPos - spawnPos ):Angle()
+            spawnAng = ( ( targetPos + spawnAng:Right() * random( -5, 5 ) + spawnAng:Up() * random( -5, 5 ) ) - spawnPos ):Angle()
+
+            local angSpread = AngleRand( -3, 3 )
+            angSpread.z = 0.0
+            spawnAng = ( spawnAng + angSpread )
+
+            if self.l_Clip == 0 and !self:GetIsReloading() and self:GetForward():Dot( spawnAng:Forward() ) <= 0.5 then self.l_WeaponUseCooldown = ( CurTime() + 0.1 ) return true end
             wepent.l_FireTime = ( CurTime() + 0.1 )
 
-            spawnAng = ( ( targetPos + spawnAng:Right() * random( -75, 75 ) + spawnAng:Up() * random( -75, 75 ) ) - spawnPos ):Angle()
-            spawnPos = ( spawnPos + spawnAng:Forward() * ( self.loco:GetVelocity():Length() * FrameTime() * 4 ) )
-            spawnAng = ( ( targetPos + spawnAng:Right() * random( -75, 75 ) + spawnAng:Up() * random( -75, 75 ) ) - spawnPos ):Angle()
-            
             local isCrit = wepent:CalcIsAttackCriticalHelper()
             if !LAMBDA_TF2:WeaponAttack( self, wepent, target, isCrit ) then return true end
 
@@ -83,20 +96,9 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         end,
 
         OnReload = function( self, wepent )
-            if CurTime() > wepent.l_FireTime then return true end
-
-            LAMBDA_TF2:ShotgunReload( self, wepent, {
-                StartDelay = 1.196,
-                CycleSound = "weapons/dumpster_rocket_reload.wav",
-                CycleDelay = 1.04,
-                LayerCycle = 0.076923,
-                LayerPlayRate = 0.923077,
-                InterruptCondition = function( lambda, weapon )
-                    return ( lambda.l_Clip > 0 and ( !lambda:InCombat() and CurTime() > wepent.l_FireTime or lambda:InCombat() and random( 1, 3 ) == 1 and lambda:IsInRange( lambda:GetEnemy(), 512 ) and lambda:CanSee( lambda:GetEnemy() ) ) )
-                end,
-                EndFunction = false
-            } )
-
+            if CurTime() <= wepent.l_FireTime then
+                LAMBDA_TF2:ShotgunReload( self, wepent, reloadData )
+            end
             return true
         end
     }

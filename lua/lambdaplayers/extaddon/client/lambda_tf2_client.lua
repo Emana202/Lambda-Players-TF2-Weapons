@@ -1,45 +1,28 @@
 local LocalPlayer = LocalPlayer
 local net = net
 local CreateParticleSystem = CreateParticleSystem
-local CurTime = CurTime
 local IsValid = IsValid
 local ipairs = ipairs
 local random = math.random
-local min = math.min
-local max = math.max
 local SimpleTimer = timer.Simple
+local max = math.max
+local hook_Add = hook.Add
+local hook_Remove = hook.Remove
 local GetConVar = GetConVar
-local StripExtension = string.StripExtension
 
 local killiconClr = Color( 255, 80, 0, 255 )
 local killIconBleed = Color( 255, 0, 0 )
-local stunStarsOffset = ( vector_up * 80 )
 local medigunBeamOffset = ( vector_up * 36 )
-local vector_one = Vector( 1, 1, 1 )
-local minicritClrVec = Vector( 1, 25, 25 )
-local minicritClrVec2 = Vector( 127, 176, 98 )
+local eyeHeightVec = Vector( 0, 0, 0 )
 
-local critHitData = {
-    [ TF_CRIT_FULL ] = { "crit_text", {
-        "player/crit_hit.wav",
-        "player/crit_hit2.wav",
-        "player/crit_hit3.wav",
-        "player/crit_hit4.wav",
-        "player/crit_hit5.wav"
-    } },
-    [ TF_CRIT_MINI ] = { "minicrit_text", {
-        "player/crit_hit_mini.wav",
-        "player/crit_hit_mini2.wav",
-        "player/crit_hit_mini3.wav",
-        "player/crit_hit_mini4.wav",
-        "player/crit_hit_mini5.wav"
-    } }
-}
+local TF_PARTICLE_WEAPON_RED_1 = Vector( 0.72, 0.22, 0.23 )
+local TF_PARTICLE_WEAPON_RED_2 = Vector( 0.5, 0.18, 0.125 )
+local TF_PARTICLE_WEAPON_BLUE_1 = Vector( 0.345, 0.52, 0.635 )
+local TF_PARTICLE_WEAPON_BLUE_2 = Vector( 0.145, 0.427, 0.55 )
 
 LAMBDA_TF2 = LAMBDA_TF2 or {}
 
 LAMBDA_TF2.ObjectorSprayImages = LAMBDA_TF2.ObjectorSprayImages or {}
-PrintTable( LAMBDA_TF2.ObjectorSprayImages )
 
 // Killicons
 killicon.Add( "lambdaplayers_weaponkillicons_tf2_backstab", "lambdaplayers/killicons/icon_tf2_backstab", killiconClr )
@@ -54,6 +37,8 @@ killicon.Add( "lambdaplayers_weaponkillicons_tf2_katana_duel", "lambdaplayers/ki
 killicon.Add( "lambdaplayers_weaponkillicons_tf2_backburner_behind", "lambdaplayers/killicons/icon_tf2_backburner_behind", killiconClr )
 killicon.Add( "lambdaplayers_weaponkillicons_tf2_ambassador_headshot", "lambdaplayers/killicons/icon_tf2_ambassador_headshot", killiconClr )
 killicon.Add( "lambdaplayers_weaponkillicons_tf2_holidaypunch_laugh", "lambdaplayers/killicons/icon_tf2_holidaypunch_laugh", killiconClr )
+killicon.Add( "lambdaplayers_weaponkillicons_tf2_loose_cannon_pushed", "lambdaplayers/killicons/icon_tf2_loose_cannon_pushed", killiconClr )
+killicon.Add( "lambdaplayers_weaponkillicons_tf2_sharpdresser_backstab", "lambdaplayers/killicons/icon_tf2_sharp_dresser_backstab", killiconClr )
 killicon.Add( "lambdaplayers_weaponkillicons_tf2_bleedout", "lambdaplayers/killicons/icon_tf2_bleedout", killIconBleed )
 
 killicon.Add( "lambdaplayers_tf2_rivalry_domination", "lambdaplayers/killicons/icon_tf2_domination", killiconClr )
@@ -75,7 +60,68 @@ end )
 
 net.Receive( "lambda_tf2_stopnamedparticle", function()
     local ent = net.ReadEntity()
-    if IsValid( ent ) then ent:StopParticlesNamed( net.ReadString() ) end
+    if !IsValid( ent ) then return end 
+
+    local partName = net.ReadString()
+    ent:StopParticlesNamed( partName )
+end )
+
+net.Receive( "lambda_tf2_dispatchcolorparticle", function()
+    local ent = net.ReadEntity()
+    if !IsValid( ent ) or ent:IsDormant() then return end
+
+    local trail
+    local effectName = net.ReadString()
+    local partAttachment = net.ReadUInt( 3 )
+    if partAttachment == PATTACH_WORLDORIGIN then
+        local origin = net.ReadVector()
+        trail = CreateParticleSystem( Entity( 0 ), effectName, partAttachment, 0, origin )
+    else
+        local entAttachment = net.ReadUInt( 6 )
+        trail = CreateParticleSystem( ent, effectName, partAttachment, entAttachment, vector_origin )
+    end
+
+    if IsValid( trail ) then
+        local reverseClr = net.ReadBool()
+        local customClr = net.ReadBool()
+
+        local baseColor, secondColor
+        if customClr then
+            baseColor = net.ReadVector()
+            secondColor = ( baseColor * 0.7 )
+        else
+            local teamColor = net.ReadUInt( 2 )
+            baseColor = ( teamColor == 1 and TF_PARTICLE_WEAPON_BLUE_1 or TF_PARTICLE_WEAPON_RED_1 )
+            secondColor = ( teamColor == 1 and TF_PARTICLE_WEAPON_BLUE_2 or TF_PARTICLE_WEAPON_RED_2 )
+        end
+        trail:SetControlPoint( 9, ( reverseClr and secondColor or baseColor ) )
+        trail:SetControlPoint( 10, ( reverseClr and baseColor or secondColor ) )
+    end
+end )
+
+net.Receive( "lambda_tf2_addoverheadeffect", function()
+    local ent = net.ReadEntity()
+    if !IsValid( ent ) or !ent.l_TF_OverheadEffects then return end
+
+    local effectName = net.ReadString()
+    if IsValid( ent.l_TF_OverheadEffects[ effectName ] ) then return end
+
+    local effect = CreateParticleSystem( ent, effectName, PATTACH_ABSORIGIN_FOLLOW, 0, LAMBDA_TF2:GetOverheadEffectPosition( ent ) )
+    if !IsValid( effect ) then return end
+
+    ent.l_TF_OverheadEffects[ effectName ] = effect
+end )
+
+net.Receive( "lambda_tf2_removeoverheadeffect", function()
+    local ent = net.ReadEntity()
+    if !IsValid( ent ) or !ent.l_TF_OverheadEffects then return end
+
+    local effectName = net.ReadString()
+    local effect = ent.l_TF_OverheadEffects[ effectName ]
+    if !IsValid( effect ) then return end
+
+    effect:StopEmission( false, net.ReadBool() )
+    ent.l_TF_OverheadEffects[ effectName ] = nil
 end )
 
 net.Receive( "lambda_tf2_domination", function()
@@ -92,15 +138,18 @@ net.Receive( "lambda_tf2_domination", function()
     local ply = LocalPlayer()
     if rivalryType == 1 then
         GAMEMODE:AddDeathNotice( attackername, attackerteam, "lambdaplayers_tf2_rivalry_domination", victimname, victimteam )
-        
-        if victim == ply or attacker == ply or GetConVar( "lambdaplayers_tf2_alwaysplayrivalrysnd" ):GetBool() then
-            EmitSound( "#misc/tf_domination.wav", vector_origin, -1, CHAN_STATIC, 0.65, 75, 0, 100 )
+        if victim == ply then 
+            LAMBDA_TF2:AddOverheadEffect( attacker, "particle_nemesis_red" )
+            EmitSound( "#misc/tf_nemesis.wav", vector_origin, -1, CHAN_STATIC, 0.6, 75, 0, 100 )
+        elseif attacker == ply or GetConVar( "lambdaplayers_tf2_alwaysplayrivalrysnd" ):GetBool() then
+            EmitSound( "#misc/tf_domination.wav", vector_origin, -1, CHAN_STATIC, 0.6, 75, 0, 100 )
         end
     elseif rivalryType == 2 then
         GAMEMODE:AddDeathNotice( attackername, attackerteam, "lambdaplayers_tf2_rivalry_revenge", victimname, victimteam )
-        
+
         if victim == ply or attacker == ply or GetConVar( "lambdaplayers_tf2_alwaysplayrivalrysnd" ):GetBool() then
-            EmitSound( "#misc/tf_revenge.wav", vector_origin, -1, CHAN_STATIC, 0.65, 75, 0, 100 )
+            LAMBDA_TF2:RemoveOverheadEffect( victim, "particle_nemesis_red", true )
+            EmitSound( "#misc/tf_revenge.wav", vector_origin, -1, CHAN_STATIC, 0.6, 75, 0, 100 )
         end
     end
 end )
@@ -112,7 +161,7 @@ net.Receive( "lambda_tf2_removecsragdoll", function()
     local ragdoll = lambda.ragdoll
     if !IsValid( ragdoll ) then return end 
     
-    ragdoll:Remove()
+    LAMBDA_TF2:RemoveEntity( ragdoll )
     ragdoll.ragdoll = nil
 end )
 
@@ -123,29 +172,24 @@ net.Receive( "lambda_tf2_removecsprop", function()
     local cs_prop = lambda.cs_prop
     if !IsValid( cs_prop ) then return end
 
-    cs_prop:Remove()
+    LAMBDA_TF2:RemoveEntity( cs_prop )
     lambda.cs_prop = nil
 end )
 
-net.Receive( "lambda_tf2_criteffects", function()
+net.Receive( "lambda_tf2_attackbonuseffect", function()
     local receiver = net.ReadEntity()
-    if !IsValid( receiver ) or ( CurTime() - receiver.l_TF_LastCritEffectTime ) <= ( RealFrameTime() * 2 ) then return end
-
-    local critType = net.ReadUInt( 2 )
-    local critData = critHitData[ critType ]
-
-    local textPos = net.ReadVector()
-    local critPart = CreateParticleSystem( Entity( 0 ), critData[ 1 ], PATTACH_WORLDORIGIN, 0, textPos )
-
-    receiver.l_TF_LastCritEffectTime = CurTime()
-    receiver:EmitSound( critData[ 2 ][ random( #critData[ 2 ] ) ], 80, nil, nil, CHAN_STATIC )
+    if !IsValid( receiver ) or ( CurTime() - receiver.l_TF_LastAttackBonusEffectT ) <= ( RealFrameTime() * 2 ) then return end
 
     local ply = LocalPlayer()
-    critPart:SetShouldDraw( ply != receiver )
+    local partName = net.ReadString()
+    local partOffset = net.ReadVector()
+    if net.ReadBool() == true or ply != receiver then CreateParticleSystem( Entity( 0 ), partName, PATTACH_WORLDORIGIN, 0, partOffset ) end
 
-    if ply == receiver and critType == TF_CRIT_FULL then
-        local lethal = net.ReadBool()
-        if lethal then receiver:EmitSound( "player/crit_received" .. random( 1, 3 ) .. ".wav", 80, random( 95, 105 ), nil, CHAN_STATIC ) end
+    receiver:EmitSound( net.ReadString(), 80, nil, nil, CHAN_STATIC )
+    receiver.l_TF_LastAttackBonusEffectT = CurTime()
+
+    if ply == receiver and partName == "crit_text" and net.ReadBool() == true then
+        receiver:EmitSound( "player/crit_received" .. random( 3 ) .. ".wav", 80, random( 95, 105 ), nil, CHAN_STATIC )
     end
 end )
 
@@ -161,12 +205,26 @@ net.Receive( "lambda_tf2_ignite_csragdoll", function()
     if !IsValid( ragdoll ) then return end 
     
     local partName = net.ReadString()
-    ParticleEffectAttach( partName, PATTACH_ABSORIGIN_FOLLOW, ragdoll, 0 )
+    local removeTime = net.ReadFloat()
+    LAMBDA_TF2:AttachFlameParticle( ragdoll, removeTime, partName )
 
-    SimpleTimer( net.ReadFloat(), function()
-        if !IsValid( ragdoll ) then return end 
-        ragdoll:StopParticlesNamed( partName )
-    end )
+    local turnIntoAshes = net.ReadBool()
+    if turnIntoAshes then
+        ragdoll:SetRenderMode( RENDERMODE_TRANSCOLOR )
+        ParticleEffectAttach( "drg_fiery_death", PATTACH_ABSORIGIN_FOLLOW, ragdoll, 0 )
+
+        local removeT = ( CurTime() + 0.5 )
+        LambdaCreateThread( function()
+            while ( IsValid( ragdoll ) and CurTime() < removeT ) do
+                local ragColor = ragdoll:GetColor()
+                ragColor.a = LAMBDA_TF2:RemapClamped( ( removeT - CurTime() ), 0, 0.5, 0, 255 )
+
+                ragdoll:SetColor( ragColor )
+                coroutine.yield()
+            end
+            if IsValid( ragdoll ) then LAMBDA_TF2:RemoveEntity( ragdoll ) end
+        end )
+    end
 end )
 
 net.Receive( "lambda_tf2_stuneffect", function()
@@ -180,8 +238,11 @@ net.Receive( "lambda_tf2_stuneffect", function()
         return
     end
 
-    stunnedEffect = CreateParticleSystem( ent, "conc_stars", PATTACH_ABSORIGIN_FOLLOW, 0, stunStarsOffset )
-    ent.l_TF_StunnedEffect = stunnedEffect
+    local createNew = net.ReadBool()
+    if createNew then
+        stunnedEffect = CreateParticleSystem( ent, "conc_stars", PATTACH_ABSORIGIN_FOLLOW, 0, Vector( 0, 0, ent:OBBMaxs().z + 10 ) )
+        ent.l_TF_StunnedEffect = stunnedEffect
+    end
 end )
 
 net.Receive( "lambda_tf2_medigun_chargeeffect", function()        
@@ -279,13 +340,14 @@ local function OnCreateClientsideRagdoll( owner, ragdoll )
     if turnIntoIce or owner:GetNW2Bool( "lambda_tf2_turnintogold", false ) then
         local bodygroupData = {}
         for _, data in ipairs( ragdoll:GetBodyGroups() ) do
-            bodygroupData[ data.id ] = ragdoll:GetBodygroup( data.id )
+            local id = data.id
+            bodygroupData[ #bodygroupData + 1 ] = { id, ragdoll:GetBodygroup( id ) }
         end
 
         local transformData = {}
         for i = 0, ( ragdoll:GetPhysicsObjectCount() - 1 ) do    
             local bonePhys = ragdoll:GetPhysicsObjectNum( i )
-            transformData[ i ] = { bonePhys:GetPos(), bonePhys:GetAngles(), bonePhys:GetVelocity() }
+            transformData[ #transformData + 1 ] = { i, bonePhys:GetPos(), bonePhys:GetAngles(), bonePhys:GetVelocity() }
         end
 
         net.Start( "lambda_tf2_turncsragdollintostatue" )
@@ -301,11 +363,32 @@ local function OnCreateClientsideRagdoll( owner, ragdoll )
         net.SendToServer()
 
         if ragdoll:GetClass() == "class C_ClientRagdoll" then
-            ragdoll:Remove()
+            LAMBDA_TF2:RemoveEntity( ragdoll )
         end
     else
-        if owner:GetNW2Bool( "lambda_tf2_decapitatehead", false ) then
-            LAMBDA_TF2:DecapitateHead( ragdoll, true, ( ragdoll:GetVelocity() * 5 ) )
+        if owner:GetNW2Bool( "lambda_tf2_dissolve", false ) then
+            ragdoll:EmitSound( "player/dissolve.wav", nil, nil, nil, CHAN_STATIC )
+        else
+            if owner:GetNW2Bool( "lambda_tf2_decapitatehead", false ) then
+                LAMBDA_TF2:DecapitateHead( ragdoll, true, ( ragdoll:GetVelocity() * 5 ) )
+            end
+
+            if owner:GetNW2Bool( "lambda_tf2_turnintoashes", false ) then
+                ragdoll:SetRenderMode( RENDERMODE_TRANSCOLOR )
+                ParticleEffectAttach( "drg_fiery_death", PATTACH_ABSORIGIN_FOLLOW, ragdoll, 0 )
+
+                local removeT = ( CurTime() + 0.5 )
+                LambdaCreateThread( function()
+                    while ( IsValid( ragdoll ) and CurTime() < removeT ) do
+                        local ragColor = ragdoll:GetColor()
+                        ragColor.a = LAMBDA_TF2:RemapClamped( ( removeT - CurTime() ), 0, 0.5, 0, 255 )
+        
+                        ragdoll:SetColor( ragColor )
+                        coroutine.yield()
+                    end
+                    if IsValid( ragdoll ) then LAMBDA_TF2:RemoveEntity( ragdoll ) end
+                end )
+            end
         end
 
         if owner:GetIsBurning() then
@@ -314,7 +397,7 @@ local function OnCreateClientsideRagdoll( owner, ragdoll )
                 local plyColor = owner:GetPlayerColor()
                 teamClr = ( ( plyColor[ 3 ] > plyColor[ 1 ] ) and 1 or 0 )
             end
-            LAMBDA_TF2:AttachFlameParticle( ragdoll, max( 3, ( owner:GetFlameRemoveTime() - CurTime() ) ), teamClr )
+            LAMBDA_TF2:AttachFlameParticle( ragdoll, max( 2, ( owner:GetFlameRemoveTime() - CurTime() ) ), teamClr )
         end
     end
 end
@@ -371,130 +454,17 @@ local function PostProcessingsEffects()
     end
 end
 
-hook.Add( "CreateClientsideRagdoll", "LambdaTF2_OnCreateClientsideRagdoll", OnCreateClientsideRagdoll )
-hook.Add( "PostDrawViewModel", "LambdaTF2_OnPostDrawViewModel", OnPostDrawViewModel )
-hook.Add( "RenderScreenspaceEffects", "LambdaTF2_EffectPostProcessings", PostProcessingsEffects )
-
-// Material Proxies
-matproxy.Add( {
-    name = "ModelGlowColor",
-    init = function( self, mat, values )
-        self.ResultTo = values.resultvar
-    end,
-    bind = function( self, mat, ent )
-        local result = vector_one
-
-        if IsValid( ent ) then
-            local owner = ( ent.l_TF_Owner or ent:GetOwner() )
-
-            if IsValid( owner ) and owner.GetPlayerColor then
-                local isCustom = ( mat:GetInt( "$iscustom" ) == 1 )
-                local normCritMult = ( isCustom and 1.33 or 100 )
-
-                local critBoost = owner:GetCritBoostType()
-                if critBoost != TF_CRIT_NONE then
-                    result = owner:GetPlayerColor()
-                    if critBoost == TF_CRIT_MINI then
-                        if isCustom then
-                            result = minicritClrVec
-                        else
-                            result = minicritClrVec2
-                        end
-                    else
-                        result = ( result * normCritMult )
-                    end
-
-                    owner.l_TF_ChargeGlowing = false
-                elseif owner.IsLambdaPlayer then 
-                    local charging = owner:GetIsShieldCharging()
-                    if charging or owner:GetNextMeleeCrit() != TF_CRIT_NONE then
-                        owner.l_TF_ChargeGlowing = true
-
-                        local glow
-                        if charging then
-                            glow = ( ( 100 - owner:GetShieldChargeMeter() ) / 100 )
-                        else
-                            glow = ( 1.0 - min( ( CurTime() - owner:GetShieldLastNoChargeTime() - 1.5 ) / 0.3, 1.0 ) )
-                        end
-
-                        result = ( owner:GetPlayerColor() * normCritMult )
-                        result[ 1 ] = max( result[ 1 ] * glow, 1 )
-                        result[ 2 ] = max( result[ 2 ] * glow, 1 )
-                        result[ 3 ] = max( result[ 3 ] * glow, 1 )
-                    elseif owner.l_TF_ChargeGlowing then
-                        local glow = ( 1.0 - min( ( CurTime() - owner:GetShieldLastNoChargeTime() ) / 0.3, 1.0 ) )
-                        if glow <= 0 then owner.l_TF_ChargeGlowing = false end
-
-                        result = ( owner:GetPlayerColor() * normCritMult )
-                        result[ 1 ] = max( result[ 1 ] * glow, 1 )
-                        result[ 2 ] = max( result[ 2 ] * glow, 1 )
-                        result[ 3 ] = max( result[ 3 ] * glow, 1 )
-                    end
-                end
-            end
+local function OnEntityRemoved( ent )
+    local overheadEffects = ent.l_TF_OverheadEffects
+    if overheadEffects then
+        for _, effect in pairs( overheadEffects ) do
+            if !IsValid( effect ) then continue end
+            effect:StopEmission( false, true )
         end
-
-        mat:SetVector( self.ResultTo, result )
     end
-} )
-matproxy.Add( {
-    name = "LambdaUberedModelColor",
-    init = function( self, mat, values )
-        self.ResultTo = values.resultvar
-    end,
-    bind = function( self, mat, ent )
-        if !IsValid( ent ) then return end
+end
 
-        local plyClr = ent.GetPlayerColor
-        if plyClr then
-            local col = ( plyClr( ent ) * 0.5 )
-            mat:SetVector( self.ResultTo, col )
-            return
-        end
-
-        local owner = ( ent.l_TF_Owner or ent:GetOwner() )
-        if !IsValid( owner ) then return end
-        
-        plyClr = owner.GetPlayerColor
-        if !plyClr then return end
-
-        local col = ( plyClr( owner ) * 0.5 )
-        mat:SetVector( self.ResultTo, col )
-    end
-} )
-matproxy.Add( {
-    name = "LambdaInvulnLevel",
-    init = function( self, mat, values )
-        self.ResultTo = values.resultvar
-    end,
-    bind = function( self, mat, ent )
-        if IsValid( ent ) and ent:GetIsInvulnerable() and ent:GetInvulnerabilityWearingOff() then
-            mat:SetFloat( self.ResultTo, 0.0 )
-            return
-        end
-
-        local owner = ( ent.l_TF_Owner or ent:GetOwner() )
-        if IsValid( owner ) and owner:GetIsInvulnerable() and owner:GetInvulnerabilityWearingOff() then
-            mat:SetFloat( self.ResultTo, 0.0 )
-            return
-        end
-
-        mat:SetFloat( self.ResultTo, 1.0 )
-    end
-} )
-matproxy.Add( {
-    name = "CustomSteamImageOnModel",
-    init = function( self, mat, values )
-        self.DefaultTexture = mat:GetTexture( "$basetexture" )
-    end,
-    bind = function( self, mat, ent )
-        mat:SetTexture( "$basetexture", self.DefaultTexture )
-        if !IsValid( ent ) then return end 
-
-        local owner = ( ent.l_TF_Owner or ent:GetOwner() )
-        if !IsValid( owner ) or !owner.IsLambdaPlayer then return end
-
-        local imagePath = owner:GetObjectorImage()
-        mat:SetTexture( "$basetexture", ( LAMBDA_TF2.ObjectorSprayImages[ imagePath ] or StripExtension( imagePath ) ) )
-    end
-} )
+hook_Add( "EntityRemoved", "LambdaTF2_OnEntityRemoved", OnEntityRemoved )
+hook_Add( "CreateClientsideRagdoll", "LambdaTF2_OnCreateClientsideRagdoll", OnCreateClientsideRagdoll )
+hook_Add( "PostDrawViewModel", "LambdaTF2_OnPostDrawViewModel", OnPostDrawViewModel )
+hook_Add( "RenderScreenspaceEffects", "LambdaTF2_EffectPostProcessings", PostProcessingsEffects )

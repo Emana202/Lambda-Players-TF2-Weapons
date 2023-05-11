@@ -8,26 +8,27 @@ local CurTime = CurTime
 local DamageInfo = DamageInfo
 
 local function OnBallTouch( self, ent )
-    if self.l_Touched then return end
     if !ent or !ent:IsSolid() or ent:GetSolidFlags() == FSOLID_VOLUME_CONTENTS then return end
 
     local touchTr = self:GetTouchTrace()
     if touchTr.HitSky then self:Remove() return end
 
-    local curVel = self:GetVelocity()
+    if self.l_Touched then 
+        if ent.l_TF_ThrownBaseball then
+            ent.l_TF_ThrownBaseball = 0
+            self:Remove()
+        end
+
+        return 
+    end
 
     local owner = self:GetOwner()
+    local curVel = self:GetVelocity()
     if IsValid( owner ) then
         if ent == owner then return end
 
         if IsValid( ent ) then
-            local dmgTypes = DMG_CLUB
             local critType = self.l_CritType
-            if critType == TF_CRIT_FULL then 
-                dmgTypes = ( dmgTypes + DMG_CRITICAL )
-            elseif critType == TF_CRIT_MINI then
-                dmgTypes = ( dmgTypes + DMG_MINICRITICAL )
-            end
 
             if LAMBDA_TF2:IsValidCharacter( ent ) and owner:CanTarget( ent ) then
                 local lifeTimeRatio = ( min( CurTime() - self:GetCreationTime(), 1.0 ) / 1.0 )
@@ -39,9 +40,18 @@ local function OnBallTouch( self, ent )
                     if lifeTimeRatio >= 1.0 then
                         isMoonShot = true
                         stunDuration = ( stunDuration + 1.0 )
+
+                        ent:EmitSound( "player/pl_impact_stun_range.wav", 90, nil, nil, CHAN_STATIC )
+
+                        net.Start( "lambda_tf2_stuneffect" )
+                            net.WriteEntity( ent )
+                            net.WriteBool( true )
+                        net.Broadcast()
+                    else
+                        ent:EmitSound( "player/pl_impact_stun.wav", 80, nil, nil, CHAN_STATIC )
                     end
             
-                    LAMBDA_TF2:Stun( ent, stunDuration, isMoonShot )
+                    LAMBDA_TF2:Stun( ent, stunDuration, 0.5, isMoonShot )
                 end
             end
     
@@ -51,8 +61,9 @@ local function OnBallTouch( self, ent )
             dmginfo:SetDamage( 15 )
             dmginfo:SetDamageForce( curVel * 15 )
             dmginfo:SetDamagePosition( self:GetPos() )
-            dmginfo:SetDamageType( dmgTypes )
-        
+            dmginfo:SetDamageType( DMG_CLUB )
+            LAMBDA_TF2:SetCritType( dmginfo, critType )
+
             ent:DispatchTraceAttack( dmginfo, touchTr, self:GetForward() )
             ent:EmitSound( ")weapons/bat_baseball_hit_flesh.wav", nil, nil, nil, CHAN_STATIC )
         elseif touchTr.HitWorld then
@@ -63,9 +74,12 @@ local function OnBallTouch( self, ent )
     self.l_Touched = true
     SafeRemoveEntityDelayed( self, 4 )
 
-    self:PhysicsInit( SOLID_BBOX )
+    self:PhysicsInit( SOLID_VPHYSICS )
     local phys = self:GetPhysicsObject()
-    if IsValid( phys ) then phys:AddVelocity( -curVel * 0.1 ) end
+    if IsValid( phys ) then 
+        phys:Wake() 
+        phys:AddVelocity( -curVel * 0.1 ) 
+    end
 end
 
 table.Merge( _LAMBDAPLAYERSWEAPONS, {
@@ -82,6 +96,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
 		islethal = true,
         ismelee = true,
         deploydelay = 0.5,
+        healthmultiplier = 0.9,
 
         OnDeploy = function( self, wepent )
             LAMBDA_TF2:InitializeWeaponData( self, wepent )
@@ -95,10 +110,6 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             self:SimpleWeaponTimer( 0.266667, function() wepent:EmitSound( "weapons/bat_draw_swoosh1.wav", nil, nil, 0.45, CHAN_STATIC ) end )
             self:SimpleWeaponTimer( 0.533333, function() wepent:EmitSound( "weapons/bat_draw_swoosh2.wav", nil, nil, 0.45, CHAN_STATIC ) end )
             self:SimpleWeaponTimer( 0.666667, function() wepent:EmitSound( "weapons/metal_hit_hand1.wav", nil, nil, nil, CHAN_WEAPON ) end )
-        
-            local newHP = Round( self:GetMaxHealth() * 0.9 )
-            self:SetHealth( Round( self:Health() * ( newHP / self:GetMaxHealth() ) ) )
-            self:SetMaxHealth( newHP )
         end,
         
         OnThink = function( self, wepent, isdead )
@@ -121,12 +132,10 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
                         wepent:EmitSound( ")weapons/bat_baseball_hit" .. random( 1, 2 ) .. ".wav", 75, nil, nil, CHAN_STATIC )
 
                         local spawnPos = self:GetAttachmentPoint( "eyes" ).Pos
-                        local targetPos = ene:GetPos()
-                        local dist = spawnPos:Distance( targetPos )
-                        
-                        targetPos = ( targetPos + ( vector_up * ( dist / 100 ) ) )
+                        local targetPos = ene:GetPos()                        
                         targetPos = LAMBDA_TF2:CalculateEntityMovePosition( ene, spawnPos:Distance( targetPos ), 3000, Rand( 0.5, 1.1 ), targetPos )
-                        
+                        targetPos = ( targetPos + ( vector_up * ( spawnPos:Distance( targetPos ) / 100 ) ) )
+
                         local spawnAng = ( targetPos - spawnPos ):Angle()
                         spawnPos = ( spawnPos + spawnAng:Forward() * 32 )
                         spawnAng = ( targetPos - spawnPos ):Angle()
@@ -141,6 +150,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
                         ball:SetSolid( SOLID_BBOX )
                         ball:SetMoveType( MOVETYPE_FLYGRAVITY )
                         ball:SetMoveCollide( MOVECOLLIDE_FLY_CUSTOM )
+                        ball:AddSolidFlags( FSOLID_TRIGGER )
                         LAMBDA_TF2:TakeNoDamage( ball )
 
                         ball:SetFriction( 0.2 )
@@ -181,13 +191,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             return Rand( 0.1, 0.33 )
         end,
 
-        OnHolster = function( self, wepent )
-            local oldHP = Round( self:GetMaxHealth() / 0.9 )
-            self:SetHealth( Round( self:Health() * ( oldHP / self:GetMaxHealth() ) ) )
-            self:SetMaxHealth( oldHP )
-        end,
-        
-		OnAttack = function( self, wepent, target )
+        OnAttack = function( self, wepent, target )
             LAMBDA_TF2:WeaponAttack( self, wepent, target )
             return true 
         end

@@ -10,7 +10,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         clip = 200,
         islethal = true,
         attackrange = 350,
-        keepdistance = 200,
+        keepdistance = 250,
         deploydelay = 0.5,
 
         OnDeploy = function( self, wepent )
@@ -19,8 +19,9 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent:SetWeaponAttribute( "Damage", 100 )
             wepent:SetWeaponAttribute( "RateOfFire", 0.04 )
             wepent:SetWeaponAttribute( "UseRapidFireCrits", true )
-            wepent:SetWeaponAttribute( "DamageType", ( DMG_IGNITE + DMG_PREVENT_PHYSICS_FORCE ) )
+            wepent:SetWeaponAttribute( "DamageType", DMG_PREVENT_PHYSICS_FORCE )
             wepent:SetWeaponAttribute( "RandomCrits", false )
+            wepent:SetWeaponAttribute( "DamageCustom", ( TF_DMG_CUSTOM_IGNITE + TF_DMG_CUSTOM_BURNING ) )
 
             wepent:SetWeaponAttribute( "StartFireSound", ")weapons/flame_thrower_bb_start.wav" )
             wepent:SetWeaponAttribute( "FireSound", ")weapons/flame_thrower_bb_loop.wav" )
@@ -28,7 +29,8 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent:SetWeaponAttribute( "EndFireSound", ")weapons/flame_thrower_bb_end.wav" )
 
             wepent:SetWeaponAttribute( "OnFlameCollide", function( flame, ent, dmginfo )
-                if dmginfo:IsDamageType( DMG_CRITICAL ) then return end
+                local dmgCustom = dmginfo:GetDamageCustom()
+                if LAMBDA_TF2:IsDamageCustom( dmgCustom, TF_DMG_CUSTOM_CRITICAL ) then return end
 
                 local entForward = ent:GetForward()
                 entForward.z = 0; entForward:Normalize()
@@ -37,8 +39,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
                 travelVel.z = 0; travelVel:Normalize()
 
                 if entForward:Dot( travelVel ) > 0.8 then
-                    dmginfo:SetDamageType( dmginfo:GetDamageType() + DMG_CRITICAL )
-                    dmginfo:SetDamageCustom( TF_DMG_CUSTOM_BURNING_BEHIND )
+                    dmginfo:SetDamageCustom( dmgCustom - TF_DMG_CUSTOM_BURNING + TF_DMG_CUSTOM_CRITICAL + TF_DMG_CUSTOM_BURNING_BEHIND )
                 end
             end )
             
