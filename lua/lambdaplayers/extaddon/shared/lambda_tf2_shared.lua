@@ -540,7 +540,7 @@ local function TFState_Schadenfreude( lambda )
             lambda:SetState( "Idle" ) 
         end
     else
-        lambda:SetState( "Laughing" )
+        lambda:Laughing()
     end
 end
 
