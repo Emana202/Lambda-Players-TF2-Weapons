@@ -1,7 +1,7 @@
 local random = math.random
 
 table.Merge( _LAMBDAPLAYERSWEAPONS, {
-    tf2_minigun = {
+    tf2_natascha = {
         model = "models/lambdaplayers/tf2/weapons/w_natascha.mdl",
         origin = "Team Fortress 2",
         prettyname = "Natascha",

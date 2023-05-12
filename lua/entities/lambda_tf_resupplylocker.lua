@@ -22,7 +22,7 @@ if ( SERVER ) then
     local lockerTrTbl = { filter = { NULL, NULL } }
 
     function ENT:Initialize()
-        self:SetModel( "models/props_gameplay/resupply_locker.mdl" )
+        self:SetModel( self.Model or "models/tf2pickups/resupply_locker.mdl" )
         self:SetSolid( SOLID_VPHYSICS )
         self:DrawShadow( false )
         self:SetMoveType( MOVETYPE_PUSH )

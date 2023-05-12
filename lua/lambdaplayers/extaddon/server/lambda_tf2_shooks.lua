@@ -1823,6 +1823,14 @@ local function OnLambdaSwitchWeapon( lambda, weapon, data )
         lambda:SetHealth( Round( lambda:Health() * ( oldHP / curHP ) ) )
         lambda:SetMaxHealth( oldHP )
     end
+
+    healthMult = data.healthmultiplier
+    if healthMult then
+        local curHP = lambda:GetMaxHealth()
+        local newHP = Round( curHP * healthMult )
+        lambda:SetHealth( Round( lambda:Health() * ( newHP / curHP ) ) )
+        lambda:SetMaxHealth( newHP )
+    end
     lambda.l_TF_WeaponHealthMultiplier = data.healthmultiplier
 
     local gruHP = lambda.l_TF_GRU_DrainedHP

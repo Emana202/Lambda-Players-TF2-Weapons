@@ -34,7 +34,10 @@ local GetAmmoMax = game.GetAmmoMax
 local TraceLine = util.TraceLine
 local LocalPlayer = ( CLIENT and LocalPlayer )
 
-local lockerTrTbl = { filter = { NULL, NULL } }
+local lockerMdls = {
+    [ "models/props_gameplay/resupply_locker.mdl" ] = true,
+    [ "models/props_medieval/medieval_resupply.mdl" ] = true
+}
 
 ---
 
@@ -207,9 +210,8 @@ function LAMBDA_TF2:GetCritGlowMaterial()
     return "lambdaplayers/effects/modelcritglow"
 end
 
-function LAMBDA_TF2:IsValidCharacter( ent, alive, ignoreInitialize )
+function LAMBDA_TF2:IsValidCharacter( ent, alive )
     if alive == nil then alive = true end
-    if !ignoreInitialize and !ent.l_TF_IsInitialized then return false end
     return ( ( ent:IsPlayer() or ent.IsLambdaPlayer ) and ( !alive or ent:Alive() ) or ( ent:IsNPC() or ent:IsNextBot() ) and ( !alive or ent:Health() > 0 ) )
 end
 
@@ -363,143 +365,150 @@ function LAMBDA_TF2:RemoveEntity( ent )
 end
 
 local function OnEntityCreated( ent )
+    ent.l_TF_LoopingSounds = {}
+
     LAMBDA_TF2:PseudoNetworkVar( ent, "IsBurning", false ) 
     LAMBDA_TF2:PseudoNetworkVar( ent, "FlameRemoveTime", -0.1 ) 
     LAMBDA_TF2:PseudoNetworkVar( ent, "IsInvulnerable", false ) 
     LAMBDA_TF2:PseudoNetworkVar( ent, "InvulnerabilityWearingOff", false ) 
     LAMBDA_TF2:PseudoNetworkVar( ent, "CritBoostType", TF_CRIT_NONE ) 
 
-    SimpleTimer( 0, function()
-        if !IsValid( ent ) then return end
+    if ( SERVER ) then
+        if ent:GetClass() == "prop_dynamic" then 
+            local entMdl = ent:GetModel()
+            if lockerMdls[ entMdl ] then
+                local locker = ents_Create( "lambda_tf_resupplylocker" )
+                locker.Model = entMdl
+                locker:SetPos( ent:GetPos() )
+                locker:SetAngles( ent:GetAngles() )
+                locker:Spawn()
 
-        if ( SERVER ) then
-            ent.l_TF_HasOverheal = false
-            ent.l_TF_HealFraction = 0
-
-            ent.l_TF_BleedInfo = {}
-
-            ent.l_TF_MarkedForDeath = false
-            ent.l_TF_MarkedForDeathSilent = false
-            ent.l_TF_MarkedForDeathTarget = nil
-
-            ent.l_TF_FlameBurnTime = 0
-            ent.l_TF_BurnAttacker = NULL
-            ent.l_TF_BurnWeapon = NULL
-            ent.l_TF_BurnInflictor = NULL
-            ent.l_TF_AfterburnImmunity = 0
-            ent.l_TF_FireImmunity = 0
-            ent.l_TF_FireEngulfSound = nil
-            ent.l_TF_BurnDamage = 3
-            ent.l_TF_BurnDamageCustom = TF_DMG_CUSTOM_BURNING
-
-            ent.l_TF_CoveredInUrine = false
-            ent.l_TF_CoveredInMilk = false
-
-            ent.l_TF_LastTakeDamageTime = 0
-            ent.l_TF_NextCritShootSoundT = 0
-
-            ent.l_TF_HasOverheal = false
-            ent.l_TF_HealFraction = 0
-            ent.l_TF_OverhealDecreaseStartT = 0
-            ent.l_TF_HealRateMultiplier = 1.0
-            ent.l_TF_InvulnerabilityTime = 0
-            ent.l_TF_MegaHealingTime = 0
-
-            ent.l_TF_IsStunned = false
-            ent.l_TF_JustGotStunned = true
-            ent.l_TF_StunStateChangeT = 0
-            ent.l_TF_PreStunState = nil
-            ent.l_TF_StunMovement = false
-            ent.l_TF_StunSpeedReduction = 1
-
-            ent.l_TF_CritBoosts = {}
-            ent.l_TF_LastCritBoost = TF_CRIT_NONE
-
-            ent.l_TF_InSpeedBoost = false
-            ent.l_TF_SpeedBoostActive = false
-            ent.l_TF_SpeedBoostIsBuff = false
-            ent.l_TF_SpeedBoostTrail = NULL
-
-            ent.l_TF_OffenseBuffActive = false
-            ent.l_TF_DefenseBuffActive = false
-            ent.l_TF_SpeedBuffActive = false
-
-            ent.l_TF_LastDamageResistSoundTime = 0
-            ent.l_TF_NextLockerResupplyTime = 0
-            ent.l_TF_UnansweredKills = {}
-            ent.l_TF_AttackBonusEffect = {}
-            
-            ent.l_TF_WaterExitTime = false
-            ent.l_TF_OldWaterLevel = 0
-
-            ent:SetNW2Bool( "lambda_tf2_decapitatehead", false )
-            ent:SetNW2Bool( "lambda_tf2_turnintoice", false )
-            ent:SetNW2Bool( "lambda_tf2_turnintogold", false )
-            ent:SetNW2Bool( "lambda_tf2_turnintoashes", false )
-            ent:SetNW2Bool( "lambda_tf2_dissolve", false )
-            ent:SetNW2Bool( "lambda_tf2_bleeding", false )
-
-            if LAMBDA_TF2:IsValidCharacter( ent, false, true ) then
-                local hookName = "LambdaTF2_EntityThink_" .. ent:GetClass() .. "_" .. ent:GetCreationID()
-                hook_Add( "Think", hookName, function() 
-                    if !IsValid( ent ) then hook_Remove( "Think", hookName ) return end
-                    LAMBDA_TF2:EntityThink( ent )
-                end )
+                ent:Remove()
+                return
             end
         end
 
-        if ( CLIENT ) then
-            ent.l_TF_LastAttackBonusEffectT = CurTime()
-            ent.l_TF_OverheadEffects = {}
+        ent.l_TF_HasOverheal = false
+        ent.l_TF_HealFraction = 0
 
-            if LAMBDA_TF2:IsValidCharacter( ent, false, true ) then
-                local hookName = "LambdaTF2_UpdateOverheadEffects_" .. ent:GetClass() .. ent:EntIndex()
-                hook_Add( "Tick", hookName, function()
-                    if !IsValid( ent ) then hook_Remove( "Tick", hookName ) return end
+        ent.l_TF_BleedInfo = {}
 
-                    local effectTbl = ent.l_TF_OverheadEffects
-                    local effectCount = table_Count( effectTbl )
-                    if effectCount == 0 then return end
+        ent.l_TF_MarkedForDeath = false
+        ent.l_TF_MarkedForDeathSilent = false
+        ent.l_TF_MarkedForDeathTarget = nil
 
-                    local shouldDraw = ( !ent:GetNoDraw() and !ent:IsDormant() )
-                    local rightOffset, firstEffectOffset
+        ent.l_TF_FlameBurnTime = 0
+        ent.l_TF_BurnAttacker = NULL
+        ent.l_TF_BurnWeapon = NULL
+        ent.l_TF_BurnInflictor = NULL
+        ent.l_TF_AfterburnImmunity = 0
+        ent.l_TF_FireImmunity = 0
+        ent.l_TF_FireEngulfSound = nil
+        ent.l_TF_BurnDamage = 3
+        ent.l_TF_BurnDamageCustom = TF_DMG_CUSTOM_BURNING
+
+        ent.l_TF_CoveredInUrine = false
+        ent.l_TF_CoveredInMilk = false
+
+        ent.l_TF_LastTakeDamageTime = 0
+        ent.l_TF_NextCritShootSoundT = 0
+
+        ent.l_TF_HasOverheal = false
+        ent.l_TF_HealFraction = 0
+        ent.l_TF_OverhealDecreaseStartT = 0
+        ent.l_TF_HealRateMultiplier = 1.0
+        ent.l_TF_InvulnerabilityTime = 0
+        ent.l_TF_MegaHealingTime = 0
+
+        ent.l_TF_IsStunned = false
+        ent.l_TF_JustGotStunned = true
+        ent.l_TF_StunStateChangeT = 0
+        ent.l_TF_PreStunState = nil
+        ent.l_TF_StunMovement = false
+        ent.l_TF_StunSpeedReduction = 1
+
+        ent.l_TF_CritBoosts = {}
+        ent.l_TF_LastCritBoost = TF_CRIT_NONE
+
+        ent.l_TF_InSpeedBoost = false
+        ent.l_TF_SpeedBoostActive = false
+        ent.l_TF_SpeedBoostIsBuff = false
+        ent.l_TF_SpeedBoostTrail = NULL
+
+        ent.l_TF_OffenseBuffActive = false
+        ent.l_TF_DefenseBuffActive = false
+        ent.l_TF_SpeedBuffActive = false
+
+        ent.l_TF_LastDamageResistSoundTime = 0
+        ent.l_TF_NextLockerResupplyTime = 0
+        ent.l_TF_UnansweredKills = {}
+        ent.l_TF_AttackBonusEffect = {}
+        
+        ent.l_TF_WaterExitTime = false
+        ent.l_TF_OldWaterLevel = 0
+
+        ent:SetNW2Bool( "lambda_tf2_decapitatehead", false )
+        ent:SetNW2Bool( "lambda_tf2_turnintoice", false )
+        ent:SetNW2Bool( "lambda_tf2_turnintogold", false )
+        ent:SetNW2Bool( "lambda_tf2_turnintoashes", false )
+        ent:SetNW2Bool( "lambda_tf2_dissolve", false )
+        ent:SetNW2Bool( "lambda_tf2_bleeding", false )
+
+        if LAMBDA_TF2:IsValidCharacter( ent, false ) then
+            local hookName = "LambdaTF2_EntityThink_" .. ent:GetClass() .. "_" .. ent:GetCreationID()
+            hook_Add( "Think", hookName, function() 
+                if !IsValid( ent ) then hook_Remove( "Think", hookName ) return end
+                LAMBDA_TF2:EntityThink( ent )
+            end )
+        end
+    else
+        ent.l_TF_LastAttackBonusEffectT = CurTime()
+        ent.l_TF_OverheadEffects = {}
+
+        if LAMBDA_TF2:IsValidCharacter( ent, false ) then
+            local hookName = "LambdaTF2_UpdateOverheadEffects_" .. ent:GetClass() .. ent:EntIndex()
+            hook_Add( "Tick", hookName, function()
+                if !IsValid( ent ) then hook_Remove( "Tick", hookName ) return end
+
+                local effectTbl = ent.l_TF_OverheadEffects
+                local effectCount = table_Count( effectTbl )
+                if effectCount == 0 then return end
+
+                local shouldDraw = ( !ent:GetNoDraw() and !ent:IsDormant() )
+                local rightOffset, firstEffectOffset
+                if shouldDraw then
+                    firstEffectOffset = ( -12 * ( effectCount - 1 ) )
+
+                    local eyePos
+                    if ent.IsLambdaPlayer then 
+                        eyePos = ent:GetAttachmentPoint( "eyes" ).Pos
+                    else
+                        eyePos = ent:EyePos()
+                    end
+                    eyeOffsetVec.z = ( eyePos.z - ent:GetPos().z + 20 )
+
+                    local headDir = ( eyePos - LocalPlayer():EyePos() )
+                    rightOffset = headDir:Cross( vector_up ):GetNormalized()
+                end
+
+                local validEffectCount = 0
+                for name, effect in pairs( effectTbl ) do
+                    if !IsValid( effect ) then
+                        ent.l_TF_OverheadEffects[ name ] = nil
+                        continue 
+                    end
+
                     if shouldDraw then
-                        firstEffectOffset = ( -12 * ( effectCount - 1 ) )
-
-                        local eyePos
-                        if ent.IsLambdaPlayer then 
-                            eyePos = ent:GetAttachmentPoint( "eyes" ).Pos
-                        else
-                            eyePos = ent:EyePos()
-                        end
-                        eyeOffsetVec.z = ( eyePos.z - ent:GetPos().z + 20 )
-
-                        local headDir = ( eyePos - LocalPlayer():EyePos() )
-                        rightOffset = headDir:Cross( vector_up ):GetNormalized()
+                        local curOffset = ( firstEffectOffset + 24 * validEffectCount )
+                        local finOffset = ( eyeOffsetVec + curOffset * rightOffset )
+                        effect:AddControlPoint( 0, ent, PATTACH_ABSORIGIN_FOLLOW, 0, finOffset )
+                        validEffectCount = ( validEffectCount + 1 )
                     end
-
-                    local validEffectCount = 0
-                    for name, effect in pairs( effectTbl ) do
-                        if !IsValid( effect ) then
-                            ent.l_TF_OverheadEffects[ name ] = nil
-                            continue 
-                        end
-
-                        if shouldDraw then
-                            local curOffset = ( firstEffectOffset + 24 * validEffectCount )
-                            local finOffset = ( eyeOffsetVec + curOffset * rightOffset )
-                            effect:AddControlPoint( 0, ent, PATTACH_ABSORIGIN_FOLLOW, 0, finOffset )
-                            validEffectCount = ( validEffectCount + 1 )
-                        end
-                        effect:SetShouldDraw( shouldDraw )
-                    end
-                end )
-            end
+                    effect:SetShouldDraw( shouldDraw )
+                end
+            end )
         end
-
-        ent.l_TF_LoopingSounds = {}
-        ent.l_TF_IsInitialized = true
-    end )
+    end
 end
 
 local function OnLambdaUseWeapon( lambda, target )
