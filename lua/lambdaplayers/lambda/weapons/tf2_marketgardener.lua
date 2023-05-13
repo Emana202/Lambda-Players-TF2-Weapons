@@ -2,7 +2,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
     tf2_marketgardener = {
         model = "models/lambdaplayers/tf2/weapons/w_market_gardener.mdl",
         origin = "Team Fortress 2",
-        prettyname = "Shovel",
+        prettyname = "Market Gardener",
         holdtype = "melee",
         bonemerge = true,
 
