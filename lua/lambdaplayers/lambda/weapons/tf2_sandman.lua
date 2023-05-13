@@ -67,7 +67,7 @@ local function OnBallTouch( self, ent )
             ent:DispatchTraceAttack( dmginfo, touchTr, self:GetForward() )
             ent:EmitSound( ")weapons/bat_baseball_hit_flesh.wav", nil, nil, nil, CHAN_STATIC )
         elseif touchTr.HitWorld then
-            self:EmitSound( "weapons/bat_baseball_hit_world" .. random( 1, 2 ) .. ".wav", nil, nil, nil, CHAN_STATIC )
+            self:EmitSound( "weapons/baseball_hitworld" .. random( 1, 3 ) .. ".wav", nil, nil, nil, CHAN_STATIC )
         end
     end
 
@@ -104,7 +104,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent:SetWeaponAttribute( "IsMelee", true )
             wepent:SetWeaponAttribute( "Damage", 20 )
             wepent:SetWeaponAttribute( "RateOfFire", 0.5 )
-            wepent:SetWeaponAttribute( "HitSound", ")weapons/bat_hit.wav" )
+            wepent:SetWeaponAttribute( "HitSound", ")weapons/bat_baseball_hit_flesh.wav" )
 
             wepent:EmitSound( "weapons/bat_draw.wav", nil, nil, 0.5 )
             self:SimpleWeaponTimer( 0.266667, function() wepent:EmitSound( "weapons/bat_draw_swoosh1.wav", nil, nil, 0.45, CHAN_STATIC ) end )
