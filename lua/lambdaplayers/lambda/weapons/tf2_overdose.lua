@@ -72,7 +72,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
     tf2_overdose = {
         model = "models/lambdaplayers/tf2/weapons/w_overdose.mdl",
         origin = "Team Fortress 2",
-        prettyname = "Syringe Gun",
+        prettyname = "Overdose",
         holdtype = "crossbow",
         bonemerge = true,
         killicon = "lambdaplayers/killicons/icon_tf2_overdose",
