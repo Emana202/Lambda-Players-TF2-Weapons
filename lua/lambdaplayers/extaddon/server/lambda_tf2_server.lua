@@ -305,7 +305,14 @@ function LAMBDA_TF2:EntityThink( ent )
             ent.l_TF_UrineEffect = true
 
             if ent.IsLambdaPlayer and random( 1, 100 ) <= ent:GetVoiceChance() then
-                ent:PlaySoundFile( random( 1, 2 ) == 1 and "panic" or "death" )
+                local rndReact = random( 1, 3 )
+                if rndReact == 1 then
+                    ent:PlaySoundFile( "death" )
+                elseif rndReact == 2 then
+                    ent:PlaySoundFile( "panic" )
+                else
+                    ent:PlaySoundFile( "witness" )
+                end
             end
         end
     end
@@ -324,7 +331,14 @@ function LAMBDA_TF2:EntityThink( ent )
             ent.l_TF_MilkEffect = true
 
             if ent.IsLambdaPlayer and random( 1, 100 ) <= ent:GetVoiceChance() then
-                ent:PlaySoundFile( random( 1, 2 ) == 1 and "panic" or "death" )
+                local rndReact = random( 1, 3 )
+                if rndReact == 1 then
+                    ent:PlaySoundFile( "death" )
+                elseif rndReact == 2 then
+                    ent:PlaySoundFile( "panic" )
+                else
+                    ent:PlaySoundFile( "witness" )
+                end
             end
         end
     end
