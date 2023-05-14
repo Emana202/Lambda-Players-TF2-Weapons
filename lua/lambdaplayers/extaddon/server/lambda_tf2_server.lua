@@ -314,10 +314,26 @@ function LAMBDA_TF2:EntityThink( ent )
             if ent.l_TF_MilkEffect then
                 LAMBDA_TF2:StopParticlesNamed( ent, "peejar_drips_milk" )
                 ent.l_TF_MilkEffect = false
+
+                if ent.IsLambdaPlayer and random( 1, 100 ) <= ent:GetVoiceChance() then
+                    if random( 1, 2 ) == 1 then
+                        ent:PlaySoundFile( "panic" )
+                    else
+                        ent:PlaySoundFile( "death" )
+                    end
+                end
             end
         elseif !ent.l_TF_MilkEffect then
             ParticleEffectAttach( "peejar_drips_milk", PATTACH_ABSORIGIN_FOLLOW, ent, 0 )
             ent.l_TF_MilkEffect = true
+
+            if ent.IsLambdaPlayer and random( 1, 100 ) <= ent:GetVoiceChance() then
+                if random( 1, 2 ) == 1 then
+                    ent:PlaySoundFile( "panic" )
+                else
+                    ent:PlaySoundFile( "death" )
+                end
+            end
         end
     end
 
