@@ -1630,12 +1630,8 @@ local function OnLambdaKilled( lambda, dmginfo )
     LAMBDA_TF2:CalcDominationAndRevenge( attacker, lambda )
 
     if IsValid( attacker ) and attacker.IsLambdaPlayer then 
-        local wepName = attacker:GetWeaponName()
-        if wepName == "tf2_eyelander" and doDecapitation then
-            attacker.l_TF_Decapitations = ( attacker.l_TF_Decapitations + lambda.l_TF_Decapitations + lambda.l_TF_CollectedOrgans )
-        elseif wepName == "tf2_vitasaw" then
-            attacker.l_TF_CollectedOrgans = ( attacker.l_TF_CollectedOrgans + lambda.l_TF_CollectedOrgans + lambda.l_TF_Decapitations )
-        end
+        attacker.l_TF_Decapitations = ( attacker.l_TF_Decapitations + lambda.l_TF_Decapitations )
+        attacker.l_TF_CollectedOrgans = ( attacker.l_TF_CollectedOrgans + lambda.l_TF_CollectedOrgans )
     end
     
     lambda:SimpleTimer( 0.1, function()

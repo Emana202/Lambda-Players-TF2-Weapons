@@ -79,11 +79,11 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             if !lethal then return end
             
             local giveHP = wepent.l_TF_Eyelander_GiveHealth
-            local actualGive = ( giveHP * ( 1 + target.l_TF_Decapitations ) )
-            local hpNoBuffs = ( self:GetMaxHealth() - ( giveHP * min( self.l_TF_Decapitations - target.l_TF_Decapitations, 4 ) ) )
+            local targetHeads = ( target.l_TF_Decapitations or 0 )
+            local actualGive = ( giveHP * ( 1 + targetHeads ) )
+            local hpNoBuffs = ( self:GetMaxHealth() - ( giveHP * min( self.l_TF_Decapitations - targetHeads, 4 ) ) )
             self.l_TF_Decapitations = ( self.l_TF_Decapitations + 1 )
 
-            print( self:GetMaxHealth() + giveHP, hpNoBuffs + ( giveHP * 4 ) )
             self:SetMaxHealth( min( self:GetMaxHealth() + actualGive, hpNoBuffs + ( giveHP * 4 ) ) )
             LAMBDA_TF2:GiveHealth( self, actualGive )
 

@@ -453,6 +453,7 @@ local function OnEntityCreated( ent )
         ent:SetNW2Bool( "lambda_tf2_turnintoashes", false )
         ent:SetNW2Bool( "lambda_tf2_dissolve", false )
         ent:SetNW2Bool( "lambda_tf2_bleeding", false )
+        ent:SetNW2Bool( "lambda_tf2_isjarated", false )
 
         if LAMBDA_TF2:IsValidCharacter( ent, false ) then
             local hookName = "LambdaTF2_EntityThink_" .. ent:GetClass() .. "_" .. ent:GetCreationID()
