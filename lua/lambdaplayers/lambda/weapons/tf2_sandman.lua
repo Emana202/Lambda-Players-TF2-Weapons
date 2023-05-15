@@ -6,9 +6,11 @@ local SimpleTimer = timer.Simple
 local IsValid = IsValid
 local CurTime = CurTime
 local DamageInfo = DamageInfo
+local ignorePlys = GetConVar( "ai_ignoreplayers" )
 
 local function OnBallTouch( self, ent )
     if !ent or !ent:IsSolid() or ent:GetSolidFlags() == FSOLID_VOLUME_CONTENTS then return end
+    if ent:IsPlayer() and ignorePlys:GetBool() then self:SetCollisionGroup( COLLISION_GROUP_DEBRIS ) return end
 
     local touchTr = self:GetTouchTrace()
     if touchTr.HitSky then self:Remove() return end
