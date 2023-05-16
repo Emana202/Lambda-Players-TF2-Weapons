@@ -1448,41 +1448,42 @@ function LAMBDA_TF2:LambdaMedigunAI( lambda )
                     local ignorePly = ignorePlys:GetBool()
                     local healers = LAMBDA_TF2:GetMedigunHealers( lambda )
                     local targetSearchFunc = function( ent )
-                        if ( !ent:IsNPC() and !ent:IsPlayer() and !ent:IsNextBot() ) or ent:Health() <= 0 then return false end
-                        if ent:IsPlayer() and ignorePly then return false end
-                        if filter and filter( lambda, ent ) == false then return false end
-                        if ent != healTarget and !lambda:CanSee( ent ) then return false end
-
                         local isPlayer = ( ent.IsLambdaPlayer or ent:IsPlayer() )
                         if isPlayer then
-                            if !ent:Alive() then return false end
-                            if LambdaTeams and LambdaTeams:AreTeammates( lambda, ent ) == false then return false end
-                            if hasFriends and !lambda:IsFriendsWith( ent ) then return false end
-                            if ent.IsLambdaPlayer and ent:InCombat() and ent:GetEnemy() == lambda then return false end
+                            if !ent:Alive() then return end
+                            if ignorePly and ent:IsPlayer() then return end
+                            if ent.IsLambdaPlayer and ent:InCombat() and ent:GetEnemy() == lambda then return end
+                            if LambdaTeams and LambdaTeams:AreTeammates( lambda, ent ) == false then return end
+                            if hasFriends and !lambda:IsFriendsWith( ent ) then return end
 
                             if IsValid( healTarget ) then
-                                if healTarget.IsLambdaPlayer and healTarget:InCombat() and healTarget:GetEnemy() == ent then return false end
-                                if ent.IsLambdaPlayer and ent:InCombat() and ent:GetEnemy() == healTarget then return false end
-                                if LambdaTeams and LambdaTeams:AreTeammates( healTarget, ent ) == false then return false end
+                                if healTarget.IsLambdaPlayer and healTarget:InCombat() and healTarget:GetEnemy() == ent then return end
+                                if ent.IsLambdaPlayer and ent:InCombat() and ent:GetEnemy() == healTarget then return end
+                                if LambdaTeams and LambdaTeams:AreTeammates( healTarget, ent ) == false then return end
                             end
 
-                            if ( healers[ ent ] or ent.l_TF_HasMedigunEquipped ) then 
-                                if ent:Health() > ent:GetMaxHealth() then return false end
+                            if healers[ ent ] or ent.l_TF_HasMedigunEquipped then 
+                                if ent:Health() > ent:GetMaxHealth() then return end
     
                                 local entHealTarget = ent.l_TF_Medic_HealTarget
-                                if IsValid( entHealTarget ) and LambdaTeams and LambdaTeams:AreTeammates( lambda, entHealTarget ) == false then return false end
+                                if IsValid( entHealTarget ) and LambdaTeams and LambdaTeams:AreTeammates( lambda, entHealTarget ) == false then return end
                             end
-                        elseif ent:GetInternalVariable( "m_lifeState" ) != 0 or lambda:Relations( ent ) != D_LI then 
-                            return false 
+                        else
+                            if ent:Health() <= 0 or ent:GetInternalVariable( "m_lifeState" ) != 0 then return end
+                            if ent:IsNPC() and !IsValid( ent:GetActiveWeapon() ) then return end
+                            if lambda:Relations( ent ) != D_LI then return end
                         end
 
+                        if filter and filter( lambda, ent ) == false then return end
+                        if ent != healTarget and !lambda:CanSee( ent ) then return end
+
                         if woundedTarget then
-                            if ( ent:Health() / ent:GetMaxHealth() ) > ( woundedTarget:Health() / woundedTarget:GetMaxHealth() ) then return false end
-                            if ( LAMBDA_TF2:IsBurning( woundedTarget ) or LAMBDA_TF2:IsBleeding( woundedTarget ) ) and !LAMBDA_TF2:IsBurning( ent ) and !LAMBDA_TF2:IsBleeding( ent ) then return false end
+                            if ( ent:Health() / ent:GetMaxHealth() ) > ( woundedTarget:Health() / woundedTarget:GetMaxHealth() ) then return end
+                            if ( LAMBDA_TF2:IsBurning( woundedTarget ) or LAMBDA_TF2:IsBleeding( woundedTarget ) ) and !LAMBDA_TF2:IsBurning( ent ) and !LAMBDA_TF2:IsBleeding( ent ) then return end
                             
                             if isPlayer then 
-                                if LambdaTeams and LambdaTeams:AreTeammates( woundedTarget, ent ) == false then return false end
-                                if ent.IsLambdaPlayer and woundedTarget.IsLambdaPlayer and woundedTarget:InCombat() != ent:InCombat() then return false end
+                                if LambdaTeams and LambdaTeams:AreTeammates( woundedTarget, ent ) == false then return end
+                                if ent.IsLambdaPlayer and woundedTarget.IsLambdaPlayer and woundedTarget:InCombat() != ent:InCombat() then return end
                             end
                         end
 

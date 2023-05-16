@@ -729,7 +729,7 @@ local function OnFlameThink( self )
                 dmginfo:SetDamagePosition( ent:WorldSpaceCenter() + VectorRand( -5, 5 ) )
                 dmginfo:SetReportedPosition( attacker:GetPos() )
 
-                local onCollide = weapon:GetWeaponAttribute( "OnFlameCollide" )
+                local onCollide = ( weapon.l_IsTFWeapon and weapon:GetWeaponAttribute( "OnFlameCollide" ) )
                 if onCollide and onCollide( self, ent, dmginfo, attacker ) == true then continue end
 
                 dmgTraceTbl.start = self:WorldSpaceCenter()
