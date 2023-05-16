@@ -4,6 +4,7 @@ local CurTime = CurTime
 local IsValid = IsValid
 local SafeRemoveEntityDelayed = SafeRemoveEntityDelayed
 local ents_Create = ents.Create
+local ignorePlys = GetConVar( "ai_ignoreplayers" )
 
 local angularImpulse = Angle( 500, 0, 0 )
 local hitFleshSnds = {
@@ -16,6 +17,7 @@ local hitFleshSnds = {
 
 local function OnCleaverTouch( self, ent )
     if !ent or !ent:IsSolid() or ent:GetSolidFlags() == FSOLID_VOLUME_CONTENTS then return end
+    if ent:IsPlayer() and ignorePlys:GetBool() then self:SetCollisionGroup( COLLISION_GROUP_DEBRIS ) return end
 
     local touchTr = self:GetTouchTrace()
     if touchTr.HitSky then self:Remove() return end
