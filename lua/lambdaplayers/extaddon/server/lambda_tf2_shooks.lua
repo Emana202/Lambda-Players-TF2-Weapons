@@ -340,11 +340,12 @@ local function OnEntityTakeDamage( ent, dmginfo )
                     end
                 end
 
-                if isBackstab and GetConVar( "lambdaplayers_tf2_capbackstabdamage" ):GetBool() then
-                    damage = min( damage, 1000 )
+                local totalDamage = ( damage + critDamage )
+                if isBackstab then
+                    local maxBackstabDmg = GetConVar( "lambdaplayers_tf2_capbackstabdamage" ):GetInt()
+                    if maxBackstabDmg != 0 then totalDamage = min( totalDamage, maxBackstabDmg ) end
                 end
 
-                local totalDamage = ( damage + critDamage )
                 dmginfo:SetDamageForce( dmginfo:GetDamageForce() * ( totalDamage / dmginfo:GetDamage() ) )
                 dmginfo:SetDamage( totalDamage )
                 dmginfo:SetDamageBonus( critDamage )
