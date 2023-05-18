@@ -402,9 +402,9 @@ local function OnPostEntityTakeDamage( ent, dmginfo, tookDamage )
         end
     end
     
-    if LAMBDA_TF2:IsDamageCustom( dmgCustom, dmgCustomBurns ) or ( isTFWeapon or inflictor.l_IsTFWeapon ) and ( isMeleeDmg or dmginfo:IsBulletDamage() ) and ( !ent.Armor or ent:Armor() <= 0 ) then
+    if LAMBDA_TF2:IsDamageCustom( dmgCustom, dmgCustomBurns ) or ( isTFWeapon or inflictor.l_IsTFWeapon ) and ( isMeleeDmg or dmginfo:IsBulletDamage() ) then
         ent:EmitSound( "Flesh.BulletImpact" )
-    end   
+    end
 
     if tookDamage then
         if !ent:GetIsBurning() and LAMBDA_TF2:IsDamageCustom( dmgCustom, TF_DMG_CUSTOM_IGNITE ) and LAMBDA_TF2:GetWaterLevel( ent ) < 2 then
@@ -861,13 +861,42 @@ local function OnLambdaThink( lambda, weapon, isdead )
                 end
             end
 
-            debugoverlay.Text( lambda:GetPos() + lambda:OBBCenter() * 1.8, "Buff Pulses Left: " .. lambda.l_TF_RagePulseCount, FrameTime() * 2 ) 
+            -- debugoverlay.Text( lambda:GetPos() + lambda:OBBCenter() * 1.8, "Buff Pulses Left: " .. lambda.l_TF_RagePulseCount, FrameTime() * 2 ) 
         end
 
-        if buffType then 
-            debugoverlay.Text( lambda:GetPos() + lambda:OBBCenter() * 2.2, "Buff Type: " .. lambda.l_TF_RageBuffType, FrameTime() * 2 ) 
-            debugoverlay.Text( lambda:GetPos() + lambda:OBBCenter() * 2, "Buff Meter: " .. Round( lambda.l_TF_RageMeter ) .. "%", FrameTime() * 2 ) 
+        local parachute = lambda.l_TF_ParachuteModel
+        if IsValid( parachute ) then
+            if !lambda:OnGround() and lambda:GetWaterLevel() != 3 then
+                if !lambda.l_TF_ParachuteOpen then 
+                    if CurTime() >= lambda.l_TF_ParachuteCheckT then
+                        lambda.l_TF_ParachuteOpen = true
+                        parachute:SetBodygroup( 0, 1 )
+                        parachute:SetBodygroup( 1, 1 )
+                        parachute:EmitSound( "items/para_open.wav", 65, nil, nil, CHAN_STATIC )
+                    end
+                else
+                    local vel = lambda.loco:GetVelocity()
+                    vel.z = max( vel.z, -112 )
+                    lambda.loco:SetVelocity( vel )
+                end
+            else
+                if CurTime() >= lambda.l_TF_ParachuteCheckT then
+                    lambda.l_TF_ParachuteCheckT = ( CurTime() + 1.0 )
+                end
+
+                if lambda.l_TF_ParachuteOpen then
+                    lambda.l_TF_ParachuteOpen = false
+                    parachute:SetBodygroup( 0, 0 )
+                    parachute:SetBodygroup( 1, 0 )
+                    parachute:EmitSound( "items/para_close.wav", 65, nil, nil, CHAN_STATIC )
+                end
+            end
         end
+
+        -- if buffType then 
+        --     debugoverlay.Text( lambda:GetPos() + lambda:OBBCenter() * 2.2, "Buff Type: " .. lambda.l_TF_RageBuffType, FrameTime() * 2 ) 
+        --     debugoverlay.Text( lambda:GetPos() + lambda:OBBCenter() * 2, "Buff Meter: " .. Round( lambda.l_TF_RageMeter ) .. "%", FrameTime() * 2 ) 
+        -- end
 
         if lambda.l_TF_Medigun_ChargeReleased then
             lambda.l_TF_Medigun_ChargeMeter = max( 0, lambda.l_TF_Medigun_ChargeMeter - ( ( 100 / 9 ) * FrameTime() ) )
@@ -1168,25 +1197,23 @@ local function OnLambdaRespawn( lambda )
         lambda:SetMaxHealth( newHP )
     end
 
-    local buffpack = lambda.l_TF_RageBuffPack
-    if IsValid( buffpack ) then
-        lambda:ClientSideNoDraw( buffpack, false )
-        buffpack:SetNoDraw( false )
-        buffpack:DrawShadow( true )
+    if GetConVar( "lambdaplayers_tf2_randomizeitemsonrespawn" ):GetBool() then
+        LAMBDA_TF2:AssignLambdaInventory( lambda )
     end
 
-    local backshield = lambda.l_TF_SniperShieldModel
-    if IsValid( backshield ) then
-        lambda:ClientSideNoDraw( backshield, false )
-        backshield:SetNoDraw( false )
-        backshield:DrawShadow( true )
-    end
-    
-    local shield = lambda.l_TF_Shield_Entity
-    if IsValid( shield ) then
-        lambda:ClientSideNoDraw( shield, false )
-        shield:SetNoDraw( false )
-        shield:DrawShadow( true )
+    local bonemergedMdls = lambda.l_TF_BonemergedModels
+    for model, mdlEnt in pairs( bonemergedMdls ) do
+        if !IsValid( mdlEnt ) then
+            bonemergedMdls[ model ] = nil
+            continue 
+        end
+
+        if mdlEnt.l_TF_ParentDied then
+            lambda:ClientSideNoDraw( mdlEnt, false )
+            mdlEnt:SetNoDraw( false )
+            mdlEnt:DrawShadow( true )
+            mdlEnt.l_TF_ParentDied = false
+        end
     end
 end
 
@@ -1237,6 +1264,7 @@ end
 
 local function OnLambdaKilled( lambda, dmginfo )
     local ragdoll = lambda.ragdoll
+    local isServerRags = serverRags:GetBool()
 
     local dmgCustom = dmginfo:GetDamageCustom()
     local doDecapitation = ( LAMBDA_TF2:IsDamageCustom( dmgCustom, dmgCustomDecapitates ) )
@@ -1248,15 +1276,15 @@ local function OnLambdaKilled( lambda, dmginfo )
         turnIntoAshes = ( LAMBDA_TF2:IsDamageCustom( lambda.l_TF_BurnDamageCustom, TF_DMG_CUSTOM_BURNING_PHLOG ) ) 
     end
 
-    local burnTime
-    if LAMBDA_TF2:IsBurning( lambda ) then
-        burnTime = ( LAMBDA_TF2:GetBurnEndTime( lambda ) - CurTime() )
+    local burnTime = LAMBDA_TF2:GetBurnEndTime( lambda )
+    if burnTime then
+        burnTime = ( burnTime - CurTime() )
     elseif shouldBurn then
         burnTime = Rand( 2, 5 )
     end
 
     if LAMBDA_TF2:IsDamageCustom( dmgCustom, TF_DMG_CUSTOM_TURNGOLD ) then
-        if !serverRags:GetBool() and !IsValid( ragdoll ) then
+        if !isServerRags and !IsValid( ragdoll ) then
             net.Start( "lambda_tf2_removecsragdoll" )
                 net.WriteEntity( lambda )
             net.Broadcast()
@@ -1380,8 +1408,7 @@ local function OnLambdaKilled( lambda, dmginfo )
                 lambda:SetNW2Entity( "lambda_serversideragdoll", animEnt )
                 lambda:DeleteOnRemove( animEnt )
 
-                local serverside = serverRags:GetBool()
-                if !serverside then
+                if !isServerRags then
                     net.Start( "lambda_tf2_removecsragdoll" )
                         net.WriteEntity( lambda )
                     net.Broadcast()
@@ -1435,7 +1462,7 @@ local function OnLambdaKilled( lambda, dmginfo )
                     if !IsValid( animEnt ) then return end
 
                     if !isDissolving then
-                        if !serverside and !turnIntoIce then
+                        if !isServerRags and !turnIntoIce then
                             lambda:CreateClientsideRagdoll( nil, animEnt )
 
                             if doDecapitation then
@@ -1453,10 +1480,24 @@ local function OnLambdaKilled( lambda, dmginfo )
                                     net.WriteBool( turnIntoAshes )
                                 net.Broadcast()
                             end
+
+                            for model, mdlEnt in pairs( animEnt.l_TF_BonemergedModels ) do
+                                if !IsValid( mdlEnt ) or mdlEnt:GetNoDraw() then continue end
+
+                                net.Start( "lambda_tf2_bonemergemodel" )
+                                    net.WriteEntity( lambda )
+                                    net.WriteString( model )
+                                net.Broadcast()
+                            end
                         else
                             local serverRag = lambda:CreateServersideRagdoll( nil, animEnt )
                             lambda.ragdoll = nil
                             lambda:SetNW2Entity( "lambda_serversideragdoll", lambda.ragdoll )
+
+                            for model, mdlEnt in pairs( animEnt.l_TF_BonemergedModels ) do
+                                if !IsValid( mdlEnt ) or mdlEnt:GetNoDraw() then continue end
+                                LAMBDA_TF2:CreateBonemergedModel( serverRag, model )
+                            end
 
                             if turnIntoIce then
                                 LAMBDA_TF2:TurnIntoStatue( serverRag, "models/player/shared/ice_player", physProp_Ice )
@@ -1499,7 +1540,7 @@ local function OnLambdaKilled( lambda, dmginfo )
             end
         end
 
-        if !serverRags:GetBool() and !IsValid( ragdoll ) and ( isDissolving or turnIntoIce and !onGround ) then
+        if !isServerRags and !IsValid( ragdoll ) and ( isDissolving or turnIntoIce and !onGround ) then
             net.Start( "lambda_tf2_removecsragdoll" )
                 net.WriteEntity( lambda )
             net.Broadcast()
@@ -1593,7 +1634,7 @@ local function OnLambdaKilled( lambda, dmginfo )
                     LAMBDA_TF2:AttachFlameParticle( ragdoll, Clamp( burnTime, 2, 10 ), lambda.l_TF_TeamColor )
                 end
             end
-        elseif !serverRags:GetBool() then
+        elseif !isServerRags then
             if doDecapitation then
                 net.Start( "lambda_tf2_decapitate_csragdoll" )
                     net.WriteEntity( lambda )
@@ -1686,7 +1727,7 @@ local function OnLambdaKilled( lambda, dmginfo )
     local dropAmmo = GetConVar( "lambdaplayers_tf2_dropammobox" ):GetInt()
     if dropAmmo == 1 and wepent.TF2Data or dropAmmo == 2 then
         if lambda.l_TF_HasEdibles then
-            ammopack = LAMBDA_TF2:CreateMedkit( wepent:GetPos(), "models/items/ammopack_medium.mdl", ( random( 1, 9 ) == 1 and 0.6 or 0.3 ), false )
+            ammopack = LAMBDA_TF2:CreateMedkit( wepent:GetPos(), "models/items/ammopack_medium.mdl", ( random( 1, 9 ) == 1 and 0.6 or 0.3 ), false, true )
         else
             ammopack = LAMBDA_TF2:CreateAmmobox( wepent:GetPos(), "models/items/ammopack_medium.mdl", 0.5 )
         end
@@ -1723,39 +1764,39 @@ local function OnLambdaKilled( lambda, dmginfo )
         if numPacks >= packLimit then oldAmmopack:Remove() end
     end
 
-    for _, dropEnt in ipairs( lambda.l_TF_DropOnDeathEntities ) do
-        if !IsValid( dropEnt ) or dropEnt:GetNoDraw() then continue end
+    local bonemergedMdls = lambda.l_TF_BonemergedModels
+    for model, mdlEnt in pairs( bonemergedMdls ) do
+        if !IsValid( mdlEnt ) then
+            bonemergedMdls[ model ] = nil
+            continue 
+        end
 
-        net.Start( "lambdaplayers_createclientsidedroppedweapon" )
-            net.WriteEntity( dropEnt )
-            net.WriteEntity( lambda )
-            net.WriteVector( lambda:GetPhysColor() )
-            net.WriteString( lambda:GetWeaponName() )
-            net.WriteVector( dmginfo:GetDamageForce() )
-            net.WriteVector( dmginfo:GetDamagePosition() )
-        net.Broadcast()
+        if !mdlEnt:GetNoDraw() then
+            lambda:ClientSideNoDraw( mdlEnt, true )
+            mdlEnt:SetNoDraw( true )
+            mdlEnt:DrawShadow( false )
+            mdlEnt.l_TF_ParentDied = true
+
+            if IsValid( ragdoll ) then 
+                LAMBDA_TF2:CreateBonemergedModel( ragdoll, model )
+            elseif !isServerRags then
+                net.Start( "lambda_tf2_bonemergemodel" )
+                    net.WriteEntity( lambda )
+                    net.WriteString( model )
+                net.Broadcast()
+            end
+        end
     end
 
     local buffpack = lambda.l_TF_RageBuffPack
-    if IsValid( buffpack ) then
-        lambda:ClientSideNoDraw( buffpack, true )
-        buffpack:SetNoDraw( true )
-        buffpack:DrawShadow( false )
-        buffpack:SetBodygroup( 1, 0 )
-    end
+    if IsValid( buffpack ) then buffpack:SetBodygroup( 1, 0 ) end
 
-    local backshield = lambda.l_TF_SniperShieldModel
-    if IsValid( backshield ) then
-        lambda:ClientSideNoDraw( backshield, true )
-        backshield:SetNoDraw( true )
-        backshield:DrawShadow( false )
-    end
-
-    local shield = lambda.l_TF_Shield_Entity
-    if IsValid( shield ) then
-        lambda:ClientSideNoDraw( shield, true )
-        shield:SetNoDraw( true )
-        shield:DrawShadow( false )
+    local parachute = lambda.l_TF_ParachuteModel
+    if IsValid( parachute ) and lambda.l_TF_ParachuteOpen then
+        lambda.l_TF_ParachuteOpen = false
+        parachute:SetBodygroup( 0, 0 )
+        parachute:SetBodygroup( 1, 0 )
+        parachute:EmitSound( "items/para_close.wav", 65, nil, nil, CHAN_STATIC )
     end
 
     if lambda.l_TF_Medigun_ChargeReleased then

@@ -55,14 +55,15 @@ CreateLambdaConvar( "lambdaplayers_tf2_dropammobox", 1, true, false, false, "If 
 CreateLambdaConvar( "lambdaplayers_tf2_ammoboxlimit", 3, true, false, false, "How many ammoboxes can Lambda Players drop on death. Upon reaching this limit, the oldest ammobox will be delted", 1, 10, { type = "Slider", decimals = 0, name = "Ammopack Drop Limit", category = "TF2 Stuff" } )
 CreateLambdaConvar( "lambdaplayers_tf2_deathanimchance", 25, true, false, false, "The chance that Lambda Player will play a unique death animation when after dying from a specific TF2 weapon", 0, 100, { type = "Slider", decimals = 0, name = "Death Animation Chance", category = "TF2 Stuff" } )
 CreateLambdaConvar( "lambdaplayers_tf2_alwaysuseschadenfreude", 0, true, false, false, "If Lambda Players should always use play the Schadenfreude taunt when laughing instead of when holding a TF2 weapon", 0, 1, { type = "Bool", name = "Always Use Schadenfreude", category = "TF2 Stuff" } )
+local schadenfreudeClassLaugh = CreateLambdaConvar( "lambdaplayers_tf2_schadenfreudeplaysclasslaughter", 0, true, false, false, "If Lambda Players using Schadenfreude should also play the laugh that animation belongs to alongside their own laughter", 0, 1, { type = "Bool", name = "Schadenfreude Uses Class-Specific Laughter", category = "TF2 Stuff" } )
 CreateLambdaConvar( "lambdaplayers_tf2_allowdominations", 0, true, false, false, "Enables the domination and revenge mechanic from TF2 to Lambda Players and real players", 0, 1, { type = "Bool", name = "Enable Dominations & Revenges", category = "TF2 Stuff" } )
 CreateLambdaConvar( "lambdaplayers_tf2_alwaysplayrivalrysnd", 0, true, true, false, "Should the domination and revenge sound cues play no matter if you were involved in it?", 0, 1, { type = "Bool", name = "Always Play Rivalry Sounds", category = "TF2 Stuff" } )
 CreateLambdaConvar( "lambdaplayers_tf2_capbackstabdamage", 0, true, false, false, "If not zero, the damage from backstabs will be set to this value if it's higher that it", 0, 1000, { type = "Slider", decimals = 0, name = "Backstab Max Damage", category = "TF2 Stuff" } )
-
 local shieldSpawnChance = CreateLambdaConvar( "lambdaplayers_tf2_shieldspawnchance", 10, true, false, false, "The chance that the next spawned Lambda Player will have a random charge shield equipped with them. Note that the Demoman's melee weapons have their own chance instead of this", 0, 100, { type = "Slider", decimals = 0, name = "Shield Spawn Chance", category = "TF2 Stuff" } )
-local schadenfreudeClassLaugh = CreateLambdaConvar( "lambdaplayers_tf2_schadenfreudeplaysclasslaughter", 0, true, false, false, "If Lambda Players using Schadenfreude should also play the laugh that animation belongs to alongside their own laughter", 0, 1, { type = "Bool", name = "Schadenfreude Uses Class-Specific Laughter", category = "TF2 Stuff" } )
-local randomItemChance = CreateLambdaConvar( "lambdaplayers_tf2_randomrechargeablechance", 10, true, false, false, "The chance that Lambda Player will have a random rechargeable item in their inventory that they can use if needed after their initial spawn. For example, Jarate, Sandvich, Crit-a-Cola, etc.", 0, 100, { type = "Slider", decimals = 0, name = "Random Rechargeable Item Chance", category = "TF2 Stuff" } )
-local inventoryLimit = CreateLambdaConvar( "lambdaplayers_tf2_inventoryitemlimit", 1, true, false, false, "How many items can Lambda Player carry in their inventory?", 0, 4, { type = "Slider", decimals = 0, name = "Inventory Limit", category = "TF2 Stuff" } )
+CreateLambdaConvar( "lambdaplayers_tf2_randomrechargeablechance", 10, true, false, false, "The chance that Lambda Player will have a random rechargeable item in their inventory that they can use if needed after their initial spawn. For example, Jarate, Sandvich, Crit-a-Cola, etc.", 0, 100, { type = "Slider", decimals = 0, name = "Random Rechargeable Item Chance", category = "TF2 Stuff" } )
+CreateLambdaConvar( "lambdaplayers_tf2_inventoryitemlimit", 1, true, false, false, "How many items can Lambda Player carry in their inventory?", 0, 4, { type = "Slider", decimals = 0, name = "Inventory Limit", category = "TF2 Stuff" } )
+CreateLambdaConvar( "lambdaplayers_tf2_wearonlyonebackpack", 1, true, false, false, "If Lambda Players are allowed to have only one item that is wearable on their back", 0, 1, { type = "Bool", name = "Wear Only One Backpack", category = "TF2 Stuff" } )
+CreateLambdaConvar( "lambdaplayers_tf2_randomizeitemsonrespawn", 0, true, false, false, "If enabled, Lambda Player's items will be randomized on respawn", 0, 1, { type = "Bool", name = "Randomize Items On Respawn", category = "TF2 Stuff" } )
 local objectorIncludePfps = CreateLambdaConvar( "lambdaplayers_tf2_objectorincludepfps", 0, true, false, false, "If Lambda Players using The Conscientious Objector should also use Lambda Profile Pictures as their image?", 0, 1, { type = "Bool", name = "Objector Includes PFPs", category = "TF2 Stuff" } )
 
 ---
@@ -443,7 +444,8 @@ local function OnEntityCreated( ent )
         ent.l_TF_NextLockerResupplyTime = 0
         ent.l_TF_UnansweredKills = {}
         ent.l_TF_AttackBonusEffect = {}
-        
+        ent.l_TF_BonemergedModels = {}
+
         ent.l_TF_WaterExitTime = false
         ent.l_TF_OldWaterLevel = 0
 
@@ -728,13 +730,16 @@ local function OnLambdaInitialize( lambda, weapon )
         lambda.l_TF_SniperShieldModel = NULL
         lambda.l_TF_SniperShieldRechargeT = 0
 
+        lambda.l_TF_ParachuteModel = NULL
+        lambda.l_TF_ParachuteOpen = false
+        lambda.l_TF_ParachuteCheckT = ( CurTime() + 1.0 )
+
         lambda.l_TF_HypeMeter = 0
         lambda.l_TF_HasGlovesOfRunning = false
         lambda.l_TF_HasMedigunEquipped = false
         lambda.l_TF_HasEdibles = false
 
         lambda.l_TF_MedicsToIgnoreList = {}
-        lambda.l_TF_DropOnDeathEntities = {}
 
         lambda.l_TF_GRU_MaxHealth = lambda:GetMaxHealth()
         lambda.l_TF_GRU_MinHealth = Round( lambda.l_TF_GRU_MaxHealth * 0.5 )
@@ -766,35 +771,9 @@ local function OnLambdaInitialize( lambda, weapon )
         lambda.l_TF_Inventory = {}
         lambda.l_TF_NextInventoryCheckT = ( CurTime() + Rand( 0.1, 1.0 ) )
         lambda.l_TF_PreInventorySwitchWeapon = nil
+        lambda.l_TF_HasBackpackItem = false
 
-        local invLimit = inventoryLimit:GetInt()
-        if invLimit > 0 then
-            local invCount = 0
-            local chance = randomItemChance:GetInt()
-
-            for name, data in RandomPairs( LAMBDA_TF2.InventoryItems ) do
-                if lambda.l_TF_Inventory[ name ] or random( 1, 100 ) > chance or !lambda:CanEquipWeapon( name ) then continue end
-
-                local itemInitialize = data.Initialize
-                if itemInitialize and itemInitialize( lambda ) == true then continue end
-
-                local itemData = { 
-                    IsWeapon = ( data.IsWeapon == nil and true or data.IsWeapon ), 
-                    IsReady = true,
-                    NextUseTime = CurTime()
-                }
-
-                local cooldownType = data.Cooldown
-                if isfunction( data.Cooldown ) then
-                    itemData.IsReady = cooldownType( lambda )
-                    itemData.NextUseTime = false
-                end
-                lambda.l_TF_Inventory[ name ] = itemData
-
-                invCount = ( invCount + 1 )
-                if invCount >= invLimit then break end
-            end
-        end
+        LAMBDA_TF2:AssignLambdaInventory( lambda )
     end
 end
 

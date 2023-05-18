@@ -19,7 +19,7 @@ matproxy.Add( {
         if IsValid( ent ) then
             local owner = ( ent.l_TF_Owner or ent:GetOwner() )
 
-            if IsValid( owner ) and owner.GetPlayerColor then
+            if IsValid( owner ) and ( owner.IsLambdaPlayer or owner:IsPlayer() ) then
                 local isCustom = ( mat:GetInt( "$iscustom" ) == 1 )
                 local normCritMult = ( isCustom and 1.33 or 100 )
 

@@ -43,7 +43,7 @@ LAMBDA_TF2.InventoryItems = {
         end,
         Cooldown = 10
     },
-    [ "tf2_jarate" ] = {             
+    [ "tf2_jarate" ] = {
         Condition = function( lambda )
             local ene = lambda:GetEnemy()
             return ( random( 1, 5 ) == 1 and lambda:InCombat() and lambda:GetCritBoostType() == TF_CRIT_NONE and !LAMBDA_TF2:IsBurning( ene ) and !ene.l_TF_CoveredInMilk and !ene.l_TF_CoveredInUrine and !LAMBDA_TF2:IsBurning( ene ) and !lambda:IsInRange( ene, 200 ) and lambda:IsInRange( ene, 750 ) or !lambda:InCombat() and LAMBDA_TF2:IsBurning( lambda ) )
@@ -53,7 +53,7 @@ LAMBDA_TF2.InventoryItems = {
         end,
         Cooldown = 20 
     },
-    [ "tf2_madmilk" ] = {             
+    [ "tf2_madmilk" ] = {
         Condition = function( lambda )
             local ene = lambda:GetEnemy()
             return ( random( 1, 5 ) == 1 and lambda:InCombat() and lambda:GetCritBoostType() == TF_CRIT_NONE and !LAMBDA_TF2:IsBurning( ene ) and !ene.l_TF_CoveredInMilk and !ene.l_TF_CoveredInUrine and !LAMBDA_TF2:IsBurning( ene ) and !lambda:IsInRange( ene, 200 ) and lambda:IsInRange( ene, 750 ) or !lambda:InCombat() and LAMBDA_TF2:IsBurning( lambda ) )
@@ -63,7 +63,7 @@ LAMBDA_TF2.InventoryItems = {
         end,
         Cooldown = 20 
     },
-    [ "tf2_critacola" ] = {             
+    [ "tf2_critacola" ] = {
         Condition = function( lambda )
             local ene = lambda:GetEnemy()
             return ( random( 1, 20 ) == 1 and lambda:InCombat() and lambda:GetCritBoostType() == TF_CRIT_NONE and !ene.l_TF_CoveredInMilk and !ene.l_TF_CoveredInUrine and ( !lambda:IsInRange( ene, 300 ) or !lambda:CanSee( ene ) ) )
@@ -73,7 +73,7 @@ LAMBDA_TF2.InventoryItems = {
         end,
         Cooldown = 30
     },
-    [ "tf2_cleaver" ] = {             
+    [ "tf2_cleaver" ] = {
         Condition = function( lambda )
             local ene = lambda:GetEnemy()
             local attackDist = lambda.l_CombatAttackRange
@@ -86,20 +86,22 @@ LAMBDA_TF2.InventoryItems = {
         end,
         Cooldown = 5.1
     },
-    [ "tf2_bonk" ] = {             
+    [ "tf2_bonk" ] = {
         Condition = function( lambda )
             local retreatEnt = lambda.l_RetreatTarget
             return ( lambda:IsPanicking() and ( !LambdaIsValid( retreatEnt ) or !lambda:CanSee( retreatEnt ) or !lambda:IsInRange( retreatEnt, 1000 ) ) )
         end,
         Cooldown = 30
     },
-    [ "tf2_razorback" ] = {             
+    [ "tf2_razorback" ] = {
         IsWeapon = false,
         PrettyName = "Razorback",
-        Initialize = function( lambda )
+        WorldModel = "models/lambdaplayers/tf2/items/knife_shield.mdl",
+        WearsOnBack = true,
+        Initialize = function( lambda, mdlEnt )
             if lambda.l_TF_SniperShieldType then return true end
             lambda.l_TF_SniperShieldType = 1
-            lambda.l_TF_SniperShieldModel = LAMBDA_TF2:CreateBonemergedModel( lambda, "models/lambdaplayers/tf2/items/knife_shield.mdl", true )
+            lambda.l_TF_SniperShieldModel = mdlEnt
         end,
         Cooldown = function( lambda )
             if CurTime() > lambda.l_TF_SniperShieldRechargeT then
@@ -115,24 +117,40 @@ LAMBDA_TF2.InventoryItems = {
                 return true
             end
         end,
+        OnUnequip = function( lambda ) 
+            lambda.l_TF_SniperShieldType = nil 
+            lambda.l_TF_SniperShieldModel = NULL
+        end
     },
-    [ "tf2_cozycamper" ] = {             
+    [ "tf2_cozycamper" ] = {
         IsWeapon = false,
         PrettyName = "Cozy Camper",
+        WorldModel = "models/lambdaplayers/tf2/items/commandobackpack.mdl",
+        WearsOnBack = true,
         Initialize = function( lambda )
             if lambda.l_TF_SniperShieldType then return true end
             lambda.l_TF_SniperShieldType = 2
-            lambda.l_TF_SniperShieldModel = LAMBDA_TF2:CreateBonemergedModel( lambda, "models/lambdaplayers/tf2/items/commandobackpack.mdl", true )
-        end
+        end,
+        OnUnequip = function( lambda ) lambda.l_TF_SniperShieldType = nil end
     },
-    [ "tf2_darvinshield" ] = {             
+    [ "tf2_darvinshield" ] = {
         IsWeapon = false,
         PrettyName = "Darvin's Danger Shield",
+        WorldModel = "models/lambdaplayers/tf2/items/croc_shield.mdl",
+        WearsOnBack = true,
         Initialize = function( lambda )
             if lambda.l_TF_SniperShieldType then return true end
             lambda.l_TF_SniperShieldType = 3
-            lambda.l_TF_SniperShieldModel = LAMBDA_TF2:CreateBonemergedModel( lambda, "models/lambdaplayers/tf2/items/croc_shield.mdl", true )
-        end
+        end,
+        OnUnequip = function( lambda ) lambda.l_TF_SniperShieldType = nil end
+    },
+    [ "tf2_basejumper" ] = {
+        IsWeapon = false,
+        PrettyName = "B.A.S.E. Jumper",
+        WorldModel = "models/lambdaplayers/tf2/items/base_jumper.mdl",
+        WearsOnBack = true,
+        Initialize = function( lambda, mdlEnt ) lambda.l_TF_ParachuteModel = mdlEnt end,
+        OnUnequip = function( lambda ) lambda.l_TF_ParachuteModel = NULL end
     }
 }
 
@@ -143,17 +161,23 @@ for name, data in pairs( _LAMBDAPLAYERSWEAPONS ) do
 
         LAMBDA_TF2.InventoryItems[ name ] = {
             Condition = function( lambda )
-                local ene = lambda:GetEnemy()
+            local ene = lambda:GetEnemy()
                 return ( !lambda:InCombat() and #LAMBDA_TF2:GetFriendlyTargets( lambda, 450 ) > 1 or lambda:InCombat() and ( !lambda.l_HasMelee or CurTime() > lambda.l_WeaponUseCooldown ) and !lambda:IsInRange( ene, 600 ) )
             end,
             Cooldown = function( lambda )
                 return ( !lambda.l_TF_RageActivated and lambda.l_TF_RageMeter >= 100 )
             end,
-            Initialize = function( lambda )
+            Initialize = function( lambda, mdlEnt )
                 if lambda.l_TF_RageBuffType then return true end
-                lambda.l_TF_RageBuffPack = LAMBDA_TF2:CreateBonemergedModel( lambda, buffpackMdl, true )
+                lambda.l_TF_RageBuffPack = mdlEnt
                 lambda.l_TF_RageBuffType = buffType
-            end
+            end,
+            OnUnequip = function( lambda ) 
+                lambda.l_TF_RageBuffPack = NULL
+                lambda.l_TF_RageBuffType = nil
+            end,
+            WorldModel = buffpackMdl,
+            WearsOnBack = true
         }
     end
 end

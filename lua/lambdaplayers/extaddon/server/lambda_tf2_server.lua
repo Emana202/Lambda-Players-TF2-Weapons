@@ -96,6 +96,7 @@ util.AddNetworkString( "lambda_tf2_domination" )
 util.AddNetworkString( "lambda_tf2_stopnamedparticle" )
 util.AddNetworkString( "lambda_tf2_removecsragdoll" )
 util.AddNetworkString( "lambda_tf2_removecsprop" )
+util.AddNetworkString( "lambda_tf2_bonemergemodel" )
 util.AddNetworkString( "lambda_tf2_attackbonuseffect" )
 util.AddNetworkString( "lambda_tf2_ignite_csragdoll" )
 util.AddNetworkString( "lambda_tf2_decapitate_csragdoll" )
@@ -252,6 +253,11 @@ function LAMBDA_TF2:TurnIntoStatue( ragdoll, mat, physProp )
     for physBone = 0, physBones do    
         if physBones > 1 and physBone != 0 then Weld( ragdoll, ragdoll, 0, physBone ) end
         if physProp then SetPhysProp( nil, ragdoll, physBone, nil, physProp ) end
+    end
+
+    for _, child in ipairs( ragdoll:GetChildren() ) do
+        if !IsValid( child ) or child:GetNoDraw()  then continue end
+        child:SetMaterial( mat )
     end
 
     ragdoll:RemoveInternalConstraint( -1 )
@@ -1074,7 +1080,7 @@ function LAMBDA_TF2:GiveHealth( target, amount, maxHeal )
     return ( target:Health() - preHP )
 end
 
-function LAMBDA_TF2:CreateBonemergedModel( parent, model, dropOnDeath )
+function LAMBDA_TF2:CreateBonemergedModel( parent, model )
     local ent = ents_Create( "base_anim" )
     ent:SetModel( model )
     ent:SetPos( parent:GetPos() )
@@ -1085,11 +1091,9 @@ function LAMBDA_TF2:CreateBonemergedModel( parent, model, dropOnDeath )
     ent:AddEffects( EF_BONEMERGE )
     LAMBDA_TF2:TakeNoDamage( ent )
 
-    if dropOnDeath then
-        parent.l_TF_DropOnDeathEntities[ #parent.l_TF_DropOnDeathEntities + 1 ] = ent
-    end
-
     parent:DeleteOnRemove( ent )
+    parent.l_TF_BonemergedModels[ model ] = ent
+
     return ent
 end
 
@@ -1292,8 +1296,11 @@ function LAMBDA_TF2:GetBurnEndTime( ent )
     
     for _, child in ipairs( ent:GetChildren() ) do
         if !IsValid( child ) or child:GetClass() != "entityflame" then continue end
-        return child:GetInternalVariable( "lifetime" )
+        local lifeTime = child:GetInternalVariable( "lifetime" )
+        if lifeTime and isnumber( lifeTime ) then return lifeTime end
     end
+
+    return false
 end
 
 function LAMBDA_TF2:RemoveBurn( ent )
@@ -1724,5 +1731,68 @@ function LAMBDA_TF2:CalcDominationAndRevenge( attacker, victim )
             net.WriteEntity( attacker )
             net.WriteEntity( victim )
         net.Broadcast()
+    end
+end
+
+function LAMBDA_TF2:AssignLambdaInventory( lambda )
+    local lambdaInv = lambda.l_TF_Inventory
+    for item, itemData in pairs( lambdaInv ) do
+        local itemEnt = itemData.WorldModel
+        if IsValid( itemEnt ) then itemEnt:Remove() end
+
+        local onUnequip = LAMBDA_TF2.InventoryItems[ item ].OnUnequip
+        if onUnequip then onUnequip( lambda ) end
+
+        lambdaInv[ item ] = nil
+    end
+    lambda.l_TF_HasBackpackItem = false
+
+    local invLimit = GetConVar( "lambdaplayers_tf2_inventoryitemlimit" ):GetInt()
+    if invLimit == 0 then return end
+
+    local invCount = 0
+    local chance = GetConVar( "lambdaplayers_tf2_randomrechargeablechance" ):GetInt()
+    local oneBackpack = GetConVar( "lambdaplayers_tf2_wearonlyonebackpack" ):GetInt()
+
+    for name, data in RandomPairs( LAMBDA_TF2.InventoryItems ) do
+        if lambdaInv[ name ] or random( 1, 100 ) > chance or !lambda:CanEquipWeapon( name ) then continue end
+
+        if data.WearsOnBack then
+            if !lambda.l_TF_HasBackpackItem then
+                lambda.l_TF_HasBackpackItem = true
+            elseif oneBackpack then
+                continue
+            end
+        end
+
+        local itemMdl, itemMdlEnt = data.WorldModel
+        if itemMdl then itemMdlEnt = LAMBDA_TF2:CreateBonemergedModel( lambda, itemMdl ) end
+
+        local itemInitialize = data.Initialize
+        if itemInitialize and itemInitialize( lambda, itemMdlEnt ) == true then 
+            if IsValid( itemMdlEnt ) then 
+                itemMdlEnt:Remove() 
+                lambda.l_TF_BonemergedModels[ itemMdl ] = nil
+            end
+
+            continue 
+        end
+
+        local itemData = { 
+            IsWeapon = ( data.IsWeapon == nil and true or data.IsWeapon ), 
+            IsReady = true,
+            NextUseTime = CurTime(),
+            WorldModel = itemMdlEnt
+        }
+
+        local cooldownType = data.Cooldown
+        if isfunction( data.Cooldown ) then
+            itemData.IsReady = cooldownType( lambda )
+            itemData.NextUseTime = false
+        end
+        lambdaInv[ name ] = itemData
+
+        invCount = ( invCount + 1 )
+        if invCount >= invLimit then break end
     end
 end

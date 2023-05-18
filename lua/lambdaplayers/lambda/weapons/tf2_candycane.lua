@@ -37,7 +37,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
 
         OnDealDamage = function( self, wepent, target, dmginfo, tookDamage, isLethal )
             if !isLethal then return end
-            local medkit = LAMBDA_TF2:CreateMedkit( target:WorldSpaceCenter(), "models/items/medkit_small.mdl", 0.2, false, 30, true )
+            local medkit = LAMBDA_TF2:CreateMedkit( target:WorldSpaceCenter(), "models/items/medkit_small.mdl", 0.2, false, 30 )
             local rndImpulse = VectorRand( -1, 1 )
             rndImpulse.z = 1; rndImpulse:Normalize()
             local velocity = ( rndImpulse * 250 )

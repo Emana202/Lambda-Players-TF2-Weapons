@@ -15,7 +15,7 @@ function ENT:Initialize()
     self.HealRatio = ( self.HealRatio or 0.2 )
     if self.CanRespawn == nil then self.CanRespawn = true end
 
-    if self.CanRespawn then
+    if !self.HasPhysics then
         self:PhysicsDestroy()
         self:SetSolidFlags( FSOLID_NOT_SOLID + FSOLID_TRIGGER )
         self:ResetSequence( self:LookupSequence( "idle" ) )    

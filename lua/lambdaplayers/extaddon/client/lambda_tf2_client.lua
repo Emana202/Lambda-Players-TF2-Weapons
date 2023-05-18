@@ -9,6 +9,7 @@ local max = math.max
 local hook_Add = hook.Add
 local hook_Remove = hook.Remove
 local GetConVar = GetConVar
+local ents_CreateClientside = ents.CreateClientside
 
 local killiconClr = Color( 255, 80, 0, 255 )
 local killIconBleed = Color( 255, 0, 0 )
@@ -163,6 +164,24 @@ net.Receive( "lambda_tf2_removecsragdoll", function()
     
     LAMBDA_TF2:RemoveEntity( ragdoll )
     ragdoll.ragdoll = nil
+end )
+
+net.Receive( "lambda_tf2_bonemergemodel", function()
+    local lambda = net.ReadEntity()
+    if !IsValid( lambda ) then return end
+    
+    local ragdoll = lambda.ragdoll
+    if !IsValid( ragdoll ) then return end 
+
+    local mdlEnt = ents_CreateClientside( "base_anim" )
+    mdlEnt:SetModel( net.ReadString() )
+    mdlEnt:SetPos( ragdoll:GetPos() )
+    mdlEnt:SetAngles( ragdoll:GetAngles() )
+    mdlEnt:SetOwner( ragdoll )
+    mdlEnt:SetParent( ragdoll )
+    mdlEnt:Spawn()
+    mdlEnt:AddEffects( EF_BONEMERGE )
+    function mdlEnt:Think() if !IsValid( ragdoll ) then mdlEnt:Remove() end end
 end )
 
 net.Receive( "lambda_tf2_removecsprop", function()

@@ -658,6 +658,8 @@ function LAMBDA_TF2:MinigunFire( lambda, weapon, target )
     local rateoffire = weapon:GetWeaponAttribute( "RateOfFire" )
     weapon.l_FireTime = ( CurTime() + rateoffire )
 
+    LAMBDA_TF2:CreateMuzzleFlash( weapon, "muzzle_minigun" )
+
     local curROF = 0
     local rateOfFire = ( rateoffire / 4 )
     for i = 1, weapon:GetWeaponAttribute( "ProjectileCount" ) do
@@ -665,7 +667,6 @@ function LAMBDA_TF2:MinigunFire( lambda, weapon, target )
             lambda:RemoveGesture( ACT_HL2MP_GESTURE_RANGE_ATTACK_AR2 )
             lambda:AddGesture( ACT_HL2MP_GESTURE_RANGE_ATTACK_AR2, true )
 
-            LAMBDA_TF2:CreateMuzzleFlash( weapon, "muzzle_minigun" )
             LAMBDA_TF2:CreateShellEject( weapon, "RifleShellEject" ) 
         end )
 
