@@ -458,8 +458,9 @@ local function OnPostEntityTakeDamage( ent, dmginfo, tookDamage )
                 end
     
                 local entHealth = ent:Health()
-                if ent.Armor then entHealth = ( entHealth + ent:Armor() ) end
-    
+                local entArmor = ent.Armor
+                if entArmor then entHealth = ( entHealth + ( isfunction( entArmor ) and entArmor( ent ) or entArmor ) ) end
+
                 attacker.l_TF_HypeMeter = min( 99, attacker.l_TF_HypeMeter + max( 5, dmginfo:GetDamage() ) )
                 LAMBDA_TF2:RecordDamageEvent( attacker, dmginfo, isDead, entHealth ) 
                 
