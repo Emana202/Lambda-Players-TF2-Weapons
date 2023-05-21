@@ -22,12 +22,14 @@ local Round = math.Round
 local max = math.max
 local Clamp = math.Clamp
 local Rand = math.Rand
-local table_Count = table.Count
 local CreateSound = CreateSound
 local ParticleEffectAttach = ParticleEffectAttach
 local RandomPairs = RandomPairs
 local random = math.random
+local table_Copy = table.Copy
 local table_Random = table.Random
+local table_Count = table.Count
+local table_Merge = table.Merge
 local isfunction = isfunction
 local FindInSphere = ents.FindInSphere
 local GetAmmoMax = game.GetAmmoMax
@@ -59,11 +61,10 @@ local schadenfreudeClassLaugh = CreateLambdaConvar( "lambdaplayers_tf2_schadenfr
 CreateLambdaConvar( "lambdaplayers_tf2_allowdominations", 0, true, false, false, "Enables the domination and revenge mechanic from TF2 to Lambda Players and real players", 0, 1, { type = "Bool", name = "Enable Dominations & Revenges", category = "TF2 Stuff" } )
 CreateLambdaConvar( "lambdaplayers_tf2_alwaysplayrivalrysnd", 0, true, true, false, "Should the domination and revenge sound cues play no matter if you were involved in it?", 0, 1, { type = "Bool", name = "Always Play Rivalry Sounds", category = "TF2 Stuff" } )
 CreateLambdaConvar( "lambdaplayers_tf2_capbackstabdamage", 0, true, false, false, "If not zero, the damage from backstabs will be set to this value if it's higher that it", 0, 1000, { type = "Slider", decimals = 0, name = "Backstab Max Damage", category = "TF2 Stuff" } )
-local shieldSpawnChance = CreateLambdaConvar( "lambdaplayers_tf2_shieldspawnchance", 10, true, false, false, "The chance that the next spawned Lambda Player will have a random charge shield equipped with them. Note that the Demoman's melee weapons have their own chance instead of this", 0, 100, { type = "Slider", decimals = 0, name = "Shield Spawn Chance", category = "TF2 Stuff" } )
 CreateLambdaConvar( "lambdaplayers_tf2_randomrechargeablechance", 10, true, false, false, "The chance that Lambda Player will have a random rechargeable item in their inventory that they can use if needed after their initial spawn. For example, Jarate, Sandvich, Crit-a-Cola, etc.", 0, 100, { type = "Slider", decimals = 0, name = "Random Rechargeable Item Chance", category = "TF2 Stuff" } )
 CreateLambdaConvar( "lambdaplayers_tf2_inventoryitemlimit", 1, true, false, false, "How many items can Lambda Player carry in their inventory?", 0, 4, { type = "Slider", decimals = 0, name = "Inventory Limit", category = "TF2 Stuff" } )
 CreateLambdaConvar( "lambdaplayers_tf2_wearonlyonebackpack", 1, true, false, false, "If Lambda Players are allowed to have only one item that is wearable on their back", 0, 1, { type = "Bool", name = "Wear Only One Backpack", category = "TF2 Stuff" } )
-CreateLambdaConvar( "lambdaplayers_tf2_randomizeitemsonrespawn", 0, true, false, false, "If enabled, Lambda Player's items will be randomized on respawn", 0, 1, { type = "Bool", name = "Randomize Items On Respawn", category = "TF2 Stuff" } )
+CreateLambdaConvar( "lambdaplayers_tf2_randomizeitemsonrespawn", 0, true, false, false, "If not zero, determines the chance that the Lambda Player's items will be randomized on its respawn", 0, 100, { type = "Slider", decimals = 0, name = "Random Items On Respawn Chance", category = "TF2 Stuff" } )
 local objectorIncludePfps = CreateLambdaConvar( "lambdaplayers_tf2_objectorincludepfps", 0, true, false, false, "If Lambda Players using The Conscientious Objector should also use Lambda Profile Pictures as their image?", 0, 1, { type = "Bool", name = "Objector Includes PFPs", category = "TF2 Stuff" } )
 
 ---
@@ -126,6 +127,17 @@ local function ShrinkChildBones( target, parentId, boneTbl )
     end
 end
 
+function LAMBDA_TF2:GetEntityHeadBone( ent )
+    for hboxSet = 0, ( ent:GetHitboxSetCount() - 1 ) do
+        for hitbox = 0, ( ent:GetHitBoxCount( hboxSet ) - 1 ) do
+            if ent:GetHitBoxHitGroup( hitbox, hboxSet ) != HITGROUP_HEAD then continue end
+            return ( ent:GetHitBoxBone( hitbox, hboxSet ) )
+        end
+    end
+
+    return ( ent:LookupBone( "ValveBiped.Bip01_Head1" ) )
+end
+
 function LAMBDA_TF2:DecapitateHead( target, effects, force )
     if !IsValid( target ) then return end
 
@@ -135,7 +147,7 @@ function LAMBDA_TF2:DecapitateHead( target, effects, force )
         target = ragdoll
     end
 
-    local headBone = target:LookupBone( "ValveBiped.Bip01_Head1" )
+    local headBone = LAMBDA_TF2:GetEntityHeadBone( target )
     if !headBone then return end
 
     local decapitatedBones = { headBone }
@@ -633,30 +645,15 @@ local function OnLambdaInitialize( lambda, weapon )
     LAMBDA_TF2:PseudoNetworkVar( lambda, "ShieldChargeMeter", 100.001 ) 
     LAMBDA_TF2:PseudoNetworkVar( lambda, "ShieldLastNoChargeTime", CurTime() )
 
-    local objectorPath
-    if !objectorIncludePfps:GetBool() then
-        objectorPath = LambdaPlayerSprays[ random( #LambdaPlayerSprays ) ]
-    else
-        local pfpCount = #Lambdaprofilepictures
-        local sprayCount = #LambdaPlayerSprays
-        local rndIndex = random( #Lambdaprofilepictures + #LambdaPlayerSprays )
-        
-        if pfpCount > sprayCount then
-            if rndIndex > sprayCount then
-                objectorPath = Lambdaprofilepictures[ rndIndex - sprayCount ]
-            else
-                objectorPath = LambdaPlayerSprays[ rndIndex ]
-            end
-        elseif rndIndex > pfpCount then
-            objectorPath = LambdaPlayerSprays[ rndIndex - pfpCount ]
-        else
-            objectorPath = Lambdaprofilepictures[ rndIndex ]
-        end
+    local objectorImgs = table_Copy( LambdaPlayerSprays )
+    if objectorIncludePfps:GetBool() then
+        objectorImgs = table_Merge( objectorImgs, Lambdaprofilepictures )
     end
 
+    local objectorPath = ( #objectorImgs != 0 and objectorImgs[ random( #objectorImgs ) ] )
     if !objectorPath then 
         objectorPath = ""
-    elseif ( SERVER ) and !EndsWith( objectorPath, ".vtf" ) then
+    elseif SERVER and !EndsWith( objectorPath, ".vtf" ) then
         net.Start( "lambda_tf2_addobjectorimage" )
             net.WriteString( objectorPath )
         net.Broadcast()
@@ -675,8 +672,8 @@ local function OnLambdaInitialize( lambda, weapon )
         lambda.l_TF_Decapitations = 0
 
         lambda.l_TF_Shield_PreChargeYawRate = lambda.loco:GetMaxYawRate()
-        lambda.l_TF_Shield_IsEquipped = false
         lambda.l_TF_Shield_Entity = NULL
+        lambda.l_TF_Shield_Type = false
         lambda.l_TF_Shield_CritBoosted = false
         lambda.l_TF_Shield_CritBoostSound = nil
         lambda.l_TF_Shield_ChargeDrainRateMult = 1.0
@@ -690,13 +687,6 @@ local function OnLambdaInitialize( lambda, weapon )
         lambda.l_TF_DiamondbackCrits = 0
         lambda.l_TF_FrontierJusticeKills = 0
         lambda.l_TF_RevengeCrits = 0
-
-        lambda:SimpleTimer( FrameTime() * 2, function() 
-            if !lambda.l_TF_Shield_IsEquipped then
-                local shieldChance = shieldSpawnChance:GetInt()
-                if random( 1, 100 ) <= shieldChance then LAMBDA_TF2:GiveRemoveChargeShield( lambda ) end
-            end
-        end, true )
 
         lambda.TauntName = NULL
         lambda.TauntPartner = NULL

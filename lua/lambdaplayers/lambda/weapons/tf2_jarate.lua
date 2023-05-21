@@ -6,6 +6,7 @@ local ents_Create = ents.Create
 local FindInSphere = ents.FindInSphere
 local ipairs = ipairs
 local ParticleEffect = ParticleEffect
+local DamageInfo = DamageInfo
 local TraceLine = util.TraceLine
 
 local splashTrTbl = {
@@ -51,6 +52,11 @@ local function OnJarExplode( self, ent )
 
         if !validOwner or ent != owner and owner:CanTarget( ent ) then
             ent.l_TF_CoveredInUrine = effectDuration
+
+            local fakeDmg = DamageInfo()
+            fakeDmg:SetAttacker( owner )
+            fakeDmg:SetInflictor( self )
+            ent:TakeDamageInfo( fakeDmg )
         end
     end
 
@@ -109,7 +115,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             self:SimpleWeaponTimer( 0.25, function()
                 local spawnPos = self:GetAttachmentPoint( "eyes" ).Pos
                 throwPos = ( isvector( target ) and target or ( IsValid( target ) and target:GetPos() or ( self:GetPos() + self:GetForward() * 500 ) ) )
-                throwPos = ( throwPos + vector_up * ( spawnPos:Distance( throwPos ) / random( 30, 40 ) ) )
+                throwPos = ( throwPos + vector_up * ( spawnPos:Distance( throwPos ) / random( 20, 25 ) ) )
                 throwAng = ( throwPos - spawnPos ):Angle()
 
                 self:ClientSideNoDraw( wepent, true )

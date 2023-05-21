@@ -100,7 +100,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent.l_TF_ChargeStartTime = CurTime()
             wepent.l_TF_NextZoomTime = ( CurTime() + 1 )
 
-            local headHitBox = target:GetHitBoxBone( HITGROUP_HEAD, target:GetHitboxSet() )
+            local headHitBox = LAMBDA_TF2:GetEntityHeadBone( target )
             local targetPos = ( ( wepent.l_TF_IsCharging and headHitBox and ( wepent.l_TF_ChargeIsFull or random( 1, 3 ) != 1 ) ) and LAMBDA_TF2:GetBoneTransformation( target, headHitBox ) or target:WorldSpaceCenter() )
             wepent.l_TF_ChargeIsFull = false
 

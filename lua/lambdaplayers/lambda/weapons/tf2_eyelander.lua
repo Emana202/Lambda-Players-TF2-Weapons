@@ -47,10 +47,6 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             self:SetMaxHealth( newHP )
             self.l_WeaponSpeedMultiplier = min( 1 + ( 0.08 * self.l_TF_Decapitations ), 1.32 )
 
-            if !self.l_TF_Shield_IsEquipped and random( 1, 3 ) != 1 then
-                LAMBDA_TF2:GiveRemoveChargeShield( self, true )
-            end
-
             wepent:EmitSound( "weapons/draw_sword.wav" )
         end,
 

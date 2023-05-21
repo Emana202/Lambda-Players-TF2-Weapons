@@ -442,7 +442,7 @@ local function OnPostEntityTakeDamage( ent, dmginfo, tookDamage )
 
             if attacker.IsLambdaPlayer then 
                 if isDead then
-                    if attacker.l_TF_Shield_IsEquipped and attacker:GetShieldChargeMeter() != 100 and attacker.l_TF_Shield_Type == 3 and ( dmgCustom == TF_DMG_CUSTOM_CHARGE_IMPACT or isMeleeDmg ) then
+                    if attacker.l_TF_Shield_Type == 3 and attacker:GetShieldChargeMeter() != 100 and ( dmgCustom == TF_DMG_CUSTOM_CHARGE_IMPACT or isMeleeDmg ) then
                         attacker:SetShieldChargeMeter( attacker:GetShieldChargeMeter() + 75 )
                     end
     
@@ -570,7 +570,7 @@ local function OnCreateEntityRagdoll( owner, ragdoll )
             dissolver:Remove()
         else
             if owner:GetNW2Bool( "lambda_tf2_decapitatehead", false ) then
-                LAMBDA_TF2:DecapitateHead( ragdoll, true, ragdoll:GetVelocity() * 5 )
+                LAMBDA_TF2:DecapitateHead( ragdoll, true, ( ragdoll:GetVelocity() * 5 ) )
             end
 
             if owner:GetNW2Bool( "lambda_tf2_turnintoashes", false ) then
@@ -643,9 +643,8 @@ hook.Add( "EntityFireBullets", "LambdaTF2_OnEntityFireBullets", OnEntityFireBull
 ---
 
 local function OnLambdaThink( lambda, weapon, isdead )
-    if lambda.l_TF_Shield_IsEquipped then
-        local shieldType = lambda.l_TF_Shield_Type
-        
+    local shieldType = lambda.l_TF_Shield_Type
+    if shieldType then
         if !isdead and !lambda:GetIsShieldCharging() and lambda:GetShieldChargeMeter() == 100 and random( 1, 30 ) == 1 then
             local enemy = lambda:GetEnemy()
             local isPanicking = ( lambda:IsPanicking() or !lambda:InCombat() and ( lambda.l_TF_CoveredInUrine or lambda.l_TF_CoveredInMilk or LAMBDA_TF2:IsBurning( lambda ) or LAMBDA_TF2:IsBleeding( lambda ) ) )
@@ -758,15 +757,15 @@ local function OnLambdaThink( lambda, weapon, isdead )
 
             if isdead or !lambda:GetIsShieldCharging() or lambda:GetShieldChargeMeter() <= 0 then
                 lambda:SetIsShieldCharging( false )
+                if isdead then lambda:SetShieldChargeMeter( 100 ) end
                 lambda:SetShieldLastNoChargeTime( CurTime() )
 
-                lambda:SimpleTimer( 0.3, function() 
+                lambda:SimpleTimer( ( isdead and 0 or 0.3 ), function() 
                     if lambda.l_TF_Shield_CritBoosted then
-                        lambda.l_TF_Shield_CritBoosted = false
-                        LAMBDA_TF2:StopSound( lambda, lambda.l_TF_Shield_CritBoostSound )
                         weapon:EmitSound( ")weapons/weapon_crit_charged_off.wav", nil, nil, 0.25, CHAN_STATIC )
                     end
-
+                    lambda.l_TF_Shield_CritBoosted = false
+                    LAMBDA_TF2:StopSound( lambda, lambda.l_TF_Shield_CritBoostSound )
                     lambda:SetNextMeleeCrit( TF_CRIT_NONE )
                 end, true )
 
@@ -1198,9 +1197,8 @@ local function OnLambdaRespawn( lambda )
         lambda:SetMaxHealth( newHP )
     end
 
-    if GetConVar( "lambdaplayers_tf2_randomizeitemsonrespawn" ):GetBool() then
-        LAMBDA_TF2:AssignLambdaInventory( lambda )
-    end
+    local rndItems = GetConVar( "lambdaplayers_tf2_randomizeitemsonrespawn" ):GetInt()
+    if random( 1, 100 ) <= rndItems then LAMBDA_TF2:AssignLambdaInventory( lambda ) end
 
     local bonemergedMdls = lambda.l_TF_BonemergedModels
     for model, mdlEnt in pairs( bonemergedMdls ) do
@@ -1219,9 +1217,8 @@ local function OnLambdaRespawn( lambda )
 end
 
 local function OnLambdaInjured( lambda, dmginfo )
-    if lambda.l_TF_Shield_IsEquipped then
-        local shieldType = lambda.l_TF_Shield_Type
-
+    local shieldType = lambda.l_TF_Shield_Type
+    if shieldType then
         if dmginfo:IsDamageType( DMG_BURN ) or LAMBDA_TF2:IsDamageCustom( dmginfo, TF_DMG_CUSTOM_IGNITE ) then
             dmginfo:ScaleDamage( shieldType == 3 and 0.85 or shieldType == 2 and 0.8 or 0.5 )
         elseif dmginfo:IsExplosionDamage() then
@@ -1658,16 +1655,7 @@ local function OnLambdaKilled( lambda, dmginfo )
         end
     end
 
-    if lambda.l_TF_Shield_IsEquipped then
-        lambda:SetIsShieldCharging( false )
-        lambda:SetShieldChargeMeter( 100 )
-
-        local shield = lambda.l_TF_Shield_Entity
-        local givenWeapon = shield.l_TF_GivenByWeapon
-        if IsValid( shield ) and givenWeapon and lambda.l_SpawnWeapon != givenWeapon then
-            LAMBDA_TF2:GiveRemoveChargeShield( lambda )
-        end
-    end
+    lambda:SetShieldChargeMeter( 100 )
 
     local attacker = dmginfo:GetAttacker()
     LAMBDA_TF2:CalcDominationAndRevenge( attacker, lambda )
@@ -1728,7 +1716,7 @@ local function OnLambdaKilled( lambda, dmginfo )
     local dropAmmo = GetConVar( "lambdaplayers_tf2_dropammobox" ):GetInt()
     if dropAmmo == 1 and wepent.TF2Data or dropAmmo == 2 then
         if lambda.l_TF_HasEdibles then
-            ammopack = LAMBDA_TF2:CreateMedkit( wepent:GetPos(), "models/items/ammopack_medium.mdl", ( random( 1, 9 ) == 1 and 0.6 or 0.3 ), false, true )
+            ammopack = LAMBDA_TF2:CreateMedkit( wepent:GetPos(), "models/items/ammopack_medium.mdl", ( random( 1, 9 ) == 1 and 0.6 or 0.3 ), false, nil, true )
         else
             ammopack = LAMBDA_TF2:CreateAmmobox( wepent:GetPos(), "models/items/ammopack_medium.mdl", 0.5 )
         end
@@ -1741,9 +1729,7 @@ local function OnLambdaKilled( lambda, dmginfo )
             vecImpulse = ( vecImpulse * Rand( 100, 150 ) + ammopack:GetVelocity() )
         
             local speed = vecImpulse:Length()
-            if speed > 300 then
-                vecImpulse = ( vecImpulse * ( 300 / speed ) )
-            end
+            if speed > 300 then vecImpulse = ( vecImpulse * ( 300 / speed ) ) end
 
             local phys = ammopack:GetPhysicsObject()
             if IsValid( phys ) then
@@ -1973,7 +1959,14 @@ end
 
 local function OnLambdaCanTarget( lambda, ent )
     local medicList = lambda.l_TF_MedicsToIgnoreList[ ent ]
-    if medicList and CurTime() <= medicList and ( !lambda:InCombat() or ent.l_TF_Medic_HealTarget != lambda:GetEnemy() ) then return true end
+    if medicList then 
+        if lambda:InCombat() and ent.l_TF_Medic_HealTarget == lambda:GetEnemy() then
+            lambda.l_TF_MedicsToIgnoreList[ ent ] = nil
+        elseif CurTime() <= medicList then
+            return true
+        end
+    end
+
     if ent.l_TF_HasMedigunEquipped and LAMBDA_TF2:GetMedigunHealers( lambda )[ ent ] then return true end
 end
 

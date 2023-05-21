@@ -43,10 +43,6 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
                 dmginfo:SetDamageCustom( TF_DMG_CUSTOM_KATANA_DUEL )
 			end )
 
-            if !self.l_TF_Shield_IsEquipped and random( 4 ) == 1 then
-                LAMBDA_TF2:GiveRemoveChargeShield( self, true )
-            end
-
             wepent.l_TF_IsHonorbound = true
             wepent:EmitSound( ")weapons/samurai/TF_katana_draw_0" .. random( 1, 2 ) .. ".wav", 70, nil, 0.7 )
         end,

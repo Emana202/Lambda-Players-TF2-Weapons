@@ -151,6 +151,54 @@ LAMBDA_TF2.InventoryItems = {
         WearsOnBack = true,
         Initialize = function( lambda, mdlEnt ) lambda.l_TF_ParachuteModel = mdlEnt end,
         OnUnequip = function( lambda ) lambda.l_TF_ParachuteModel = NULL end
+    },
+    [ "tf2_chargintarge" ] = {
+        IsWeapon = false,
+        PrettyName = "Chargin' Targe",
+        WorldModel = "models/lambdaplayers/tf2/weapons/w_targe.mdl",
+        IsDemoShield = true,
+        Initialize = function( lambda, mdlEnt ) 
+            mdlEnt.IsLambdaWeapon = true
+            mdlEnt.l_killiconname = "lambdaplayers_weaponkillicons_tf2_chargintarge"
+            lambda.l_TF_Shield_Entity = mdlEnt
+            lambda.l_TF_Shield_Type = 1
+        end,
+        OnUnequip = function( lambda ) 
+            lambda.l_TF_Shield_Entity = NULL 
+            lambda.l_TF_Shield_Type = false
+        end
+    },
+    [ "tf2_splendidscreen" ] = {
+        IsWeapon = false,
+        PrettyName = "Splendid Screen",
+        WorldModel = "models/lambdaplayers/tf2/weapons/w_persian_shield.mdl",
+        IsDemoShield = true,
+        Initialize = function( lambda, mdlEnt ) 
+            mdlEnt.IsLambdaWeapon = true
+            mdlEnt.l_killiconname = "lambdaplayers_weaponkillicons_tf2_splendidscreen"
+            lambda.l_TF_Shield_Entity = mdlEnt
+            lambda.l_TF_Shield_Type = 2
+        end,
+        OnUnequip = function( lambda ) 
+            lambda.l_TF_Shield_Entity = NULL
+            lambda.l_TF_Shield_Type = false
+        end
+    },
+    [ "tf2_tideturner" ] = {
+        IsWeapon = false,
+        PrettyName = "Tide Turner",
+        WorldModel = "models/lambdaplayers/tf2/weapons/w_wheel_shield.mdl",
+        IsDemoShield = true,
+        Initialize = function( lambda, mdlEnt ) 
+            mdlEnt.IsLambdaWeapon = true
+            mdlEnt.l_killiconname = "lambdaplayers_weaponkillicons_tf2_chargintarge"
+            lambda.l_TF_Shield_Entity = mdlEnt
+            lambda.l_TF_Shield_Type = 3
+        end,
+        OnUnequip = function( lambda ) 
+            lambda.l_TF_Shield_Entity = NULL 
+            lambda.l_TF_Shield_Type = false
+        end
     }
 }
 

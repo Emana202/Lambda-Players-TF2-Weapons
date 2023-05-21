@@ -27,10 +27,6 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             } )
             wepent:SetWeaponAttribute( "RandomCrits", false )
 
-            if !self.l_TF_Shield_IsEquipped and random( 1, 3 ) == 1 then
-                LAMBDA_TF2:GiveRemoveChargeShield( self, true )
-            end
-
             wepent.l_TF_Detonated = false
             wepent:EmitSound( "weapons/draw_melee.wav", nil, nil, 0.5 )
         end,

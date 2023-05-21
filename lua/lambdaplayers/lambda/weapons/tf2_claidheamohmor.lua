@@ -36,10 +36,6 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             } )
             wepent:SetWeaponAttribute( "DamageCustom", TF_DMG_CUSTOM_DECAPITATION )
 
-            if !self.l_TF_Shield_IsEquipped and random( 3 ) != 1 then
-                LAMBDA_TF2:GiveRemoveChargeShield( self, true )
-            end
-
             wepent:EmitSound( "weapons/draw_sword.wav" )
         end,
 
@@ -49,7 +45,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         end,
 
         OnDealDamage = function( self, wepent, target, dmginfo, tookDamage, lethal )
-            if !lethal or !self.l_TF_Shield_IsEquipped or self.l_TF_Shield_ChargeMeterFull then return end
+            if !lethal or !self.l_TF_Shield_Type or self.l_TF_Shield_ChargeMeterFull then return end
             self:SetShieldChargeMeter( self:GetShieldChargeMeter() + 25 )
         end,
 

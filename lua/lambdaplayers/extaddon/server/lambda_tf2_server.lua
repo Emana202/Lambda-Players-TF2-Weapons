@@ -1097,33 +1097,6 @@ function LAMBDA_TF2:CreateBonemergedModel( parent, model )
     return ent
 end
 
-local shieldTbl = {
-    { "models/lambdaplayers/tf2/weapons/w_targe.mdl", "lambdaplayers_weaponkillicons_tf2_chargintarge" },
-    { "models/lambdaplayers/tf2/weapons/w_persian_shield.mdl", "lambdaplayers_weaponkillicons_tf2_splendidscreen" },
-    { "models/lambdaplayers/tf2/weapons/w_wheel_shield.mdl", "lambdaplayers_weaponkillicons_tf2_tideturner" },
-}
-
-function LAMBDA_TF2:GiveRemoveChargeShield( lambda, givenByWeapon )
-    lambda.l_TF_Shield_IsEquipped = !lambda.l_TF_Shield_IsEquipped
-    
-    local shieldEnt = lambda.l_TF_Shield_Entity
-    if lambda.l_TF_Shield_IsEquipped then
-        local shieldType = random( #shieldTbl )
-        lambda.l_TF_Shield_Type = shieldType
-
-        shieldEnt = LAMBDA_TF2:CreateBonemergedModel( lambda, shieldTbl[ shieldType ][ 1 ], true )
-        shieldEnt.IsLambdaWeapon = true
-        shieldEnt.l_killiconname = shieldTbl[ shieldType ][ 2 ]
-        shieldEnt.l_TF_GivenByWeapon = ( givenByWeapon and lambda:GetWeaponName() )
-
-        lambda.l_TF_Shield_Entity = shieldEnt
-    elseif IsValid( shieldEnt ) then
-        shieldEnt:Remove()
-    end
-
-    return shieldEnt
-end
-
 function LAMBDA_TF2:RecordDamageEvent( attacker, dmginfo, kill, victimPrevHealth )
     if #attacker.l_TF_DamageEvents >= 128 then table_remove( attacker.l_TF_DamageEvents, 1 ) end
 
@@ -1445,7 +1418,7 @@ function LAMBDA_TF2:LambdaMedigunAI( lambda )
 
             local healTarget = lambda.l_TF_Medic_HealTarget
             local targetDead = ( !IsValid( healTarget ) or !LAMBDA_TF2:IsValidCharacter( healTarget ) )
-            if targetDead or random( 1, ( ( lambda.l_TF_Medigun_ChargeReleased or healTarget.IsLambdaPlayer and healTarget:InCombat() ) and 250 or 100 ) ) == 1 then
+            if targetDead or random( 1, ( ( lambda.l_TF_Medigun_ChargeReleased or healTarget.IsLambdaPlayer and ( healTarget:InCombat() or healTarget.l_TF_HasEdibles or healTarget.l_TF_IsUsingItem ) ) and 350 or 100 ) ) == 1 then
                 if CurTime() > lambda.l_TF_Medic_TargetSearchT then
                     lambda.l_TF_Medic_TargetSearchT = ( CurTime() + 1.0 )
 
@@ -1764,6 +1737,7 @@ function LAMBDA_TF2:AssignLambdaInventory( lambda )
                 continue
             end
         end
+        if data.IsDemoShield and lambda.l_TF_Shield_Type then continue end
 
         local itemMdl, itemMdlEnt = data.WorldModel
         if itemMdl then itemMdlEnt = LAMBDA_TF2:CreateBonemergedModel( lambda, itemMdl ) end

@@ -38,7 +38,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
                 bulletTbl.Spread.x = spread
                 bulletTbl.Spread.y = spread
 
-                local headHitBox = target:GetHitBoxBone( HITGROUP_HEAD, target:GetHitboxSet() )
+                local headHitBox = LAMBDA_TF2:GetEntityHeadBone( target )
                 if headHitBox then return LAMBDA_TF2:GetBoneTransformation( target, headHitBox ) end
             end )
             wepent:SetWeaponAttribute( "BulletCallback", function( lambda, weapon, tr, dmginfo )
