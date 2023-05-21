@@ -645,7 +645,7 @@ hook.Add( "EntityFireBullets", "LambdaTF2_OnEntityFireBullets", OnEntityFireBull
 local function OnLambdaThink( lambda, weapon, isdead )
     local shieldType = lambda.l_TF_Shield_Type
     if shieldType then
-        if !isdead and !lambda:GetIsShieldCharging() and lambda:GetShieldChargeMeter() == 100 and random( 1, 30 ) == 1 then
+        if !isdead and lambda.l_issmoving and !lambda:GetIsShieldCharging() and lambda:GetShieldChargeMeter() == 100 and random( 1, 30 ) == 1 then
             local enemy = lambda:GetEnemy()
             local isPanicking = ( lambda:IsPanicking() or !lambda:InCombat() and ( lambda.l_TF_CoveredInUrine or lambda.l_TF_CoveredInMilk or LAMBDA_TF2:IsBurning( lambda ) or LAMBDA_TF2:IsBleeding( lambda ) ) )
 
