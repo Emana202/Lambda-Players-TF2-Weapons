@@ -73,8 +73,8 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
 
         clip = 4,
         islethal = true,
-        attackrange = 1500,
-        keepdistance = 750,
+        attackrange = 900,
+        keepdistance = 550,
         deploydelay = 0.5,
 
         OnDeploy = function( self, wepent )

@@ -37,7 +37,6 @@ local pairs = pairs
 local ammoboxAngImpulse = Vector()
 local groundCheckTbl = {}
 local serverRags = GetConVar( "lambdaplayers_lambda_serversideragdolls" )
-local wepDmgScale = GetConVar( "lambdaplayers_combat_weapondmgmultiplier" )
 
 local dmgCustomKillicons = {
     [ TF_DMG_CUSTOM_BACKSTAB ]              = "lambdaplayers_weaponkillicons_tf2_backstab",
@@ -145,7 +144,7 @@ local shieldChargeTrTbl = {
 
 local function OnEntityTakeDamage( ent, dmginfo )
     if ent.l_TF_FixedBulletDamage then
-        dmginfo:SetDamage( ent.l_TF_FixedBulletDamage * wepDmgScale:GetFloat() )
+        dmginfo:SetDamage( ent.l_TF_FixedBulletDamage * LambdaGetWeaponDamageScale( ent ) )
         ent.l_TF_FixedBulletDamage = false
     end
             
@@ -465,13 +464,13 @@ local function OnPostEntityTakeDamage( ent, dmginfo, tookDamage )
                 LAMBDA_TF2:RecordDamageEvent( attacker, dmginfo, isDead, entHealth ) 
                 
                 if attacker.l_TF_RageBuffType and !attacker.l_TF_RageActivated and attacker:Alive() then
-                    local gainRage = ( dmginfo:GetDamage() / ( random( 4, 5 ) * wepDmgScale:GetFloat() ) )
+                    local gainRage = ( dmginfo:GetDamage() / ( random( 4, 5 ) * LambdaGetWeaponDamageScale( ent ) ) )
                     if attacker.l_TF_RageBuffType == 3 then gainRage = ( gainRage * 1.25 ) end
                     attacker.l_TF_RageMeter = min( attacker.l_TF_RageMeter + gainRage, 100 )
                 end
 
                 if !attacker.l_TF_MmmphActivated and attacker.l_TF_MmmphMeter < 100 and attacker:GetWeaponName() == "tf2_phlogistinator" and ( dmginfo:IsDamageType( DMG_BURN + DMG_PLASMA ) or LAMBDA_TF2:IsDamageCustom( dmgCustom, TF_DMG_CUSTOM_IGNITE ) ) then
-                    attacker.l_TF_MmmphMeter = min( attacker.l_TF_MmmphMeter + ( dmginfo:GetDamage() / ( 3 * wepDmgScale:GetFloat() ) ), 100 )
+                    attacker.l_TF_MmmphMeter = min( attacker.l_TF_MmmphMeter + ( dmginfo:GetDamage() / ( 3 * LambdaGetWeaponDamageScale( ent ) ) ), 100 )
                 end
             end
 
@@ -1554,6 +1553,15 @@ local function OnLambdaKilled( lambda, dmginfo )
                     ragdoll.l_FreezeTime = ( CurTime() + ( Rand( 0.2, 0.75 ) / ragdoll.l_PlayBackSpeed ) )
                     ragdoll.l_FrozenTime = frozenTime
                     ragdoll:SetMaterial( "models/player/shared/ice_player" )
+
+                    SimpleTimer( 0, function()
+                        if !IsValid( ragdoll ) then return end
+
+                        for _, child in ipairs( ragdoll:GetChildren() ) do
+                            if !IsValid( child ) then continue end
+                            child:SetMaterial( "models/player/shared/ice_player" )
+                        end
+                    end )
                 else
                     LAMBDA_TF2:TurnIntoStatue( ragdoll, "models/player/shared/ice_player", physProp_Ice )
                     

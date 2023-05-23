@@ -256,7 +256,7 @@ function LAMBDA_TF2:TurnIntoStatue( ragdoll, mat, physProp )
     end
 
     for _, child in ipairs( ragdoll:GetChildren() ) do
-        if !IsValid( child ) or child:GetNoDraw()  then continue end
+        if !IsValid( child ) then continue end
         child:SetMaterial( mat )
     end
 

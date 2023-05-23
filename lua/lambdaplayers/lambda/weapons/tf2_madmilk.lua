@@ -48,9 +48,7 @@ local function OnJarExplode( self, ent )
                 self.l_TF_DecreasedCooldown = true
                 LAMBDA_TF2:DecreaseInventoryCooldown( owner, "tf2_madmilk", 4 )
             end
-        end
-
-        if !validOwner or ent != owner and owner:CanTarget( ent ) then
+        elseif !validOwner or ent != owner and owner:CanTarget( ent ) then
             ent.l_TF_CoveredInMilk = effectDuration
 
             local fakeDmg = DamageInfo()

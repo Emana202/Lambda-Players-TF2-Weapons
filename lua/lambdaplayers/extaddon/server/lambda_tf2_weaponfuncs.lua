@@ -401,6 +401,8 @@ end
 ///
 
 function LAMBDA_TF2:MedigunFire( lambda, weapon, target )
+    if target == lambda:GetEnemy() then return true end
+
     local wepSrc = lambda:GetAttachmentPoint( "eyes" ).Pos
     local checkRange = ( 450 * ( target == lambda.l_TF_Medigun_HealTarget and 1.2 or 1 ) )
     if wepSrc:DistToSqr( target:NearestPoint( wepSrc ) ) > ( checkRange * checkRange ) then return true end

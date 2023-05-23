@@ -88,8 +88,8 @@ LAMBDA_TF2.InventoryItems = {
     },
     [ "tf2_bonk" ] = {
         Condition = function( lambda )
-            local retreatEnt = lambda.l_RetreatTarget
-            return ( lambda:IsPanicking() and ( !LambdaIsValid( retreatEnt ) or !lambda:CanSee( retreatEnt ) or !lambda:IsInRange( retreatEnt, 1000 ) ) )
+            local ene = lambda:GetEnemy()
+            return ( lambda:IsPanicking() and ( !LambdaIsValid( ene ) or !lambda:CanSee( ene ) or !lambda:IsInRange( ene, 1000 ) ) )
         end,
         Cooldown = 30
     },
