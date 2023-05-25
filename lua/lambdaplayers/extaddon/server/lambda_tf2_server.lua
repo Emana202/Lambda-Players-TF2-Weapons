@@ -1418,7 +1418,7 @@ function LAMBDA_TF2:LambdaMedigunAI( lambda )
 
             local healTarget = lambda.l_TF_Medic_HealTarget
             local targetDead = ( !IsValid( healTarget ) or !LAMBDA_TF2:IsValidCharacter( healTarget ) )
-            if targetDead or random( 1, ( ( lambda.l_TF_Medigun_ChargeReleased or healTarget.IsLambdaPlayer and ( healTarget:InCombat() or healTarget.l_TF_HasEdibles or healTarget.l_TF_IsUsingItem ) ) and 350 or 100 ) ) == 1 then
+            if targetDead or random( 1, ( ( lambda.l_TF_Medigun_ChargeReleased or healTarget.IsLambdaPlayer and ( healTarget:InCombat() or healTarget:IsPanicking() or healTarget:GetState() == "FindTarget" or healTarget.l_TF_HasEdibles or healTarget.l_TF_IsUsingItem ) ) and 350 or 100 ) ) == 1 then
                 if CurTime() > lambda.l_TF_Medic_TargetSearchT then
                     lambda.l_TF_Medic_TargetSearchT = ( CurTime() + 1.0 )
 
