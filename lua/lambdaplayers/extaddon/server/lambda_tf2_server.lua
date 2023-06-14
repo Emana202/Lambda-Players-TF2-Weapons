@@ -255,10 +255,14 @@ function LAMBDA_TF2:TurnIntoStatue( ragdoll, mat, physProp )
         if physProp then SetPhysProp( nil, ragdoll, physBone, nil, physProp ) end
     end
 
-    for _, child in ipairs( ragdoll:GetChildren() ) do
-        if !IsValid( child ) then continue end
-        child:SetMaterial( mat )
-    end
+    SimpleTimer( 0, function()
+        if !IsValid( ragdoll ) then return end
+        
+        for _, child in ipairs( ragdoll:GetChildren() ) do
+            if !IsValid( child ) then continue end
+            child:SetMaterial( mat )
+        end
+    end )
 
     ragdoll:RemoveInternalConstraint( -1 )
     ragdoll:SetMaterial( mat )

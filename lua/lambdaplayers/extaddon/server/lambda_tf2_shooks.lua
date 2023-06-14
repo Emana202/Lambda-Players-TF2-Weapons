@@ -657,8 +657,8 @@ local function OnLambdaThink( lambda, weapon, isdead )
 
                 if ( enemyPos.z >= ( selfPos.z - stepHeight ) and enemyPos.z <= ( selfPos.z + stepHeight ) ) and ( !lambda.l_HasMelee and !lambda:GetIsReloading() or lambda.l_HasMelee and lambda:IsInRange( enemy, chargeDist ) ) and !lambda:IsInRange( enemy, ( lambda.l_CombatAttackRange or chargeDist ) ) and lambda:CanSee( enemy ) then
                     lambda:LookTo( enemy, 1.0 )
-
-                    local los = deg( acos( lambda:GetForward():Dot( ( enemyPos - selfPos ):GetNormalized() ) ) )
+                    local eneDir = ( enemyPos - selfPos ); eneDir.z = 0
+                    local los = deg( acos( lambda:GetForward():Dot( eneDir:GetNormalized() ) ) )
                     canCharge = ( los <= 15 )
                 end
             end

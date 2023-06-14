@@ -149,8 +149,15 @@ LAMBDA_TF2.InventoryItems = {
         PrettyName = "B.A.S.E. Jumper",
         WorldModel = "models/lambdaplayers/tf2/items/base_jumper.mdl",
         WearsOnBack = true,
-        Initialize = function( lambda, mdlEnt ) lambda.l_TF_ParachuteModel = mdlEnt end,
-        OnUnequip = function( lambda ) lambda.l_TF_ParachuteModel = NULL end
+        Initialize = function( lambda, mdlEnt ) 
+            lambda.l_TF_ParachuteModel = mdlEnt
+            lambda.l_TF_ParachuteDeathDropHeight = lambda.loco:GetDeathDropHeight() 
+            lambda.loco:SetDeathDropHeight( 3000 ) 
+        end,
+        OnUnequip = function( lambda ) 
+            lambda.l_TF_ParachuteModel = NULL 
+            lambda.loco:SetDeathDropHeight( lambda.l_TF_ParachuteDeathDropHeight ) 
+        end
     },
     [ "tf2_chargintarge" ] = {
         IsWeapon = false,
