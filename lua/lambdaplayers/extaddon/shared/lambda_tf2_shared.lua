@@ -486,6 +486,8 @@ local function OnEntityCreated( ent )
                 if !IsValid( ent ) then hook_Remove( "Tick", hookName ) return end
 
                 local effectTbl = ent.l_TF_OverheadEffects
+                if !effectTbl then return end
+
                 local effectCount = table_Count( effectTbl )
                 if effectCount == 0 then return end
 
