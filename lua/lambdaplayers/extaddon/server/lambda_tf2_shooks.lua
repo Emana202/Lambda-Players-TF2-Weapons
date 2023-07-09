@@ -1414,11 +1414,10 @@ local function OnLambdaKilled( lambda, dmginfo )
                 end
                 ragdoll = animEnt
 
-                local burningSnd
                 if burnTime then
                     ParticleEffectAttach( "burningplayer_" .. ( lambda.l_TF_TeamColor == 1 and "blue" or "red" ), PATTACH_ABSORIGIN_FOLLOW, animEnt, 0 )
 
-                    burningSnd = LAMBDA_TF2:CreateSound( animEnt, "ambient/fire/fire_small_loop" .. random( 1, 2 ) .. ".wav" )
+                    local burningSnd = LAMBDA_TF2:CreateSound( animEnt, "ambient/fire/fire_small_loop" .. random( 1, 2 ) .. ".wav" )
                     burningSnd:PlayEx( 0.8, 100 )
                     burningSnd:SetSoundLevel( 75 )
                 end
@@ -1731,6 +1730,7 @@ local function OnLambdaKilled( lambda, dmginfo )
         if IsValid( ammopack ) then
             ammopack:SetAngles( wepent:GetUp():Angle() )
             ammopack:SetOwner( lambda )
+            ammopack.IsLambdaSpawned = true
 
             local vecImpulse = vector_origin
             vecImpulse = ( vecImpulse + ammopack:GetUp() * Rand( -0.25, 0.25 ) + ammopack:GetRight() * Rand( -0.25, 0.25 ) ):GetNormalized()
@@ -1752,7 +1752,7 @@ local function OnLambdaKilled( lambda, dmginfo )
 
     local numPacks = 0
     local packLimit = GetConVar( "lambdaplayers_tf2_ammoboxlimit" ):GetInt()
-    for _, oldAmmopack in ipairs( FindByClass( "lambda_tf_ammobox_base" ) ) do
+    for _, oldAmmopack in ipairs( FindByClass( "lambda_tf_ammobox_*" ) ) do
         if oldAmmopack == ammopack or !IsValid( oldAmmopack ) or oldAmmopack:GetOwner() != lambda then continue end
 
         numPacks = ( numPacks + 1 )
@@ -1822,6 +1822,7 @@ local function OnLambdaKilled( lambda, dmginfo )
     end
     lambda.l_TF_PreInventorySwitchWeapon = nil
 
+    lambda:StopParticles()
     OnPostEntityTakeDamage( lambda, dmginfo, true )
 end
 

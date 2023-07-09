@@ -162,8 +162,8 @@ net.Receive( "lambda_tf2_removecsragdoll", function()
     local ragdoll = lambda.ragdoll
     if !IsValid( ragdoll ) then return end 
     
-    LAMBDA_TF2:RemoveEntity( ragdoll )
-    ragdoll.ragdoll = nil
+    ragdoll:Remove()
+    lambda.ragdoll = nil
 end )
 
 net.Receive( "lambda_tf2_bonemergemodel", function()
@@ -191,7 +191,7 @@ net.Receive( "lambda_tf2_removecsprop", function()
     local cs_prop = lambda.cs_prop
     if !IsValid( cs_prop ) then return end
 
-    LAMBDA_TF2:RemoveEntity( cs_prop )
+    cs_prop:Remove()
     lambda.cs_prop = nil
 end )
 
@@ -241,7 +241,15 @@ net.Receive( "lambda_tf2_ignite_csragdoll", function()
                 ragdoll:SetColor( ragColor )
                 coroutine.yield()
             end
-            if IsValid( ragdoll ) then LAMBDA_TF2:RemoveEntity( ragdoll ) end
+            if IsValid( ragdoll ) then 
+                if ragdoll:GetClass() == "class C_HL2MPRagdoll" then
+                    net.Start( "lambda_tf2_removempragdoll" )
+                        net.WriteEntity( ragdoll )
+                    net.SendToServer()
+                else
+                    ragdoll:Remove()
+                end
+            end
         end )
     end
 end )
@@ -351,6 +359,26 @@ net.Receive( "lambda_tf2_medigun_beameffect", function()
     end
 end )
 
+// Atrocious detour
+local entMeta = FindMetaTable( "Entity" )
+if !LAMBDA_TF2.OldRemove then LAMBDA_TF2.OldRemove = entMeta.Remove end
+
+function entMeta:Remove()
+    if self:IsRagdoll() then 
+        local loopingSnds = self.l_TF_LoopingSounds
+        if loopingSnds then
+            for soundName, soundPatch in pairs( loopingSnds ) do
+                self:StopSound( soundName )
+                if !IsValid( soundPatch ) then continue end
+                soundPatch:Stop()
+                soundPatch = NULL
+            end
+        end
+    end
+
+    LAMBDA_TF2.OldRemove( self )
+end
+
 // Hooks
 local function OnCreateClientsideRagdoll( owner, ragdoll )
     if owner.IsLambdaPlayer then return end
@@ -382,7 +410,9 @@ local function OnCreateClientsideRagdoll( owner, ragdoll )
         net.SendToServer()
 
         if ragdoll:GetClass() == "class C_ClientRagdoll" then
-            LAMBDA_TF2:RemoveEntity( ragdoll )
+            net.Start( "lambda_tf2_removempragdoll" )
+                net.WriteEntity( ragdoll )
+            net.SendToServer()
         end
     else
         if owner:GetNW2Bool( "lambda_tf2_dissolve", false ) then
@@ -405,7 +435,7 @@ local function OnCreateClientsideRagdoll( owner, ragdoll )
                         ragdoll:SetColor( ragColor )
                         coroutine.yield()
                     end
-                    if IsValid( ragdoll ) then LAMBDA_TF2:RemoveEntity( ragdoll ) end
+                    if IsValid( ragdoll ) then ragdoll:Remove() end
                 end )
             end
         end
@@ -473,17 +503,6 @@ local function PostProcessingsEffects()
     end
 end
 
-local function OnEntityRemoved( ent )
-    local overheadEffects = ent.l_TF_OverheadEffects
-    if overheadEffects then
-        for _, effect in pairs( overheadEffects ) do
-            if !IsValid( effect ) then continue end
-            effect:StopEmission( false, true )
-        end
-    end
-end
-
-hook_Add( "EntityRemoved", "LambdaTF2_OnEntityRemoved", OnEntityRemoved )
 hook_Add( "CreateClientsideRagdoll", "LambdaTF2_OnCreateClientsideRagdoll", OnCreateClientsideRagdoll )
 hook_Add( "PostDrawViewModel", "LambdaTF2_OnPostDrawViewModel", OnPostDrawViewModel )
 hook_Add( "RenderScreenspaceEffects", "LambdaTF2_EffectPostProcessings", PostProcessingsEffects )

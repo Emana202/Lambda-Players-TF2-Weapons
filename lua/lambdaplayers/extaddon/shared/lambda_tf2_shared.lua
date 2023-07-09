@@ -247,49 +247,42 @@ function LAMBDA_TF2:StopParticlesNamed( ent, name )
 end
 
 function LAMBDA_TF2:CreateSound( targetEnt, soundName, filter )
+    local soundPatch
     local sndTbl = targetEnt.l_TF_LoopingSounds
-
-    if sndTbl == nil then
+    if !sndTbl then
         targetEnt.l_TF_LoopingSounds = {}
     else
-        local soundData = sndTbl[ soundName ]
-        if soundData then 
-            soundData[ 1 ]:Stop() 
+        soundPatch = sndTbl[ soundName ]
+        if soundPatch then 
+            soundPatch:Stop()
+            soundPatch = NULL
             targetEnt.l_TF_LoopingSounds[ soundName ] = nil
-            targetEnt:RemoveCallOnRemove( soundData[ 2 ] )
         end
     end
 
-    local soundPatch = CreateSound( targetEnt, soundName, filter )
-    if soundPatch then 
-        local callName = "LambdaTF2_StopLoopingSound_" .. targetEnt:GetClass() .. "_" .. CurTime() .. "_" .. random( 9999 ) .. "_'" .. soundName .. "'"
-        targetEnt.l_TF_LoopingSounds[ soundName ] = { soundPatch, callName }
+    soundPatch = CreateSound( targetEnt, soundName, filter )
+    if soundPatch then targetEnt.l_TF_LoopingSounds[ soundName ] = soundPatch end
 
-        targetEnt:CallOnRemove( callName, function()
-            if soundPatch then soundPatch:Stop() end
-            targetEnt.l_TF_LoopingSounds[ soundName ] = nil
-        end )
-    end
     return soundPatch
 end
 
-function LAMBDA_TF2:StopSound( ent, soundPatch )
-    if !soundPatch then return end
+function LAMBDA_TF2:StopSound( ent, sound )
+    if !sound then return end
 
     if IsValid( ent ) then
         local loopingSnds = ent.l_TF_LoopingSounds
         if loopingSnds then
-            for soundName, soundData in pairs( loopingSnds ) do
-                if soundData[ 1 ] != soundPatch then continue end
-                ent:RemoveCallOnRemove( soundData[ 2 ] )
+            for soundName, soundPatch in pairs( loopingSnds ) do
+                if sound != soundPatch then continue end
+                ent:StopSound( soundName )
                 ent.l_TF_LoopingSounds[ soundName ] = nil
                 break
             end
         end
     end
 
-    soundPatch:Stop()
-    soundPatch = nil
+    sound:Stop()
+    sound = NULL
 end
 
 function LAMBDA_TF2:AttachFlameParticle( ent, removeTime, teamClr )
@@ -355,25 +348,6 @@ function LAMBDA_TF2:RemoveOverheadEffect( ent, effectName, removeInstantly )
             net.WriteString( effectName )
             net.WriteBool( removeInstantly or false )
         net.Broadcast()
-    end
-end
-
-function LAMBDA_TF2:RemoveEntity( ent )
-    local loopingSnds = ent.l_TF_LoopingSounds
-    if loopingSnds then
-        for soundName, soundData in pairs( loopingSnds ) do
-            if soundData[ 1 ] then soundData[ 1 ]:Stop() end
-            ent:RemoveCallOnRemove( soundData[ 2 ] )
-            ent.l_TF_LoopingSounds[ soundName ] = nil
-        end
-    end
-
-    if ent:GetClass() == "class C_HL2MPRagdoll" then
-        net.Start( "lambda_tf2_removempragdoll" )
-            net.WriteEntity( ent )
-        net.SendToServer()
-    else
-        ent:Remove()
     end
 end
 
@@ -769,6 +743,30 @@ local function OnLambdaInitialize( lambda, weapon )
     end
 end
 
+local function OnEntityRemoved( ent )
+    if ( CLIENT ) then
+        local overheadEffects = ent.l_TF_OverheadEffects
+        if overheadEffects then
+            for _, effect in pairs( overheadEffects ) do
+                if !IsValid( effect ) then continue end
+                effect:StopEmission( false, true )
+            end
+        end
+    end
+
+    local loopingSnds = ent.l_TF_LoopingSounds
+    if loopingSnds then
+        for soundName, soundPatch in pairs( loopingSnds ) do
+            ent:StopSound( soundName )
+            if !IsValid( soundPatch ) then continue end
+            soundPatch:Stop()
+            soundPatch = NULL
+        end
+    end
+end
+
+
 hook_Add( "OnEntityCreated", "LambdaTF2_OnEntityCreated", OnEntityCreated )
 hook_Add( "PlayerInitialSpawn", "LambdaTF2_OnPlayerInitialSpawn", OnEntityCreated )
 hook_Add( "LambdaOnInitialize", "LambdaTF2_OnLambdaInitialize", OnLambdaInitialize )
+hook_Add( "EntityRemoved", "LambdaTF2_OnEntityRemoved", OnEntityRemoved )
