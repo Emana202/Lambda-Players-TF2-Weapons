@@ -526,22 +526,12 @@ local tf2LaughAnims = {
 local function TFState_Schadenfreude( lambda )
     local laughSnd, seqName = table_Random( tf2LaughAnims )
     local animIndex = lambda:LookupSequence( seqName )
-    if animIndex > 0 then
-        if !lambda.l_preventdefaultspeak then
-            lambda:PlaySoundFile( "laugh" )
-        end
-        if schadenfreudeClassLaugh:GetBool() then
-            lambda:EmitSound( laughSnd, 80, lambda:GetVoicePitch(), nil, CHAN_VOICE )
-        end
+    if animIndex <= 0 then return lambda:Laughing() end
 
-        lambda:PlayGestureAndWait( seqName )
-
-        if lambda:GetState() == "Schadenfreude" then 
-            lambda:SetState( "Idle" ) 
-        end
-    else
-        lambda:Laughing()
-    end
+    if !lambda.l_preventdefaultspeak and !lambda:IsSpeaking( "laugh" ) then lambda:PlaySoundFile( "laugh", false ) end
+    if schadenfreudeClassLaugh:GetBool() then lambda:EmitSound( laughSnd, 80, lambda:GetVoicePitch(), nil, CHAN_VOICE ) end
+    lambda:PlayGestureAndWait( seqName )
+    return lambda:GetLastState()
 end
 
 local taunts = {
