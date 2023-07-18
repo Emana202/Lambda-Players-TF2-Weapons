@@ -560,12 +560,9 @@ local function OnCreateEntityRagdoll( owner, ragdoll )
         if owner:GetNW2Bool( "lambda_tf2_dissolve", false ) then
             ragdoll:EmitSound( "player/dissolve.wav", nil, nil, nil, CHAN_STATIC )
 
-            local targetName = "LambdaTF2_DissolveTarget_" .. ragdoll:GetCreationID()
-            ragdoll:SetName( targetName )
-
             local dissolver = ents_Create( "env_entity_dissolver" )
-            dissolver:SetKeyValue( "target", targetName )
-            dissolver:Input( "dissolve" )
+            dissolver:SetKeyValue( "target", "!activator" )
+            dissolver:Input( "dissolve", ragdoll )
             dissolver:Remove()
         else
             if owner:GetNW2Bool( "lambda_tf2_decapitatehead", false ) then
@@ -865,7 +862,7 @@ local function OnLambdaThink( lambda, weapon, isdead )
 
         local parachute = lambda.l_TF_ParachuteModel
         if IsValid( parachute ) then
-            if !lambda:OnGround() and lambda:GetWaterLevel() != 3 then
+            if lambda.l_FallVelocity > 100 then
                 if !lambda.l_TF_ParachuteOpen then 
                     if CurTime() >= lambda.l_TF_ParachuteCheckT then
                         lambda.l_TF_ParachuteOpen = true
@@ -1281,7 +1278,7 @@ local function OnLambdaKilled( lambda, dmginfo )
     end
 
     if LAMBDA_TF2:IsDamageCustom( dmgCustom, TF_DMG_CUSTOM_TURNGOLD ) then
-        if !isServerRags and !IsValid( ragdoll ) then
+        if !IsValid( ragdoll ) then
             net.Start( "lambda_tf2_removecsragdoll" )
                 net.WriteEntity( lambda )
             net.Broadcast()
@@ -1405,12 +1402,12 @@ local function OnLambdaKilled( lambda, dmginfo )
                 lambda:SetNW2Entity( "lambda_serversideragdoll", animEnt )
                 lambda:DeleteOnRemove( animEnt )
 
-                if !isServerRags then
+                if IsValid( ragdoll ) then
+                    ragdoll:Remove()
+                else
                     net.Start( "lambda_tf2_removecsragdoll" )
                         net.WriteEntity( lambda )
                     net.Broadcast()
-                elseif IsValid( ragdoll ) then
-                    ragdoll:Remove()
                 end
                 ragdoll = animEnt
 
@@ -1536,7 +1533,7 @@ local function OnLambdaKilled( lambda, dmginfo )
             end
         end
 
-        if !isServerRags and !IsValid( ragdoll ) and ( isDissolving or turnIntoIce and !onGround ) then
+        if turnIntoIce and !onGround and !IsValid( ragdoll ) then
             net.Start( "lambda_tf2_removecsragdoll" )
                 net.WriteEntity( lambda )
             net.Broadcast()
@@ -1598,20 +1595,19 @@ local function OnLambdaKilled( lambda, dmginfo )
                         end, "TF2_FrozenRagdoll_" .. ragdoll:EntIndex(), true )
                     end
                 end
-    
+
                 ParticleEffectAttach( "xms_icicle_impact_dryice", PATTACH_ABSORIGIN_FOLLOW, ragdoll, 0 )
                 ragdoll:EmitSound( ")weapons/icicle_freeze_victim_01.wav", 80, nil, nil, CHAN_STATIC )
             else
                 if isDissolving then
                     ragdoll:EmitSound( "player/dissolve.wav", nil, nil, nil, CHAN_STATIC )
 
-                    local targetName = "LambdaTF2_DissolveTarget_" .. ragdoll:GetCreationID()
-                    ragdoll:SetName( targetName )
-
-                    local dissolver = ents_Create( "env_entity_dissolver" )
-                    dissolver:SetKeyValue( "target", targetName )
-                    dissolver:Input( "dissolve" )
-                    dissolver:Remove()
+                    if ragdoll.l_IsTFDeathAnimation then
+                        local dissolver = ents_Create( "env_entity_dissolver" )
+                        dissolver:SetKeyValue( "target", "!activator" )
+                        dissolver:Input( "dissolve", ragdoll )
+                        dissolver:Remove()
+                    end
                 else
                     if doDecapitation then
                         LAMBDA_TF2:DecapitateHead( ragdoll, true, ( dmginfo:GetDamageForce() / 4 ) )
@@ -1639,7 +1635,7 @@ local function OnLambdaKilled( lambda, dmginfo )
                     LAMBDA_TF2:AttachFlameParticle( ragdoll, Clamp( burnTime, 2, 10 ), lambda.l_TF_TeamColor )
                 end
             end
-        elseif !isServerRags then
+        else
             if doDecapitation then
                 net.Start( "lambda_tf2_decapitate_csragdoll" )
                     net.WriteEntity( lambda )
@@ -1774,7 +1770,7 @@ local function OnLambdaKilled( lambda, dmginfo )
 
             if IsValid( ragdoll ) then 
                 LAMBDA_TF2:CreateBonemergedModel( ragdoll, model )
-            elseif !isServerRags then
+            else
                 net.Start( "lambda_tf2_bonemergemodel" )
                     net.WriteEntity( lambda )
                     net.WriteString( model )
