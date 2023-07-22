@@ -1249,7 +1249,7 @@ end
 
 local function OnLambdaOnOtherInjured( lambda, victim, dmginfo, tookDamage )
     local attacker = dmginfo:GetAttacker()
-    if !LAMBDA_TF2:IsValidCharacter( attacker ) or attacker == victim or attacker == lambda then return end
+    if !IsValid( attacker ) or !LAMBDA_TF2:IsValidCharacter( attacker ) or attacker == victim or attacker == lambda then return end
 
     if victim.l_TF_HasMedigunEquipped and LAMBDA_TF2:GetMedigunHealers( lambda )[ victim ] and lambda:CanTarget( attacker ) then
         lambda:AttackTarget( attacker )
