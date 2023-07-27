@@ -57,7 +57,7 @@ CreateLambdaConvar( "lambdaplayers_tf2_dropammobox", 1, true, false, false, "If 
 CreateLambdaConvar( "lambdaplayers_tf2_ammoboxlimit", 3, true, false, false, "How many ammoboxes can Lambda Players drop on death. Upon reaching this limit, the oldest ammobox will be delted", 1, 10, { type = "Slider", decimals = 0, name = "Ammopack Drop Limit", category = "TF2 Stuff" } )
 CreateLambdaConvar( "lambdaplayers_tf2_deathanimchance", 25, true, false, false, "The chance that Lambda Player will play a unique death animation when after dying from a specific TF2 weapon", 0, 100, { type = "Slider", decimals = 0, name = "Death Animation Chance", category = "TF2 Stuff" } )
 CreateLambdaConvar( "lambdaplayers_tf2_alwaysuseschadenfreude", 0, true, false, false, "If Lambda Players should always use play the Schadenfreude taunt when laughing instead of when holding a TF2 weapon", 0, 1, { type = "Bool", name = "Always Use Schadenfreude", category = "TF2 Stuff" } )
-local schadenfreudeClassLaugh = CreateLambdaConvar( "lambdaplayers_tf2_schadenfreudeplaysclasslaughter", 0, true, false, false, "If Lambda Players using Schadenfreude should also play the laugh that animation belongs to alongside their own laughter", 0, 1, { type = "Bool", name = "Schadenfreude Uses Class-Specific Laughter", category = "TF2 Stuff" } )
+CreateLambdaConvar( "lambdaplayers_tf2_schadenfreudeplaysclasslaughter", 0, true, false, false, "If Lambda Players using Schadenfreude should also play the laugh that animation belongs to alongside their own laughter", 0, 1, { type = "Bool", name = "Schadenfreude Uses Class-Specific Laughter", category = "TF2 Stuff" } )
 CreateLambdaConvar( "lambdaplayers_tf2_allowdominations", 0, true, false, false, "Enables the domination and revenge mechanic from TF2 to Lambda Players and real players", 0, 1, { type = "Bool", name = "Enable Dominations & Revenges", category = "TF2 Stuff" } )
 CreateLambdaConvar( "lambdaplayers_tf2_alwaysplayrivalrysnd", 0, true, true, false, "Should the domination and revenge sound cues play no matter if you were involved in it?", 0, 1, { type = "Bool", name = "Always Play Rivalry Sounds", category = "TF2 Stuff" } )
 CreateLambdaConvar( "lambdaplayers_tf2_capbackstabdamage", 0, true, false, false, "If not zero, the damage from backstabs will be set to this value if it's higher that it", 0, 1000, { type = "Slider", decimals = 0, name = "Backstab Max Damage", category = "TF2 Stuff" } )
@@ -511,29 +511,6 @@ local function TFState_HealWithMedigun( lambda )
     LAMBDA_TF2:LambdaMedigunAI( lambda )
 end
 
-local tf2LaughAnims = {
-    [ "sniper_taunt_laugh" ]    = "vo/sniper_laughlong02.mp3",
-    [ "pyro_taunt_laugh" ]      = "vo/pyro_laugh_addl04.mp3",
-    [ "medic_taunt_laugh" ]     = "vo/medic_laughlong01.mp3",
-    [ "demoman_taunt_laugh" ]   = "vo/demoman_laughlong02.mp3",
-    [ "soldier_taunt_laugh" ]   = "vo/soldier_laughlong03.mp3",
-    [ "engineer_taunt_laugh" ]  = "vo/engineer_laughlong02.mp3",
-    [ "spy_taunt_laugh" ]       = "vo/spy_laughlong01.mp3",
-    [ "scout_taunt_laugh" ]     = "vo/scout_laughlong02.mp3",
-    [ "heavy_taunt_laugh" ]     = "vo/heavy_laugherbigsnort01.mp3"
-}
-
-local function TFState_Schadenfreude( lambda )
-    local laughSnd, seqName = table_Random( tf2LaughAnims )
-    local animIndex = lambda:LookupSequence( seqName )
-    if animIndex <= 0 then return lambda:Laughing() end
-
-    if !lambda.l_preventdefaultspeak and !lambda:IsSpeaking( "laugh" ) then lambda:PlaySoundFile( "laugh", false ) end
-    if schadenfreudeClassLaugh:GetBool() then lambda:EmitSound( laughSnd, 80, lambda:GetVoicePitch(), nil, CHAN_VOICE ) end
-    lambda:PlayGestureAndWait( seqName )
-    return lambda:GetLastState()
-end
-
 local taunts = {
     [ "scout_taunt_flip" ] = {
         PartnerOffset = Vector( 80, 0, 0 )
@@ -720,7 +697,6 @@ local function OnLambdaInitialize( lambda, weapon )
         lambda.l_TF_Medigun_ChargeSound = nil
 
         lambda.HealWithMedigun = TFState_HealWithMedigun
-        lambda.Schadenfreude = TFState_Schadenfreude
         lambda.TauntWithPartner = TFState_TauntWithPartner
 
         lambda.l_TF_IsUsingItem = false

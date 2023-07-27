@@ -33,6 +33,7 @@ local IsSinglePlayer = game.SinglePlayer
 local coroutine_wait = coroutine.wait
 local FindByClass = ents.FindByClass
 local pairs = pairs
+local table_Random = table.Random
 
 local ammoboxAngImpulse = Vector()
 local groundCheckTbl = {}
@@ -1900,16 +1901,33 @@ local function OnLambdaSwitchWeapon( lambda, weapon, data )
     end
 end
 
-local function OnLambdaChangeState( lambda, old, new )
-    if new == "Laughing" then 
-        if old == "HealWithMedigun" and ( lambda.l_TF_Medigun_ChargeReleased or random( 1, 4 ) != 1 ) then
-            return true
-        end
+local tf2LaughAnims = {
+    [ "sniper_taunt_laugh" ]    = "vo/sniper_laughlong02.mp3",
+    [ "pyro_taunt_laugh" ]      = "vo/pyro_laugh_addl04.mp3",
+    [ "medic_taunt_laugh" ]     = "vo/medic_laughlong01.mp3",
+    [ "demoman_taunt_laugh" ]   = "vo/demoman_laughlong02.mp3",
+    [ "soldier_taunt_laugh" ]   = "vo/soldier_laughlong03.mp3",
+    [ "engineer_taunt_laugh" ]  = "vo/engineer_laughlong02.mp3",
+    [ "spy_taunt_laugh" ]       = "vo/spy_laughlong01.mp3",
+    [ "scout_taunt_laugh" ]     = "vo/scout_laughlong02.mp3",
+    [ "heavy_taunt_laugh" ]     = "vo/heavy_laugherbigsnort01.mp3"
+}
 
-        if ( GetConVar( "lambdaplayers_tf2_alwaysuseschadenfreude" ):GetBool() or lambda:GetWeaponENT().TF2Data ) then
-            lambda:SetState( "Schadenfreude" )
-            return true
-        end
+local function OnLambdaPlayGesture( lambda, gesture )
+    if gesture != ACT_GMOD_TAUNT_LAUGH or !lambda:GetWeaponENT().TF2Data and !GetConVar( "lambdaplayers_tf2_alwaysuseschadenfreude" ):GetBool() then return end
+
+    local laughSnd, seqName = table_Random( tf2LaughAnims )
+    if lambda:LookupSequence( seqName ) <= 0 then return end
+
+    if GetConVar( "lambdaplayers_tf2_schadenfreudeplaysclasslaughter" ):GetBool() then 
+        lambda:EmitSound( laughSnd, 80, lambda:GetVoicePitch(), nil, CHAN_VOICE ) 
+    end
+    return seqName
+end
+
+local function OnLambdaChangeState( lambda, old, new, arg )
+    if new == "Laughing" and old == "HealWithMedigun" and ( lambda.l_TF_Medigun_ChargeReleased or random( 1, 4 ) != 1 ) then
+        return true
     end
 
     if lambda:Alive() then
@@ -2007,3 +2025,4 @@ hook.Add( "LambdaOnSwitchWeapon", "LambdaTF2_OnLambdaSwitchWeapon", OnLambdaSwit
 hook.Add( "LambdaOnAttackTarget", "LambdaTF2_OnLambdaAttackTarget", OnLambdaAttackTarget )
 hook.Add( "LambdaCanTarget", "LambdaTF2_OnLambdaCanTarget", OnLambdaCanTarget )
 hook.Add( "LambdaOnBeginMove", "LambdaTF2_OnLambdaBeginMove", OnLambdaBeginMove )
+hook.Add( "LambdaOnPlayGestureAndWait", "LambdaTF2_OnLambdaPlayGesture", OnLambdaPlayGesture )
