@@ -282,6 +282,7 @@ function LAMBDA_TF2:WeaponAttack( lambda, weapon, target, isCrit )
             local bulletPreShot = weapon:GetWeaponAttribute( "ProjectileCount", 1 )
             local spreadRecovery = weapon:GetWeaponAttribute( "SpreadRecovery", ( bulletPreShot > 1 and 0.25 or 1.25 ) )
             local fixedSpread = weapon:GetWeaponAttribute( "FixedSpread", false )
+            local preBulletCallback = weapon:GetWeaponAttribute( "PreFireBulletCallback" )
 
             for i = 1, bulletPreShot do
                 local spreadScalar = 0.5
@@ -301,10 +302,9 @@ function LAMBDA_TF2:WeaponAttack( lambda, weapon, target, isCrit )
                 end
                 bulletTbl.Dir = ( fireAng:Forward() + ( spreadX * bulletTbl.Spread.x * fireAng:Right() ) + ( spreadY * bulletTbl.Spread.y * fireAng:Up() ) )
 
-                local preBulletCallback = weapon:GetWeaponAttribute( "PreFireBulletCallback" )
                 if preBulletCallback then preBulletCallback( lambda, weapon, target, dmginfo, bulletTbl ) end
-
                 weapon:FireBullets( bulletTbl )
+
                 weapon.l_TF_LastFireTime = CurTime()
             end
         end
