@@ -3,15 +3,12 @@ AddCSLuaFile( "cl_init.lua" )
 include( "shared.lua" )
 
 local IsValid = IsValid
-local SafeRemoveEntityDelayed = SafeRemoveEntityDelayed
 local CurTime = CurTime
 local Round = math.Round
 local min = math.min
 local GetAmmoMax = game.GetAmmoMax
 local ipairs = ipairs
 local pairs = pairs
-local TraceLine = util.TraceLine
-local collisionTrTbl = {}
 
 function ENT:Initialize()
     self:SetModel( self.Model or "models/items/ammopack_small.mdl" )

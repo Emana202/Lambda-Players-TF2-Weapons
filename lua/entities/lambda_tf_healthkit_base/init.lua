@@ -3,7 +3,6 @@ AddCSLuaFile( "cl_init.lua" )
 include( "shared.lua" )
 
 local IsValid = IsValid
-local SafeRemoveEntityDelayed = SafeRemoveEntityDelayed
 local CurTime = CurTime
 local Round = math.Round
 

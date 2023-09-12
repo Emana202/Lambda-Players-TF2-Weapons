@@ -5,6 +5,7 @@ local IsValid = IsValid
 local ents_Create = ents.Create
 local FindInSphere = ents.FindInSphere
 local ipairs = ipairs
+local isentity = isentity
 local ParticleEffect = ParticleEffect
 local DamageInfo = DamageInfo
 local TraceLine = util.TraceLine
@@ -101,7 +102,9 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         end,
 
         OnAttack = function( self, wepent, target )
-            local throwPos = ( isvector( target ) and target or target:GetPos() )
+            if isentity( target ) and !IsValid( target ) then return true end
+
+            local throwPos = ( !isentity( target ) and target or target:GetPos() )
             local throwAng = ( throwPos - self:GetPos() ):Angle()
             if target != self and self:GetForward():Dot( throwAng:Forward() ) <= 0.5 then self.l_WeaponUseCooldown = ( CurTime() + 0.1 ) return true end
 

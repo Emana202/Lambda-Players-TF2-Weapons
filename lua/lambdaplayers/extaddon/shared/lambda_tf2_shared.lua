@@ -128,10 +128,13 @@ local function ShrinkChildBones( target, parentId, boneTbl )
 end
 
 function LAMBDA_TF2:GetEntityHeadBone( ent )
-    for hboxSet = 0, ( ent:GetHitboxSetCount() - 1 ) do
-        for hitbox = 0, ( ent:GetHitBoxCount( hboxSet ) - 1 ) do
-            if ent:GetHitBoxHitGroup( hitbox, hboxSet ) != HITGROUP_HEAD then continue end
-            return ( ent:GetHitBoxBone( hitbox, hboxSet ) )
+    local setCount = ent:GetHitboxSetCount()
+    if isnumber( setCount ) then
+        for hboxSet = 0, ( setCount - 1 ) do
+            for hitbox = 0, ( ent:GetHitBoxCount( hboxSet ) - 1 ) do
+                if ent:GetHitBoxHitGroup( hitbox, hboxSet ) != HITGROUP_HEAD then continue end
+                return ( ent:GetHitBoxBone( hitbox, hboxSet ) )
+            end
         end
     end
 
