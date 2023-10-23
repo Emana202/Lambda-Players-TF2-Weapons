@@ -453,7 +453,7 @@ function LAMBDA_TF2:MedigunHeal( lambda, weapon, target, chargeRateMult, beamSpa
     end
 
     if target.IsLambdaPlayer then
-        target.l_TF_MedicsToIgnoreList[ lambda ] = ( CurTime() + random( 10, 30 ) )
+        target.l_TF_MedicsToIgnoreList[ lambda ] = ( CurTime() + random( 5, 20 ) )
     end
 
     if !lambda.l_TF_Medigun_ChargeReleased then
