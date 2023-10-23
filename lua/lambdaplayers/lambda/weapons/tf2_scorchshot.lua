@@ -187,7 +187,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             local isCrit = wepent:CalcIsAttackCriticalHelper()
             if !LAMBDA_TF2:WeaponAttack( self, wepent, target, isCrit ) then return true end
 
-            local flare = ents_Create( "base_anim" )
+            local flare = ents_Create( "base_gmodentity" )
             flare:SetPos( spawnPos )
             flare:SetAngles( spawnAng )
             flare:SetModel( "models/weapons/w_models/w_flaregun_shell.mdl" )

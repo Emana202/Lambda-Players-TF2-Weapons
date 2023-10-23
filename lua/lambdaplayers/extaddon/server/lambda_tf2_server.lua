@@ -962,7 +962,7 @@ LAMBDA_TF2.TrailList = LAMBDA_TF2.TrailList or {}
 LAMBDA_TF2.NextTrailListCheckT = CurTime()
 
 function LAMBDA_TF2:CreateSpriteTrailEntity( color, additive, startWidth, endWidth, lifeTime, texture, pos, parent )
-    local trailEnt = ents_Create( "base_anim" )
+    local trailEnt = ents_Create( "base_gmodentity" )
     if !IsValid( trailEnt ) then return end
 
     trailEnt:SetPos( pos )
@@ -1085,7 +1085,7 @@ function LAMBDA_TF2:GiveHealth( target, amount, maxHeal )
 end
 
 function LAMBDA_TF2:CreateBonemergedModel( parent, model )
-    local ent = ents_Create( "base_anim" )
+    local ent = ents_Create( "base_gmodentity" )
     ent:SetModel( model )
     ent:SetPos( parent:GetPos() )
     ent:SetAngles( parent:GetAngles() )
@@ -1161,7 +1161,7 @@ function LAMBDA_TF2:MakeBleed( ent, attacker, weapon, bleedingTime, bleedDmg, pe
         info.ExpireTime = expireTime; return
     end
 
-    local inflictor = ents_Create( "base_anim" )
+    local inflictor = ents_Create( "base_gmodentity" )
     inflictor:SetPos( ent:GetPos() )
     inflictor:SetParent( ent )
     inflictor:Spawn()
@@ -1204,7 +1204,7 @@ function LAMBDA_TF2:Burn( ent, attacker, weapon, burningTime )
         ent:SetIsBurning( true )
         ent.l_TF_FlameBurnTime = CurTime()
 
-        local inflictor = ents_Create( "base_anim" )
+        local inflictor = ents_Create( "base_gmodentity" )
         inflictor:SetPos( ent:GetPos() )
         inflictor:SetParent( ent )
         inflictor:Spawn()

@@ -173,7 +173,7 @@ net.Receive( "lambda_tf2_bonemergemodel", function()
     local ragdoll = lambda.ragdoll
     if !IsValid( ragdoll ) then return end 
 
-    local mdlEnt = ents_CreateClientside( "base_anim" )
+    local mdlEnt = ents_CreateClientside( "base_gmodentity" )
     mdlEnt:SetModel( net.ReadString() )
     mdlEnt:SetPos( ragdoll:GetPos() )
     mdlEnt:SetAngles( ragdoll:GetAngles() )

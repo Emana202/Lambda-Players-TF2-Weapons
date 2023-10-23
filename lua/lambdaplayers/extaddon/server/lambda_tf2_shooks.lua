@@ -1328,7 +1328,7 @@ local function OnLambdaKilled( lambda, dmginfo )
             end
 
             if index > 0 and ( isTFAnim or !isDissolving and !shouldBurn ) then
-                local animEnt = ents_Create( "base_anim" )
+                local animEnt = ents_Create( "base_gmodentity" )
                 animEnt:SetModel( lambda:GetModel() )
                 animEnt:SetPos( groundTr.HitPos )
                 animEnt:SetAngles( lambda:GetAngles() )

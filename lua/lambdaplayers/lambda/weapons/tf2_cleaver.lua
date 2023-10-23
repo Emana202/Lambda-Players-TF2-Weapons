@@ -115,7 +115,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
                 wepent:SetNoDraw( true )
                 wepent:DrawShadow( false )
 
-                local cleaver = ents_Create( "base_anim" )
+                local cleaver = ents_Create( "base_gmodentity" )
                 cleaver:SetModel( wepent:GetModel() )
                 cleaver:SetPos( spawnPos )
                 cleaver:SetAngles( throwAng )

@@ -115,7 +115,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             local isCrit = wepent:CalcIsAttackCriticalHelper()
             if !LAMBDA_TF2:WeaponAttack( self, wepent, target, isCrit ) then return true end
 
-            local syringe = ents_Create( "base_anim" )
+            local syringe = ents_Create( "base_gmodentity" )
             if !IsValid( syringe ) then return true end
 
             syringe:SetPos( spawnPos )

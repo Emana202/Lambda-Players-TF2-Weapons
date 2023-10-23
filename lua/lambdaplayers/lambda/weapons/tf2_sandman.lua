@@ -142,7 +142,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
                         spawnPos = ( spawnPos + spawnAng:Forward() * 32 )
                         spawnAng = ( targetPos - spawnPos ):Angle()
 
-                        local ball = ents.Create( "base_anim" )
+                        local ball = ents.Create( "base_gmodentity" )
                         ball:SetModel( "models/weapons/w_models/w_baseball.mdl" )
                         ball:SetPos( spawnPos )
                         ball:SetAngles( spawnAng )

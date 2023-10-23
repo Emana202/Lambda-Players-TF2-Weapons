@@ -115,7 +115,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             local plyColor = self:GetPlyColor()
             LAMBDA_TF2:DispatchColorParticle( wepent, "drg_bison_muzzleflash", PATTACH_POINT_FOLLOW, 1, plyColor )
 
-            local energyRing = ents_Create( "base_anim" )
+            local energyRing = ents_Create( "base_gmodentity" )
             energyRing:SetPos( spawnPos )
             energyRing:SetAngles( spawnAng )
             energyRing:SetModel( "models/weapons/w_models/w_drg_ball.mdl" )

@@ -892,7 +892,7 @@ function LAMBDA_TF2:FlamethrowerThink( lambda, weapon, isDead )
                     local fireAng = ( firePos - srcPos ):Angle()
                     srcPos = ( srcPos + fireAng:Right() * 12 )
 
-                    local flameEnt = ents_Create( "base_anim" )
+                    local flameEnt = ents_Create( "base_gmodentity" )
                     flameEnt:SetPos( srcPos )
                     flameEnt:SetAngles( fireAng )
                     flameEnt:SetOwner( weapon )
@@ -979,7 +979,7 @@ end
 function LAMBDA_TF2:CreateRocketProjectile( pos, ang, owner, wepent, critical, attributes )
     attributes = attributes or {}
     
-    local rocket = ents_Create( "base_anim" )
+    local rocket = ents_Create( "base_gmodentity" )
     rocket:SetPos( pos )
     rocket:SetAngles( ang )
     rocket:SetModel( attributes.Model or "models/weapons/w_models/w_rocket.mdl" )
@@ -1095,7 +1095,7 @@ end
 function LAMBDA_TF2:CreatePipeGrenadeProjectile( pos, ang, owner, wepent, critical, attributes )
     attributes = attributes or {}
     
-    local pipe = ents_Create( "base_anim" )
+    local pipe = ents_Create( "base_gmodentity" )
     pipe:SetPos( pos )
     pipe:SetAngles( ang )
     pipe:SetModel( attributes.Model or "models/weapons/w_models/w_grenade_grenadelauncher.mdl" )

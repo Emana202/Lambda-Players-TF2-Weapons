@@ -123,7 +123,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
                 wepent:SetNoDraw( true )
                 wepent:DrawShadow( false )
 
-                local jarate = ents_Create( "base_anim" )
+                local jarate = ents_Create( "base_gmodentity" )
                 jarate:SetModel( "models/weapons/c_models/urinejar.mdl" )
                 jarate:SetPos( spawnPos )
                 jarate:SetAngles( throwAng )

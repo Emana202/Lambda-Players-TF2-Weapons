@@ -122,7 +122,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
                 wepent:SetNoDraw( true )
                 wepent:DrawShadow( false )
 
-                local milkjar = ents_Create( "base_anim" )
+                local milkjar = ents_Create( "base_gmodentity" )
                 milkjar:SetModel( "models/weapons/c_models/c_madmilk/c_madmilk.mdl" )
                 milkjar:SetPos( spawnPos )
                 milkjar:SetAngles( throwAng )

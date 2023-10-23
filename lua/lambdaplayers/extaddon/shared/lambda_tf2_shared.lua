@@ -168,7 +168,7 @@ function LAMBDA_TF2:DecapitateHead( target, effects, force )
                 net.WriteVector( force )
             net.SendToServer()
 
-            local damnyousourceengine = CreateClientside( "base_anim" )
+            local damnyousourceengine = CreateClientside( "base_gmodentity" )
             damnyousourceengine:SetPos( headPos )
             damnyousourceengine:SetAngles( headAng )
             damnyousourceengine:SetParent( target )
