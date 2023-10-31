@@ -2017,7 +2017,7 @@ end
 local function OnLambdaOnOtherKilled( lambda, victim, dmginfo )
     if victim != lambda:GetEnemy() then return end
     
-    for _, medic in RandomPairs( LAMBDA_TF2:GetMedigunHealers( victim ) ) do
+    for medic, _ in RandomPairs( LAMBDA_TF2:GetMedigunHealers( victim ) ) do
         if lambda:CanTarget( medic ) then
             lambda:AttackTarget( medic )
             return true
