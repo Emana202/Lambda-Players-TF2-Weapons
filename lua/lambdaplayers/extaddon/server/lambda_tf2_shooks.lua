@@ -663,7 +663,7 @@ local function OnLambdaThink( lambda, weapon, isdead )
 
             if canCharge then
                 lambda:EmitSound( "lambdaplayers/tf2/shield_charge.mp3", 80, nil, nil, CHAN_STATIC )
-                lambda:PlaySoundFile( "fall" ) --( isPanicking and "fall" or "taunt" )
+                lambda:PlaySoundFile( "fall", false ) --( isPanicking and "fall" or "taunt" )
 
                 local chargeTrail = LAMBDA_TF2:CreateSpriteTrailEntity( nil, nil, 32, 16, 0.75, "effects/beam001_white", lambda:WorldSpaceCenter(), lambda )
                 lambda:DeleteOnRemove( chargeTrail )
