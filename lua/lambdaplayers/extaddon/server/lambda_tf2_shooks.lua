@@ -1119,14 +1119,14 @@ local function OnLambdaThink( lambda, weapon, isdead )
                 lambda:SetState( "Idle" )
             end
 
-            local medkit = lambda.l_TF_GoingAfterMedkit
-            if medkit then
+            local goPickup = lambda.l_TF_GoingAfterPickup
+            if goPickup then
                 local moveEnt = lambda.l_movepos
-                if !lambda.l_issmoving or isvector( moveEnt ) or !IsValid( moveEnt ) or moveEnt != medkit then
-                    lambda.l_TF_GoingAfterMedkit = nil
-                elseif !IsValid( medkit ) or medkit.IsLambdaTFMedkit and medkit.IsRespawning or lambda:Health() >= lambda:GetMaxHealth() or LAMBDA_TF2:GetMedigunHealers( lambda, true ) != 0 then
+                if !lambda.l_issmoving or isvector( moveEnt ) or !IsValid( moveEnt ) or moveEnt != goPickup then
+                    lambda.l_TF_GoingAfterPickup = nil
+                elseif !IsValid( goPickup ) or goPickup.IsLambdaTFMedkit and ( goPickup.IsRespawning or lambda:Health() >= lambda:GetMaxHealth() or LAMBDA_TF2:GetMedigunHealers( lambda, true ) != 0 ) then
                     lambda:CancelMovement()
-                    lambda.l_TF_GoingAfterMedkit = nil
+                    lambda.l_TF_GoingAfterPickup = nil
                 end
             end
 
@@ -1458,6 +1458,8 @@ local function OnLambdaKilled( lambda, dmginfo )
                     if !isDissolving then
                         if !isServerRags and !turnIntoIce then
                             lambda:CreateClientsideRagdoll( nil, animEnt )
+                            lambda.ragdoll = nil
+                            lambda:SetNW2Entity( "lambda_serversideragdoll", nil )
 
                             if doDecapitation then
                                 net.Start( "lambda_tf2_decapitate_csragdoll" )
@@ -1485,8 +1487,6 @@ local function OnLambdaKilled( lambda, dmginfo )
                             end
                         else
                             local serverRag = lambda:CreateServersideRagdoll( nil, animEnt )
-                            lambda.ragdoll = nil
-                            lambda:SetNW2Entity( "lambda_serversideragdoll", lambda.ragdoll )
 
                             for model, mdlEnt in pairs( animEnt.l_TF_BonemergedModels ) do
                                 if !IsValid( mdlEnt ) or mdlEnt:GetNoDraw() then continue end
@@ -1994,24 +1994,40 @@ local function OnLambdaCanTarget( lambda, ent )
 end
 
 local function OnLambdaBeginMove( lambda, pos, onNavmesh )
-    lambda.l_TF_GoingAfterMedkit = nil
-    if random( 1, 4 ) == 1 or lambda:InCombat() or lambda:IsPanicking() or LAMBDA_TF2:GetMedigunHealers( lambda, true ) != 0 then return end
-    if lambda:Health() >= ( lambda:GetMaxHealth() * Rand( 0.66, 0.9 ) ) and !LAMBDA_TF2:IsBleeding( lambda ) and !LAMBDA_TF2:IsBurning( lambda ) then return end
-
-    local medkits = lambda:FindInSphere( nil, random( 300, 1500 ), function( ent )
-        return ( ent.IsLambdaTFMedkit and !ent.IsRespawning or ent.IsLambdaTFLocker )
-    end )
-    if #medkits == 0 then return end
+    local goPickup = nil
     
-    local rndMedkit = medkits[ random( #medkits ) ]
-    lambda:SetRun( true )
-    lambda:RecomputePath( rndMedkit )
-    lambda.l_TF_GoingAfterMedkit = rndMedkit
+    if random( 1, 4 ) != 1 and !lambda:InCombat() and !lambda:IsPanicking() then
+        if ( lambda:Health() < ( lambda:GetMaxHealth() * Rand( 0.66, 0.9 ) ) or LAMBDA_TF2:IsBleeding( lambda ) or LAMBDA_TF2:IsBurning( lambda ) ) and LAMBDA_TF2:GetMedigunHealers( lambda, true ) == 0 then
+            local medkits = lambda:FindInSphere( nil, random( 300, 1500 ), function( ent )
+                return ( ent.IsLambdaTFMedkit and !ent.IsRespawning or ent.IsLambdaTFLocker )
+            end )
+            if #medkits != 0 then
+                local rndMedkit = medkits[ random( #medkits ) ]
+                lambda:SetRun( true )
+                lambda:RecomputePath( rndMedkit )
+                goPickup = rndMedkit
 
-    if rndMedkit.IsLambdaTFLocker then
-        local path = lambda.l_CurrentPath
-        if IsValid( path ) then path:SetGoalTolerance( 50 ) end
+                if rndMedkit.IsLambdaTFLocker then
+                    local path = lambda.l_CurrentPath
+                    if IsValid( path ) then path:SetGoalTolerance( 50 ) end
+                end
+            end
+        end
+
+        if !goPickup and lambda.l_TF_ThrownBaseball then
+            local balls = lambda:FindInSphere( nil, random( 300, 1500 ), function( ent )
+                return ( ent.l_IsTFBaseball )
+            end )
+            if #balls != 0 then
+                local rndBall = balls[ random( #balls ) ]
+                lambda:SetRun( true )
+                lambda:RecomputePath( rndBall )
+                goPickup = rndBall
+            end
+        end
     end
+
+    lambda.l_TF_GoingAfterPickup = goPickup
 end
 
 local function OnLambdaOnOtherKilled( lambda, victim, dmginfo )

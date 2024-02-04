@@ -183,6 +183,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
                         ball.l_CritType = critType
                 
                         ball.IsLambdaWeapon = true
+                        ball.l_IsTFBaseball = true
                         ball.l_killiconname = "lambdaplayers_weaponkillicons_tf2_sandman_baseball"
 
                         ball.Touch = OnBallTouch
