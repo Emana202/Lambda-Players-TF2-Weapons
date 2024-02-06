@@ -130,7 +130,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             local launchVel = ( spawnAng:Forward() * 3000 )
             flare:SetLocalVelocity( launchVel )
 
-            local critType = self:GetCritBoostType()
+            local critType = self:l_GetCritBoostType()
             if isCrit then critType = TF_CRIT_FULL end
             ParticleEffectAttach( "drg_manmelter_projectile", PATTACH_ABSORIGIN_FOLLOW, flare, 0 )
             

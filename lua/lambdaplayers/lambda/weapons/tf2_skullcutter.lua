@@ -1,26 +1,30 @@
+local min = math.min
+local Round = math.Round
 local random = math.random
 
 table.Merge( _LAMBDAPLAYERSWEAPONS, {
-    tf2_persianpersuader = {
-        model = "models/lambdaplayers/tf2/weapons/w_sultan_sword.mdl",
+    tf2_skullcutter = {
+        model = "models/lambdaplayers/tf2/weapons/w_battleaxe.mdl",
         origin = "Team Fortress 2",
-        prettyname = "Persian Persuader",
-        holdtype = "melee",
+        prettyname = "Scotsman's Skullcutter",
+        holdtype = "melee2",
         bonemerge = true,
 
-        killicon = "lambdaplayers/killicons/icon_tf2_persianpersuader",
+        killicon = "lambdaplayers/killicons/icon_tf2_scotsmans_skullcutter",
         keepdistance = 10,
         attackrange = 80,        
 		islethal = true,
         ismelee = true,
         deploydelay = 0.875,
+        speedmultiplier = 0.85,
 
         OnDeploy = function( self, wepent )
             LAMBDA_TF2:InitializeWeaponData( self, wepent )
 
+            wepent:GetWeaponAttribute( "Damage", 48 )
             wepent:SetWeaponAttribute( "IsMelee", true )
             wepent:SetWeaponAttribute( "HitRange", 72 )
-            wepent:SetWeaponAttribute( "Animation", ACT_HL2MP_GESTURE_RANGE_ATTACK_MELEE )
+            wepent:SetWeaponAttribute( "Animation", ACT_HL2MP_GESTURE_RANGE_ATTACK_MELEE2 )
             wepent:SetWeaponAttribute( "RandomCrits", false )
             wepent:SetWeaponAttribute( "Sound", {
                 ")weapons/demo_sword_swing1.wav",
@@ -41,11 +45,6 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
 		OnAttack = function( self, wepent, target )
             LAMBDA_TF2:WeaponAttack( self, wepent, target )
             return true 
-        end,
-
-        OnDealDamage = function( self, wepent, target, dmginfo, tookDamage )
-            if !tookDamage or !self.l_TF_Shield_Type and self.l_TF_Shield_ChargeMeterFull then return end
-            self:l_SetShieldChargeMeter( self:l_GetShieldChargeMeter() + 20 )
         end
     }
 } )

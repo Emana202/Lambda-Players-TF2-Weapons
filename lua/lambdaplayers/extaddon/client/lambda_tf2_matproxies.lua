@@ -23,7 +23,7 @@ matproxy.Add( {
                 local isCustom = ( mat:GetInt( "$iscustom" ) == 1 )
                 local normCritMult = ( isCustom and 1.33 or 100 )
 
-                local critBoost = owner:GetCritBoostType()
+                local critBoost = owner:l_GetCritBoostType()
                 if critBoost != TF_CRIT_NONE then
                     result = owner:GetPlayerColor()
                     if critBoost == TF_CRIT_MINI then
@@ -38,15 +38,15 @@ matproxy.Add( {
 
                     owner.l_TF_ChargeGlowing = false
                 elseif owner.IsLambdaPlayer then 
-                    local charging = owner:GetIsShieldCharging()
-                    if charging or owner:GetNextMeleeCrit() != TF_CRIT_NONE then
+                    local charging = owner:l_GetIsShieldCharging()
+                    if charging or owner:l_GetNextMeleeCrit() != TF_CRIT_NONE then
                         owner.l_TF_ChargeGlowing = true
 
                         local glow
                         if charging then
-                            glow = ( ( 100 - owner:GetShieldChargeMeter() ) / 100 )
+                            glow = ( ( 100 - owner:l_GetShieldChargeMeter() ) / 100 )
                         else
-                            glow = ( 1.0 - min( ( CurTime() - owner:GetShieldLastNoChargeTime() - 1.5 ) / 0.3, 1.0 ) )
+                            glow = ( 1.0 - min( ( CurTime() - owner:l_GetShieldLastNoChargeTime() - 1.5 ) / 0.3, 1.0 ) )
                         end
 
                         result = ( owner:GetPlayerColor() * normCritMult )
@@ -54,7 +54,7 @@ matproxy.Add( {
                         result[ 2 ] = max( result[ 2 ] * glow, 1 )
                         result[ 3 ] = max( result[ 3 ] * glow, 1 )
                     elseif owner.l_TF_ChargeGlowing then
-                        local glow = ( 1.0 - min( ( CurTime() - owner:GetShieldLastNoChargeTime() ) / 0.3, 1.0 ) )
+                        local glow = ( 1.0 - min( ( CurTime() - owner:l_GetShieldLastNoChargeTime() ) / 0.3, 1.0 ) )
                         if glow <= 0 then owner.l_TF_ChargeGlowing = false end
 
                         result = ( owner:GetPlayerColor() * normCritMult )
@@ -102,13 +102,13 @@ matproxy.Add( {
         self.ResultTo = values.resultvar
     end,
     bind = function( self, mat, ent )
-        if IsValid( ent ) and ent:GetIsInvulnerable() and ent:GetInvulnerabilityWearingOff() then
+        if IsValid( ent ) and ent:l_GetIsInvulnerable() and ent:l_GetInvulnerabilityWearingOff() then
             mat:SetFloat( self.ResultTo, 0.0 )
             return
         end
 
         local owner = ( ent.l_TF_Owner or ent:GetOwner() )
-        if IsValid( owner ) and owner:GetIsInvulnerable() and owner:GetInvulnerabilityWearingOff() then
+        if IsValid( owner ) and owner:l_GetIsInvulnerable() and owner:l_GetInvulnerabilityWearingOff() then
             mat:SetFloat( self.ResultTo, 0.0 )
             return
         end
@@ -129,7 +129,7 @@ matproxy.Add( {
         local owner = ( ent.l_TF_Owner or ent:GetOwner() )
         if !IsValid( owner ) or !owner.IsLambdaPlayer then return end
 
-        local imagePath = owner:GetObjectorImage()
+        local imagePath = owner:l_GetObjectorImage()
         if #imagePath == 0 then return end
         mat:SetTexture( "$basetexture", ( LAMBDA_TF2.ObjectorSprayImages[ imagePath ] or StripExtension( imagePath ) ) )
     end

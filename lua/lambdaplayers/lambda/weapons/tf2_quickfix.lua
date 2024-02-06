@@ -69,7 +69,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
                     end
                     LAMBDA_TF2:MedigunHeal( self, wepent, healTarget, 1.1, true, 1.25, healRate )
 
-                    if healTarget.IsLambdaPlayer and healTarget:GetIsShieldCharging() then
+                    if healTarget.IsLambdaPlayer and healTarget:l_GetIsShieldCharging() then
                         self.loco:SetVelocity( healTarget.loco:GetVelocity() )
                     end
                 end

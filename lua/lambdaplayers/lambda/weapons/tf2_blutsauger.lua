@@ -142,7 +142,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             syringe:SetSkin( teamClr )
             syringe:SetLocalVelocity( spawnAng:Forward() * 1000 )
 
-            local critType = self:GetCritBoostType()
+            local critType = self:l_GetCritBoostType()
             if isCrit then critType = TF_CRIT_FULL end
 
             ParticleEffectAttach( "nailtrails_medic_" .. ( teamClr == 1 and "blue" or "red" ) .. ( critType == TF_CRIT_FULL and "_crit" or "" ), PATTACH_ABSORIGIN_FOLLOW, syringe, 0 )

@@ -107,8 +107,8 @@ function LAMBDA_TF2:PseudoNetworkVar( ent, name, initVar )
     local varName = "lambda_tf2_" .. lower( name )
     if ( SERVER ) then setFunc( ent, varName, initVar ) end
 
-    ent[ "Get" .. name ] = function( self ) return getFunc( ent, varName ) end
-    ent[ "Set" .. name ] = function( self, value ) setFunc( ent, varName, value ) end
+    ent[ "l_Get" .. name ] = function( self ) return getFunc( ent, varName ) end
+    ent[ "l_Set" .. name ] = function( self, value ) setFunc( ent, varName, value ) end
 end
 
 function LAMBDA_TF2:GetBoneTransformation( ent, index )
@@ -609,7 +609,7 @@ local function OnLambdaInitialize( lambda, weapon )
     weapon.l_TF_Owner = lambda
 
     if ( SERVER ) then
-        lambda:SetShieldChargeMeter( 100 )
+        lambda:l_SetShieldChargeMeter( 100 )
 
         lambda.l_TF_DamageEvents = {}
         lambda.l_TF_CritMult = 0
@@ -643,6 +643,10 @@ local function OnLambdaInitialize( lambda, weapon )
         
         lambda.l_TF_CrikeyMeter = 0
         lambda.l_TF_CrikeyMeterFull = false
+        
+        lambda.l_TF_FocusActivated = false
+        lambda.l_TF_FocusMeter = 0
+        lambda.l_TF_FocusMeterFull = false
 
         lambda.l_TF_ThrownBaseball = false
 

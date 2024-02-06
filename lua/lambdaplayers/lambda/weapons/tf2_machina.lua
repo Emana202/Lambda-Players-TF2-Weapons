@@ -4,6 +4,7 @@ local min = math.min
 local max = math.max
 local Clamp = math.Clamp
 local CurTime = CurTime
+local SimpleTimer = timer.Simple
 local isnumber = isnumber
 local bulletTbl = {
     TracerName = "Tracer",
@@ -11,10 +12,10 @@ local bulletTbl = {
 }
 
 table.Merge( _LAMBDAPLAYERSWEAPONS, {
-    tf2_sniperrifle = {
-        model = "models/lambdaplayers/tf2/weapons/w_sniper_rifle.mdl",
+    tf2_machina = {
+        model = "models/lambdaplayers/tf2/weapons/w_machina.mdl",
         origin = "Team Fortress 2",
-        prettyname = "Sniper Rifle",
+        prettyname = "Machina",
         holdtype = {
             idle = ACT_HL2MP_IDLE_RPG,
             run = ACT_HL2MP_RUN_RPG,
@@ -26,7 +27,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             swimMove = ACT_HL2MP_SWIM_RPG
         },
         bonemerge = true,
-        killicon = "lambdaplayers/killicons/icon_tf2_sniperrifle",
+        killicon = "lambdaplayers/killicons/icon_tf2_machina",
 
         clip = 25,
         keepdistance = 2000,
@@ -41,11 +42,17 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent:SetWeaponAttribute( "Damage", 30 )
             wepent:SetWeaponAttribute( "RateOfFire", { 1.5, 2.0 } )
             wepent:SetWeaponAttribute( "Animation", ACT_HL2MP_GESTURE_RANGE_ATTACK_REVOLVER )
-            wepent:SetWeaponAttribute( "Sound", ")weapons/sniper_shoot.wav" )
-            wepent:SetWeaponAttribute( "CritSound", ")weapons/sniper_shoot_crit.wav" )
+            wepent:SetWeaponAttribute( "Sound", {
+                ")weapons/sniper_railgun_charged_shot_01.wav",
+                ")weapons/sniper_railgun_charged_shot_02.wav"
+            } )
+            wepent:SetWeaponAttribute( "CritSound", {
+                ")weapons/sniper_railgun_charged_shot_crit_01.wav",
+                ")weapons/sniper_railgun_charged_shot_crit_02.wav"
+            } )
             wepent:SetWeaponAttribute( "RandomCrits", false )
             wepent:SetWeaponAttribute( "ClipDrain", false )
-            
+
             wepent:SetWeaponAttribute( "MuzzleFlash", "muzzle_sniperrifle" )
             wepent:SetWeaponAttribute( "ShellEject", false )
 
@@ -100,8 +107,9 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent.l_TF_ChargeStartTime = CurTime()
             wepent.l_TF_NextZoomTime = ( CurTime() + 1 )
 
+            local fullCharge = wepent.l_TF_ChargeIsFull
             local headHitBox = LAMBDA_TF2:GetEntityHeadBone( target )
-            local targetPos = ( ( wepent.l_TF_IsCharging and headHitBox and ( wepent.l_TF_ChargeIsFull or random( 1, 3 ) != 1 ) ) and LAMBDA_TF2:GetBoneTransformation( target, headHitBox ) or target:WorldSpaceCenter() )
+            local targetPos = ( ( wepent.l_TF_IsCharging and headHitBox and ( fullCharge or random( 1, 3 ) != 1 ) ) and LAMBDA_TF2:GetBoneTransformation( target, headHitBox ) or target:WorldSpaceCenter() )
             wepent.l_TF_ChargeIsFull = false
 
             local srcPos = wepent:GetPos()
@@ -111,6 +119,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             bulletTbl.Spread = Vector( spread, spread, 0 )
 
             local dmgMult = LAMBDA_TF2:RemapClamped( chargeStartTime, 0, 3.3, 1, 3 )
+            if fullCharge then dmgMult = ( dmgMult + 0.15 ) end
             local damage = ( wepent:GetWeaponAttribute( "Damage" ) * dmgMult )
             bulletTbl.Damage = damage
             bulletTbl.Force = ( damage / 2 )
@@ -119,23 +128,52 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             bulletTbl.IgnoreEntity = self
             bulletTbl.Src = srcPos
 
+            local plyClr = self:GetPlyColor():ToColor()
             local muzzlePos = wepent:GetAttachment( wepent:LookupAttachment( "muzzle" ) ).Pos
             bulletTbl.Callback = function( attacker, tr, dmginfo )
-                LAMBDA_TF2:CreateCritBulletTracer( muzzlePos, tr.HitPos, self:GetPlyColor():ToColor(), 0.4, 0.33 )
-
-                if chargeStartTime > 0.2 and tr.HitGroup == HITGROUP_HEAD then 
+                LAMBDA_TF2:CreateCritBulletTracer( muzzlePos, tr.HitPos, plyClr, 1.5, 3 )
+                
+                if chargeStartTime > 0.2 and tr.HitGroup == HITGROUP_HEAD then
                     dmginfo:SetDamageCustom( TF_DMG_CUSTOM_HEADSHOT ) 
+                end
+
+                local hitEnt = tr.Entity
+                if IsValid( hitEnt ) and LAMBDA_TF2:IsValidCharacter( hitEnt ) then 
+                    local function FireAnotherOne( prevTr )
+                        SimpleTimer( 0, function()
+                            if !IsValid( wepent ) then return end
+                            
+                            bulletTbl.Src = prevTr.HitPos
+                            bulletTbl.Spread = vector_origin
+                            bulletTbl.Dir = prevTr.Normal
+                            bulletTbl.IgnoreEntity = prevTr.Entity
+                            bulletTbl.Callback = function( attacker, tr, dmginfo )
+                                LAMBDA_TF2:CreateCritBulletTracer( prevTr.HitPos, tr.HitPos, plyClr, 1.5, 3 )
+                                dmginfo:SetDamageCustom( tr.HitGroup != HITGROUP_HEAD and TF_DMG_CUSTOM_PENETRATION or TF_DMG_CUSTOM_PENETRATION_HEADSHOT ) 
+    
+                                local hitEnt = tr.Entity
+                                if IsValid( hitEnt ) and LAMBDA_TF2:IsValidCharacter( hitEnt ) then 
+                                    FireAnotherOne( tr ) 
+                                else
+                                    wepent.l_killiconname = "lambdaplayers_weaponkillicons_tf2_machina"
+                                end
+                            end
+                            wepent:FireBullets( bulletTbl )
+                        end )
+                    end
+                    
+                    FireAnotherOne( tr ) 
                 end
             end
 
             wepent:FireBullets( bulletTbl )
 
             self:SimpleWeaponTimer( 0.666667, function()
-                wepent:EmitSound( "weapons/sniper_bolt_back.wav", nil, nil, 0.45 )
+                wepent:EmitSound( ")weapons/sniper_railgun_bolt_back.wav", nil, nil, 0.45 )
             end )
             self:SimpleWeaponTimer( 0.966667, function()
                 LAMBDA_TF2:CreateShellEject( wepent, "RifleShellEject" )
-                wepent:EmitSound( "weapons/sniper_bolt_forward.wav", nil, nil, 0.45 )
+                wepent:EmitSound( ")weapons/sniper_railgun_bolt_forward.wav", nil, nil, 0.45 )
             end )
 
             return true

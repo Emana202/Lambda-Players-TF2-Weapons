@@ -137,7 +137,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             energyRing:SetGravity( 0.3 )
             LAMBDA_TF2:TakeNoDamage( energyRing )
 
-            local critType = self:GetCritBoostType()
+            local critType = self:l_GetCritBoostType()
             if isCrit then critType = TF_CRIT_FULL end
             
             local trailEffectName = "drg_pomson_projectile" .. ( critType == TF_CRIT_FULL and "_crit" or "" )

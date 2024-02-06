@@ -40,7 +40,9 @@ killicon.Add( "lambdaplayers_weaponkillicons_tf2_ambassador_headshot", "lambdapl
 killicon.Add( "lambdaplayers_weaponkillicons_tf2_holidaypunch_laugh", "lambdaplayers/killicons/icon_tf2_holidaypunch_laugh", killiconClr )
 killicon.Add( "lambdaplayers_weaponkillicons_tf2_loose_cannon_pushed", "lambdaplayers/killicons/icon_tf2_loose_cannon_pushed", killiconClr )
 killicon.Add( "lambdaplayers_weaponkillicons_tf2_sharpdresser_backstab", "lambdaplayers/killicons/icon_tf2_sharp_dresser_backstab", killiconClr )
-killicon.Add( "lambdaplayers_weaponkillicons_tf2_bleedout", "lambdaplayers/killicons/icon_tf2_bleedout", killIconBleed )
+killicon.Add( "lambdaplayers_weaponkillicons_tf2_bleedout", "lambdaplayers/killicons/icon_tf2_bleedout", killiconClr )
+killicon.Add( "lambdaplayers_weaponkillicons_tf2_machina_penetrate", "lambdaplayers/killicons/icon_tf2_machina_penetrate", killiconClr )
+killicon.Add( "lambdaplayers_weaponkillicons_tf2_machina_penetratehs", "lambdaplayers/killicons/icon_tf2_machina_penetratehs", killiconClr )
 
 killicon.Add( "lambdaplayers_tf2_rivalry_domination", "lambdaplayers/killicons/icon_tf2_domination", killiconClr )
 killicon.Add( "lambdaplayers_tf2_rivalry_revenge", "lambdaplayers/killicons/icon_tf2_revenge", killiconClr )
@@ -139,6 +141,7 @@ net.Receive( "lambda_tf2_domination", function()
     local ply = LocalPlayer()
     if rivalryType == 1 then
         GAMEMODE:AddDeathNotice( attackername, attackerteam, "lambdaplayers_tf2_rivalry_domination", victimname, victimteam )
+        
         if victim == ply then 
             LAMBDA_TF2:AddOverheadEffect( attacker, "particle_nemesis_red" )
             EmitSound( "#misc/tf_nemesis.wav", vector_origin, -1, CHAN_STATIC, 0.6, 75, 0, 100 )
@@ -440,13 +443,13 @@ local function OnCreateClientsideRagdoll( owner, ragdoll )
             end
         end
 
-        if owner:GetIsBurning() then
+        if owner:l_GetIsBurning() then
             local teamClr = 0
             if owner:IsPlayer() then
                 local plyColor = owner:GetPlayerColor()
                 teamClr = ( ( plyColor[ 3 ] > plyColor[ 1 ] ) and 1 or 0 )
             end
-            LAMBDA_TF2:AttachFlameParticle( ragdoll, max( 2, ( owner:GetFlameRemoveTime() - CurTime() ) ), teamClr )
+            LAMBDA_TF2:AttachFlameParticle( ragdoll, max( 2, ( owner:l_GetFlameRemoveTime() - CurTime() ) ), teamClr )
         end
     end
 end
@@ -454,8 +457,8 @@ end
 local function OnPostDrawViewModel( vm, ply, wep )
     local hands = ply:GetHands()
 
-    local critBoost = ply:GetCritBoostType()
-    local invuln = ply:GetIsInvulnerable()
+    local critBoost = ply:l_GetCritBoostType()
+    local invuln = ply:l_GetIsInvulnerable()
     
     if critBoost == TF_CRIT_NONE and !invuln then
         if vm.l_TF_PreVMMat then 
@@ -486,11 +489,11 @@ end
 local function PostProcessingsEffects()
     local ply = LocalPlayer()
     
-    if ply:GetIsInvulnerable() then
+    if ply:l_GetIsInvulnerable() then
         DrawMaterialOverlay( "effects/invuln_overlay_red", 0 )
     end
 
-    if ply:GetIsBurning() then
+    if ply:l_GetIsBurning() then
         DrawMaterialOverlay( "lambdaplayers/effects/lethimcook", 0 )
     end
 

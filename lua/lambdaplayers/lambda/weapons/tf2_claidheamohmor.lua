@@ -46,7 +46,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
 
         OnDealDamage = function( self, wepent, target, dmginfo, tookDamage, lethal )
             if !lethal or !self.l_TF_Shield_Type or self.l_TF_Shield_ChargeMeterFull then return end
-            self:SetShieldChargeMeter( self:GetShieldChargeMeter() + 25 )
+            self:l_SetShieldChargeMeter( self:l_GetShieldChargeMeter() + 25 )
         end,
 
         OnTakeDamage = function( self, wepent, dmginfo )

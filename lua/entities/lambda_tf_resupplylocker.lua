@@ -83,7 +83,7 @@ if ( SERVER ) then
                 end
             else
                 ply.l_TF_ThrownBaseball = false
-                ply:SetShieldChargeMeter( 100 )
+                ply:l_SetShieldChargeMeter( 100 )
 
                 for name, item in pairs( ply.l_TF_Inventory ) do
                     if item.NextUseTime then

@@ -133,7 +133,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             local launchVel = ( spawnAng:Forward() * 2000 )
             flare:SetLocalVelocity( launchVel )
 
-            local critType = self:GetCritBoostType()
+            local critType = self:l_GetCritBoostType()
             if isCrit then critType = TF_CRIT_FULL end
 
             if critType == TF_CRIT_FULL then

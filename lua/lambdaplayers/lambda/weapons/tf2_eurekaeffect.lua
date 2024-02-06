@@ -1,5 +1,6 @@
 local ParticleEffect = ParticleEffect
 local sound_Play = sound.Play
+local random = math.random
 
 table.Merge( _LAMBDAPLAYERSWEAPONS, {
     tf2_eurekaeffect = {
@@ -26,7 +27,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent:EmitSound( "weapons/draw_primary.wav", nil, nil, 0.5 )
             wepent:EmitSound( "weapons/draw_wrench_engineer.wav", nil, nil, nil, CHAN_STATIC )
             self:SimpleWeaponTimer( 0.666667, function()
-                wepent:EmitSound( "weapons/metal_hit_hand" .. math.random( 1, 3 ) .. ".wav", nil, nil, 0.1 )
+                wepent:EmitSound( "weapons/metal_hit_hand" .. random( 3 ) .. ".wav", nil, nil, 0.1 )
             end )
         end,
 

@@ -24,6 +24,7 @@ local acos = math.acos
 local TraceHull = util.TraceHull
 local DamageInfo = DamageInfo
 local FrameTime = FrameTime
+local EmitSound = EmitSound
 local debugoverlay = debugoverlay
 local Round = math.Round
 local RandomPairs = RandomPairs
@@ -48,20 +49,22 @@ local dmgCustomKillicons = {
     [ TF_DMG_CUSTOM_KATANA_DUEL ]           = "lambdaplayers_weaponkillicons_tf2_katana_duel",
     [ TF_DMG_CUSTOM_BURNING_BEHIND ]        = "lambdaplayers_weaponkillicons_tf2_backburner_behind",
     [ TF_DMG_CUSTOM_GLOVES_LAUGHING ]       = "lambdaplayers_weaponkillicons_tf2_holidaypunch_laugh",
+    [ TF_DMG_CUSTOM_PENETRATION ]           = "lambdaplayers_weaponkillicons_tf2_machina_penetrate",
+    [ TF_DMG_CUSTOM_PENETRATION_HEADSHOT ]  = "lambdaplayers_weaponkillicons_tf2_machina_penetratehs",
     [ TF_DMG_CUSTOM_CANNONBALL_PUSH ]       = "lambdaplayers_weaponkillicons_tf2_loose_cannon_pushed"
 }
 local dmgCustomDecapitates = (
-    TF_DMG_CUSTOM_DECAPITATION + 
+    TF_DMG_CUSTOM_DECAPITATION +
     TF_DMG_CUSTOM_KATANA_DUEL
 )
 local dmgCustomHeadshots = (
-    TF_DMG_CUSTOM_HEADSHOT + 
+    TF_DMG_CUSTOM_HEADSHOT +
     TF_DMG_CUSTOM_HEADSHOT_REVOLVER
 )
-local dmgCustomBurns = ( 
-    TF_DMG_CUSTOM_BURNING + 
-    TF_DMG_CUSTOM_BURNING_BEHIND + 
-    TF_DMG_CUSTOM_BURNING_PHLOG 
+local dmgCustomBurns = (
+    TF_DMG_CUSTOM_BURNING +
+    TF_DMG_CUSTOM_BURNING_BEHIND +
+    TF_DMG_CUSTOM_BURNING_PHLOG
 )
 local dmgCustomDissolves = (
     TF_DMG_CUSTOM_PLASMA +
@@ -70,6 +73,10 @@ local dmgCustomDissolves = (
 local dmgCustomBackstabs = (
     TF_DMG_CUSTOM_BACKSTAB +
     TF_DMG_CUSTOM_BACKSTAB_HIDDEN
+)
+local dmgCustomMachina = (
+    TF_DMG_CUSTOM_PENETRATION +
+    TF_DMG_CUSTOM_PENETRATION_HEADSHOT
 )
 local fullcritSnds = {
     "player/crit_hit.wav",
@@ -85,10 +92,10 @@ local minicritSnds = {
     "player/crit_hit_mini4.wav",
     "player/crit_hit_mini5.wav"
 }
-local gmodDeathAnims = { 
-    "death_01", 
-    "death_02", 
-    "death_03", 
+local gmodDeathAnims = {
+    "death_01",
+    "death_02",
+    "death_03",
     "death_04"
 }
 local tf2DeathAnims = {
@@ -136,8 +143,8 @@ local tf2DeathAnims = {
         "heavy_death_violent"
     }
 }
-local shieldChargeTrTbl = { 
-    mins = -Vector( 24, 24, 24 ), 
+local shieldChargeTrTbl = {
+    mins = -Vector( 24, 24, 24 ),
     maxs = Vector( 24, 24, 24),
     mask = MASK_SOLID,
     collisiongroup = COLLISION_GROUP_NONE
@@ -148,7 +155,7 @@ local function OnEntityTakeDamage( ent, dmginfo )
         dmginfo:SetDamage( ent.l_TF_FixedBulletDamage * LambdaGetWeaponDamageScale( ent ) )
         ent.l_TF_FixedBulletDamage = false
     end
-            
+
     local dmgCustom = dmginfo:GetDamageCustom()
     local isDissolving = ( LAMBDA_TF2:IsDamageCustom( dmgCustom, dmgCustomDissolves ) )
     if isDissolving and !dmginfo:IsDamageType( DMG_DISSOLVE ) then
@@ -164,28 +171,28 @@ local function OnEntityTakeDamage( ent, dmginfo )
         ent:SetNW2Bool( "lambda_tf2_turnintogold", ( LAMBDA_TF2:IsDamageCustom( dmgCustom, TF_DMG_CUSTOM_TURNGOLD ) ) )
         ent:SetNW2Bool( "lambda_tf2_dissolve", isDissolving )
         ent:SetNW2Bool( "lambda_tf2_turnintoice", false )
-        
+
         local turnToAshes = ( LAMBDA_TF2:IsDamageCustom( dmgCustom, TF_DMG_CUSTOM_BURNING_PHLOG ) )
-        if !turnToAshes and ent:GetIsBurning() then turnToAshes = ( LAMBDA_TF2:IsDamageCustom( ent.l_TF_BurnDamageCustom, TF_DMG_CUSTOM_BURNING_PHLOG ) ) end
+        if !turnToAshes and ent:l_GetIsBurning() then turnToAshes = ( LAMBDA_TF2:IsDamageCustom( ent.l_TF_BurnDamageCustom, TF_DMG_CUSTOM_BURNING_PHLOG ) ) end
         ent:SetNW2Bool( "lambda_tf2_turnintoashes", turnToAshes )
 
         local damageBlocked = false
-        if ent.l_TF_InvulnerabilityTime and CurTime() <= ent.l_TF_InvulnerabilityTime then 
+        if ent.l_TF_InvulnerabilityTime and CurTime() <= ent.l_TF_InvulnerabilityTime then
             if dmginfo:IsDamageType( DMG_BULLET + DMG_CLUB + DMG_SLASH ) then
                 ent:EmitSound( "SolidMetal.BulletImpact" )
             end
-            damageBlocked = true 
+            damageBlocked = true
         end
         if ent.l_TF_AtomicPunched then
             if dmginfo:IsDamageType( DMG_BULLET + DMG_CLUB + DMG_SLASH ) then
                 ent:EmitSound( "player/pl_scout_jump" .. random( 1, 4 ) .. ".wav", 65, random( 90, 110 ), nil, CHAN_STATIC )
             end
-            damageBlocked = true 
+            damageBlocked = true
         end
         if CurTime() <= ent.l_TF_FireImmunity and ( dmginfo:IsDamageType( DMG_BURN ) or LAMBDA_TF2:IsDamageCustom( dmgCustom, TF_DMG_CUSTOM_IGNITE ) ) then
-            damageBlocked = true 
+            damageBlocked = true
         end
-        
+
         local isBackstab = ( LAMBDA_TF2:IsDamageCustom( dmgCustom, dmgCustomBackstabs ) )
         if isBackstab and ent.l_TF_SniperShieldType == 1 and LAMBDA_TF2:IsInventoryItemReady( ent, "tf2_razorback" ) then
             damageBlocked = true
@@ -194,7 +201,7 @@ local function OnEntityTakeDamage( ent, dmginfo )
             ScreenShake( ent:GetPos(), 25, 150, 1, 50 )
             ent:EmitSound( "player/spy_shield_break.wav", nil, nil, nil, CHAN_STATIC )
             ent:AttackTarget( attacker )
-            
+
             for i = 1, 2 do
                 local shieldGib = ents_Create( "prop_physics" )
                 shieldGib:SetModel( "models/player/items/sniper/knife_shield_gib" .. i .. ".mdl" )
@@ -226,14 +233,14 @@ local function OnEntityTakeDamage( ent, dmginfo )
 
             if attacker.IsLambdaPlayer then
                 attacker.l_WeaponUseCooldown = ( CurTime() + 2.0 )
-                
+
                 if random( 1, 100 ) <= attacker:GetVoiceChance() then
                     attacker:PlaySoundFile( "panic" )
                 end
             end
         end
 
-        if IsValid( inflictor ) then 
+        if IsValid( inflictor ) then
             local isTFWeapon = ( inflictor.IsLambdaWeapon and inflictor.TF2Data )
             ent:SetNW2Bool( "lambda_tf2_turnintoice", ( isTFWeapon and isBackstab and inflictor:GetWeaponAttribute( "FreezeOnBackstab", false ) ) )
 
@@ -256,7 +263,7 @@ local function OnEntityTakeDamage( ent, dmginfo )
                     end
 
                     if isDirectAttack and LAMBDA_TF2:IsValidCharacter( attacker ) then
-                        local critBoost = attacker:GetCritBoostType()
+                        local critBoost = attacker:l_GetCritBoostType()
                         if critBoost > critType then critType = critBoost end
                     end
                 end
@@ -288,16 +295,16 @@ local function OnEntityTakeDamage( ent, dmginfo )
                 end
 
                 LAMBDA_TF2:SetCritType( dmginfo, critType )
-                
+
                 local infKillicon = inflictor.l_killiconname
                 if infKillicon then
                     for bitFlag, icon in pairs( dmgCustomKillicons ) do
                         if band( dmgCustom, bitFlag ) == 0 or infKillicon == icon then continue end
                         inflictor.l_killiconname = icon
 
-                        SimpleTimer( 0, function() 
-                            if !IsValid( inflictor ) or inflictor.l_killiconname != icon then return end 
-                            inflictor.l_killiconname = infKillicon 
+                        SimpleTimer( 0, function()
+                            if !IsValid( inflictor ) or inflictor.l_killiconname != icon then return end
+                            inflictor.l_killiconname = infKillicon
                         end )
 
                         break
@@ -308,18 +315,18 @@ local function OnEntityTakeDamage( ent, dmginfo )
                     dmginfo:SetBaseDamage( dmginfo:GetDamage() )
 
                     local doShortRangeDistanceIncrease = ( critType == TF_CRIT_NONE or critType != TF_CRIT_FULL )
-                    local doLongRangeDistanceDecrease = ( critType == TF_CRIT_NONE ) 
+                    local doLongRangeDistanceDecrease = ( critType == TF_CRIT_NONE )
 
                     local rndDmgSpread = 0.1
                     local minSpread = ( 0.5 - rndDmgSpread )
                     local maxSpread = ( 0.5 + rndDmgSpread )
-            
+
                     if LAMBDA_TF2:IsDamageCustom( dmgCustom, TF_DMG_CUSTOM_USEDISTANCEMOD ) then
                         local attackerPos = attacker:WorldSpaceCenter()
                         local optimalDist = 512
-            
+
                         local dist = max( 1, ( attackerPos:Distance( ent:WorldSpaceCenter() ) ) )
-                            
+
                         local centerSpread = LAMBDA_TF2:RemapClamped( dist / optimalDist, 0, 2, 1, 0 )
                         if centerSpread > 0.5 and doShortRangeDistanceIncrease or centerSpread <= 0.5 then
                             if centerSpread > 0.5 and LAMBDA_TF2:IsDamageCustom( dmgCustom, TF_DMG_CUSTOM_NOCLOSEDISTANCEMOD ) then
@@ -335,8 +342,8 @@ local function OnEntityTakeDamage( ent, dmginfo )
                     local rndRangeVal = ( minSpread + rndDmgSpread )
 
                     local dmgVariance = LAMBDA_TF2:RemapClamped( rndRangeVal, 0, 1, -rndDamage, rndDamage )
-                    if doShortRangeDistanceIncrease and dmgVariance > 0 or doLongRangeDistanceDecrease then 
-                        damage = ( damage + dmgVariance ) 
+                    if doShortRangeDistanceIncrease and dmgVariance > 0 or doLongRangeDistanceDecrease then
+                        damage = ( damage + dmgVariance )
                     end
                 end
 
@@ -350,19 +357,19 @@ local function OnEntityTakeDamage( ent, dmginfo )
                 dmginfo:SetDamage( totalDamage )
                 dmginfo:SetDamageBonus( critDamage )
 
-                if ( isTFWeapon or inflictor.l_IsTFWeapon ) and !dmginfo:IsDamageType( DMG_PREVENT_PHYSICS_FORCE ) and ( !attacker.IsLambdaPlayer or attacker:CanTarget( ent ) ) then 
+                if ( isTFWeapon or inflictor.l_IsTFWeapon ) and !dmginfo:IsDamageType( DMG_PREVENT_PHYSICS_FORCE ) and ( !attacker.IsLambdaPlayer or attacker:CanTarget( ent ) ) then
                     local vecDir = ( ( inflictor:WorldSpaceCenter() - vector_up * 10 ) - ent:WorldSpaceCenter() ):GetNormalized()
-                    LAMBDA_TF2:ApplyPushFromDamage( ent, dmginfo, vecDir )     
+                    LAMBDA_TF2:ApplyPushFromDamage( ent, dmginfo, vecDir )
                 end
             end
         end
 
-        if damageBlocked then 
+        if damageBlocked then
             if ent.l_TF_AtomicPunched then
                 ent.l_TF_AtomicPunched_DamageTaken = ( ent.l_TF_AtomicPunched_DamageTaken + dmginfo:GetDamage() )
             end
-            
-            return true 
+
+            return true
         end
     end
 end
@@ -374,7 +381,7 @@ local function OnPostEntityTakeDamage( ent, dmginfo, tookDamage )
     if attacker.IsLambdaPlayer and LAMBDA_TF2:HasCritBoost( attacker, "Crit-A-Cola" ) then
         LAMBDA_TF2:MarkForDeath( attacker, 5, true )
     end
-    
+
     if !IsValid( ent ) or !LAMBDA_TF2:IsValidCharacter( ent, false ) then return end
     ent.l_TF_LastTakeDamageTime = CurTime()
 
@@ -383,7 +390,7 @@ local function OnPostEntityTakeDamage( ent, dmginfo, tookDamage )
 
     local inflictor = dmginfo:GetInflictor()
     if !IsValid( inflictor ) then return end
-    
+
     local dmgCustom = dmginfo:GetDamageCustom()
     local isMeleeDmg = ( LAMBDA_TF2:IsDamageCustom( dmgCustom, TF_DMG_CUSTOM_MELEE ) )
 
@@ -401,13 +408,13 @@ local function OnPostEntityTakeDamage( ent, dmginfo, tookDamage )
             inflictor:EmitSound( hitSnd, nil, nil, nil, CHAN_STATIC )
         end
     end
-    
+
     if LAMBDA_TF2:IsDamageCustom( dmgCustom, dmgCustomBurns ) or ( isTFWeapon or inflictor.l_IsTFWeapon ) and ( isMeleeDmg or dmginfo:IsBulletDamage() ) then
         ent:EmitSound( "Flesh.BulletImpact" )
     end
 
     if tookDamage then
-        if !ent:GetIsBurning() and LAMBDA_TF2:IsDamageCustom( dmgCustom, TF_DMG_CUSTOM_IGNITE ) and LAMBDA_TF2:GetWaterLevel( ent ) < 2 then
+        if !ent:l_GetIsBurning() and LAMBDA_TF2:IsDamageCustom( dmgCustom, TF_DMG_CUSTOM_IGNITE ) and LAMBDA_TF2:GetWaterLevel( ent ) < 2 then
             LAMBDA_TF2:Burn( ent, attacker, inflictor )
         end
 
@@ -440,30 +447,41 @@ local function OnPostEntityTakeDamage( ent, dmginfo, tookDamage )
                 net.Broadcast()
             end
 
-            if attacker.IsLambdaPlayer then 
+            if attacker.IsLambdaPlayer then
                 if isDead then
-                    if attacker.l_TF_Shield_Type == 3 and attacker:GetShieldChargeMeter() != 100 and ( dmgCustom == TF_DMG_CUSTOM_CHARGE_IMPACT or isMeleeDmg ) then
-                        attacker:SetShieldChargeMeter( attacker:GetShieldChargeMeter() + 75 )
+                    if attacker.l_TF_Shield_Type == 3 and attacker:l_GetShieldChargeMeter() != 100 and ( dmgCustom == TF_DMG_CUSTOM_CHARGE_IMPACT or isMeleeDmg ) then
+                        attacker:l_SetShieldChargeMeter( attacker:l_GetShieldChargeMeter() + 75 )
                     end
-    
-                    if LAMBDA_TF2:IsDamageCustom( dmgCustom, dmgCustomBackstabs ) then 
+
+                    local focusMeter = min( attacker.l_TF_FocusMeter + 20, 100 )
+                    if focusMeter >= 100 and !attacker.l_TF_FocusMeterFull and !attacker.l_TF_FocusActivated then
+                        attacker.l_TF_FocusMeterFull = true
+                        attacker:GetWeaponENT():EmitSound( "player/recharged.wav", 65, nil, 0.5, CHAN_STATIC )
+                    end
+                    attacker.l_TF_FocusMeter = focusMeter
+
+                    if LAMBDA_TF2:IsDamageCustom( dmgCustom, dmgCustomBackstabs ) then
                         attacker.l_TF_DiamondbackCrits = min( attacker.l_TF_DiamondbackCrits + 2, 35 )
                     elseif isMeleeDmg then
                         attacker.l_TF_DiamondbackCrits = min( attacker.l_TF_DiamondbackCrits + 1, 35 )
                     end
+
+                    if LAMBDA_TF2:IsDamageCustom( dmgCustom, dmgCustomMachina ) then
+                        EmitSound( "misc/sniper_railgun_double_kill.wav", vector_origin, 0, CHAN_STATIC, 0.8, 0, 0, 100 )
+                    end
                 end
-    
+
                 if isTFWeapon and inflictor:GetWeaponAttribute( "MarkForDeath", false ) then
                     LAMBDA_TF2:MarkForDeath( ent, 15, false, attacker )
                 end
-    
+
                 local entHealth = ent:Health()
                 local entArmor = ent.Armor
                 if entArmor then entHealth = ( entHealth + ( isfunction( entArmor ) and entArmor( ent ) or entArmor ) ) end
 
                 attacker.l_TF_HypeMeter = min( 99, attacker.l_TF_HypeMeter + max( 5, dmginfo:GetDamage() ) )
-                LAMBDA_TF2:RecordDamageEvent( attacker, dmginfo, isDead, entHealth ) 
-                
+                LAMBDA_TF2:RecordDamageEvent( attacker, dmginfo, isDead, entHealth )
+
                 if attacker.l_TF_RageBuffType and !attacker.l_TF_RageActivated and attacker:Alive() then
                     local gainRage = ( dmginfo:GetDamage() / ( random( 4, 5 ) * LambdaGetWeaponDamageScale( ent ) ) )
                     if attacker.l_TF_RageBuffType == 3 then gainRage = ( gainRage * 1.25 ) end
@@ -475,8 +493,8 @@ local function OnPostEntityTakeDamage( ent, dmginfo, tookDamage )
                 end
             end
 
-            if ent.IsLambdaPlayer and ent:GetIsShieldCharging() and ent.l_TF_Shield_Type == 3 and !dmginfo:IsDamageType( DMG_FALL ) then
-                ent:SetShieldChargeMeter( ent:GetShieldChargeMeter() - dmginfo:GetDamage() )
+            if ent.IsLambdaPlayer and ent:l_GetIsShieldCharging() and ent.l_TF_Shield_Type == 3 and !dmginfo:IsDamageType( DMG_FALL ) then
+                ent:l_SetShieldChargeMeter( ent:l_GetShieldChargeMeter() - dmginfo:GetDamage() )
             end
 
             local onDealDmgFunc = inflictor.l_OnDealDamage
@@ -499,7 +517,7 @@ local function OnServerThink()
         for index, trail in ipairs( trailList ) do
             if !IsValid( trail ) then
                 table_remove( trailList, index )
-                continue 
+                continue
             end
 
             if trail.l_HasParent then
@@ -508,7 +526,7 @@ local function OnServerThink()
                     trail:SetParent( NULL )
                     SafeRemoveEntityDelayed( trail, 1 )
                     table_remove( trailList, index )
-                    continue 
+                    continue
                 end
             end
         end
@@ -527,19 +545,19 @@ local function OnCreateEntityRagdoll( owner, ragdoll )
         ragdoll:SetSolid( SOLID_NONE )
 
         local physObjs = {}
-        for i = 0, ( ragdoll:GetPhysicsObjectCount() - 1 ) do    
+        for i = 0, ( ragdoll:GetPhysicsObjectCount() - 1 ) do
             local bonePhys = ragdoll:GetPhysicsObjectNum( i )
-            bonePhys:SetVelocityInstantaneous( vector_origin ) 
+            bonePhys:SetVelocityInstantaneous( vector_origin )
             bonePhys:Sleep()
             physObjs[ #physObjs + 1 ] = bonePhys
         end
-        
+
         local frozenTime = ( CurTime() + Rand( 9.0, 11.0 ) )
         LambdaCreateThread( function()
             while ( IsValid( ragdoll ) ) do
                 if CurTime() < frozenTime then
                     for _, bonePhys in ipairs( physObjs ) do
-                        bonePhys:SetVelocityInstantaneous( vector_origin ) 
+                        bonePhys:SetVelocityInstantaneous( vector_origin )
                         bonePhys:Sleep()
                     end
                 else
@@ -548,7 +566,7 @@ local function OnCreateEntityRagdoll( owner, ragdoll )
                     end
 
                     ragdoll:SetSolid( SOLID_VPHYSICS )
-                    return 
+                    return
                 end
 
                 coroutine_yield()
@@ -588,8 +606,8 @@ local function OnCreateEntityRagdoll( owner, ragdoll )
             end
         end
 
-        if owner:GetIsBurning() then
-            LAMBDA_TF2:AttachFlameParticle( ragdoll, Clamp( ( owner:GetFlameRemoveTime() - CurTime() ), 2, 10 ), LAMBDA_TF2:GetTeamColor( owner ) )
+        if owner:l_GetIsBurning() then
+            LAMBDA_TF2:AttachFlameParticle( ragdoll, Clamp( ( owner:l_GetFlameRemoveTime() - CurTime() ), 2, 10 ), LAMBDA_TF2:GetTeamColor( owner ) )
         end
     end
 end
@@ -607,8 +625,8 @@ local function OnEntityFireBullets( ent, data )
     if !IsValid( ent ) or !ent.l_TF_NextCritShootSoundT or CurTime() <= ent.l_TF_NextCritShootSoundT then return end
     ent.l_TF_NextCritShootSoundT = CurTime()
 
-    if ent:IsPlayer() then 
-        local critBoost = ent:GetCritBoostType()
+    if ent:IsPlayer() then
+        local critBoost = ent:l_GetCritBoostType()
         if critBoost != TF_CRIT_NONE then
             ent:EmitSound( "lambdaplayers/tf2/crit_shoot.mp3", nil, nil, ( critBoost == TF_CRIT_MINI and 0.5 or 0.75 ), CHAN_STATIC )
         end
@@ -616,7 +634,7 @@ local function OnEntityFireBullets( ent, data )
 end
 
 local function OnPlayerDeath( ply, inflictor, attacker )
-    SimpleTimer( 0, function() 
+    SimpleTimer( 0, function()
         LAMBDA_TF2:CalcDominationAndRevenge( attacker, ply )
     end )
 end
@@ -642,7 +660,7 @@ hook.Add( "EntityFireBullets", "LambdaTF2_OnEntityFireBullets", OnEntityFireBull
 local function OnLambdaThink( lambda, weapon, isdead )
     local shieldType = lambda.l_TF_Shield_Type
     if shieldType then
-        if !isdead and lambda.l_issmoving and !lambda:GetIsShieldCharging() and lambda:GetShieldChargeMeter() == 100 and random( 1, 30 ) == 1 then
+        if !isdead and lambda.l_issmoving and !lambda:l_GetIsShieldCharging() and lambda:l_GetShieldChargeMeter() == 100 and random( 1, 30 ) == 1 then
             local enemy = lambda:GetEnemy()
             local isPanicking = ( lambda:IsPanicking() and !lambda:GetIsFiring() or !lambda:InCombat() and ( lambda.l_TF_CoveredInUrine or lambda.l_TF_CoveredInMilk or LAMBDA_TF2:IsBurning( lambda ) or LAMBDA_TF2:IsBleeding( lambda ) ) )
 
@@ -650,7 +668,7 @@ local function OnLambdaThink( lambda, weapon, isdead )
             if !canCharge and lambda:InCombat() then
                 local selfPos = lambda:GetPos()
                 local enemyPos = enemy:GetPos()
-                local stepHeight = lambda.loco:GetStepHeight()        
+                local stepHeight = lambda.loco:GetStepHeight()
                 local chargeDist = ( 1000 / lambda.l_TF_Shield_ChargeDrainRateMult )
 
                 if ( enemyPos.z >= ( selfPos.z - stepHeight ) and enemyPos.z <= ( selfPos.z + stepHeight ) ) and ( !lambda.l_HasMelee and !lambda:GetIsReloading() or lambda.l_HasMelee and lambda:IsInRange( enemy, chargeDist ) ) and !lambda:IsInRange( enemy, ( lambda.l_CombatAttackRange or chargeDist ) ) and lambda:CanSee( enemy ) then
@@ -670,7 +688,7 @@ local function OnLambdaThink( lambda, weapon, isdead )
                 lambda.l_TF_Shield_ChargeTrail = chargeTrail
 
                 lambda.loco:SetMaxYawRate( lambda.l_TF_Shield_PreChargeYawRate / ( shieldType != 3 and 20 or 1 ) )
-                lambda:SetIsShieldCharging( true )
+                lambda:l_SetIsShieldCharging( true )
 
                 LAMBDA_TF2:RemoveBurn( lambda )
                 LAMBDA_TF2:RemoveBleeding( lambda )
@@ -683,7 +701,7 @@ local function OnLambdaThink( lambda, weapon, isdead )
             end
         end
 
-        if lambda:GetIsShieldCharging() then
+        if lambda:l_GetIsShieldCharging() then
             if !isdead then
                 if CurTime() >= lambda.l_WeaponUseCooldown then
                     lambda.l_WeaponUseCooldown = CurTime() + 0.1
@@ -695,7 +713,7 @@ local function OnLambdaThink( lambda, weapon, isdead )
 
                 lambda.loco:SetVelocity( curVel + lambda:GetForward() * min( lambda:GetRunSpeed() * 2 ) )
 
-                if lambda:GetShieldChargeMeter() <= 75 then
+                if lambda:l_GetShieldChargeMeter() <= 75 then
                     if !lambda.l_TF_Shield_CritBoosted then
                         lambda.l_TF_Shield_CritBoosted = true
 
@@ -720,13 +738,13 @@ local function OnLambdaThink( lambda, weapon, isdead )
                 if chargeResult.Hit then
                     local impactEnt = chargeResult.Entity
                     if LAMBDA_TF2:IsValidCharacter( impactEnt ) then
-                        if lambda:GetShieldChargeMeter() <= 40 then
+                        if lambda:l_GetShieldChargeMeter() <= 40 then
                             impactEnt:EmitSound( "weapons/demo_charge_hit_flesh_range" .. random( 1, 3 ) .. ".wav", 80, nil, nil, CHAN_STATIC )
                         else
                             impactEnt:EmitSound( "weapons/demo_charge_hit_flesh" .. random( 1, 3 ) .. ".wav", 80, nil, nil, CHAN_STATIC )
                         end
 
-                        local bashDmg = LAMBDA_TF2:RemapClamped( lambda:GetShieldChargeMeter(), 90, 40, 10, 30 )
+                        local bashDmg = LAMBDA_TF2:RemapClamped( lambda:l_GetShieldChargeMeter(), 90, 40, 10, 30 )
                         local heads = min( lambda.l_TF_Decapitations, 5 )
                         if heads > 0 then bashDmg = ( bashDmg * ( 1 + heads * 0.1 ) ) end
                         if shieldType == 2 then bashDmg = ( bashDmg * 1.7 ) end
@@ -744,37 +762,37 @@ local function OnLambdaThink( lambda, weapon, isdead )
                         lambda:EmitSound( "weapons/demo_charge_hit_world" .. random( 1, 3 ) .. ".wav", 80, nil, nil, CHAN_STATIC )
                     end
 
-                    lambda:SetIsShieldCharging( false )
+                    lambda:l_SetIsShieldCharging( false )
                     ScreenShake( lambdaPos, 25, 150, 1, 750 )
                 else
-                    lambda:SetShieldChargeMeter( lambda:GetShieldChargeMeter() - ( ( ( 100 / 1.5 ) * FrameTime() ) * lambda.l_TF_Shield_ChargeDrainRateMult ) )
-                    lambda:SetShieldLastNoChargeTime( CurTime() )
+                    lambda:l_SetShieldChargeMeter( lambda:l_GetShieldChargeMeter() - ( ( ( 100 / 1.5 ) * FrameTime() ) * lambda.l_TF_Shield_ChargeDrainRateMult ) )
+                    lambda:l_SetShieldLastNoChargeTime( CurTime() )
                 end
             end
 
-            if isdead or !lambda:GetIsShieldCharging() or lambda:GetShieldChargeMeter() <= 0 then
-                lambda:SetIsShieldCharging( false )
-                if isdead then lambda:SetShieldChargeMeter( 100 ) end
-                lambda:SetShieldLastNoChargeTime( CurTime() )
+            if isdead or !lambda:l_GetIsShieldCharging() or lambda:l_GetShieldChargeMeter() <= 0 then
+                lambda:l_SetIsShieldCharging( false )
+                if isdead then lambda:l_SetShieldChargeMeter( 100 ) end
+                lambda:l_SetShieldLastNoChargeTime( CurTime() )
 
-                lambda:SimpleTimer( ( isdead and 0 or 0.3 ), function() 
+                lambda:SimpleTimer( ( isdead and 0 or 0.3 ), function()
                     if lambda.l_TF_Shield_CritBoosted then
                         weapon:EmitSound( ")weapons/weapon_crit_charged_off.wav", nil, nil, 0.25, CHAN_STATIC )
                     end
                     lambda.l_TF_Shield_CritBoosted = false
                     LAMBDA_TF2:StopSound( lambda, lambda.l_TF_Shield_CritBoostSound )
-                    lambda:SetNextMeleeCrit( TF_CRIT_NONE )
+                    lambda:l_SetNextMeleeCrit( TF_CRIT_NONE )
                 end, true )
 
-                lambda:SimpleTimer( 1.0, function() 
-                    if lambda:GetCritBoostType() != TF_CRIT_NONE then return end
+                lambda:SimpleTimer( 1.0, function()
+                    if lambda:l_GetCritBoostType() != TF_CRIT_NONE then return end
                     if !weapon.TF2Data and !lambda:IsWeaponMarkedNodraw() then weapon:SetMaterial( "" ) end
                 end, true )
 
                 if !isdead then
                     lambda:RecomputePath()
-                    
-                    lambda:SimpleTimer( 0.1, function() 
+
+                    lambda:SimpleTimer( 0.1, function()
                         if lambda:IsSpeaking() and lambda:GetLastSpokenVoiceType() == "fall" and lambda:OnGround() then
                             net.Start( "lambdaplayers_stopcurrentsound" )
                                 net.WriteEntity( lambda )
@@ -782,13 +800,13 @@ local function OnLambdaThink( lambda, weapon, isdead )
                         end
                     end )
 
-                    if lambda:GetShieldChargeMeter() <= 40 then
-                        lambda:SetNextMeleeCrit( TF_CRIT_FULL )
-                    elseif lambda:GetShieldChargeMeter() <= 75 then
-                        lambda:SetNextMeleeCrit( TF_CRIT_MINI )
+                    if lambda:l_GetShieldChargeMeter() <= 40 then
+                        lambda:l_SetNextMeleeCrit( TF_CRIT_FULL )
+                    elseif lambda:l_GetShieldChargeMeter() <= 75 then
+                        lambda:l_SetNextMeleeCrit( TF_CRIT_MINI )
                     end
 
-                    lambda:SetShieldChargeMeter( 0 )
+                    lambda:l_SetShieldChargeMeter( 0 )
                 end
 
                 lambda.loco:SetMaxYawRate( lambda.l_TF_Shield_PreChargeYawRate )
@@ -798,16 +816,16 @@ local function OnLambdaThink( lambda, weapon, isdead )
                 if IsValid( chargeTrail ) then
                     chargeTrail:SetParent( NULL )
                     SafeRemoveEntityDelayed( chargeTrail, 1 )
-                end       
+                end
             end
-        elseif !isdead and lambda:GetShieldChargeMeter() != 100 then
+        elseif !isdead and lambda:l_GetShieldChargeMeter() != 100 then
             local chargeRate = ( ( 100 / 12 ) * FrameTime() )
             if shieldType == 2 then chargeRate = ( chargeRate * 1.5 ) end
-            lambda:SetShieldChargeMeter( lambda:GetShieldChargeMeter() + chargeRate )
-            
-            if lambda:GetShieldChargeMeter() >= 100 then
+            lambda:l_SetShieldChargeMeter( lambda:l_GetShieldChargeMeter() + chargeRate )
+
+            if lambda:l_GetShieldChargeMeter() >= 100 then
                 weapon:EmitSound( "player/recharged.wav", 65, nil, 0.5, CHAN_STATIC )
-                lambda:SetShieldChargeMeter( 100 )
+                lambda:l_SetShieldChargeMeter( 100 )
             end
         end
     end
@@ -815,7 +833,7 @@ local function OnLambdaThink( lambda, weapon, isdead )
     if !isdead then
         if lambda.l_TF_RageActivated then
             lambda.l_TF_RageMeter = ( lambda.l_TF_RageMeter - ( FrameTime() * 10 ) )
-            
+
             if lambda.l_TF_RageMeter <= 0 then
                 lambda.l_TF_RageMeter = 0
                 lambda.l_TF_RagePulseCount = 0
@@ -836,8 +854,17 @@ local function OnLambdaThink( lambda, weapon, isdead )
             end
         end
 
+        if lambda.l_TF_FocusActivated then
+            lambda.l_TF_FocusMeter = ( lambda.l_TF_FocusMeter - ( FrameTime() * 10 ) )
+
+            if lambda.l_TF_FocusMeter <= 0 then
+                lambda.l_TF_FocusMeter = 0
+                lambda.l_TF_FocusActivated = false
+            end
+        end
+
         local buffType = lambda.l_TF_RageBuffType
-        if lambda.l_TF_RagePulseCount > 0 then 
+        if lambda.l_TF_RagePulseCount > 0 then
             if CurTime() > lambda.l_TF_RageNextPulseTime then
                 if lambda.l_TF_RageNextPulseTime != 0 then
                     lambda.l_TF_RagePulseCount = ( lambda.l_TF_RagePulseCount - 1 )
@@ -858,13 +885,13 @@ local function OnLambdaThink( lambda, weapon, isdead )
                 end
             end
 
-            -- debugoverlay.Text( lambda:GetPos() + lambda:OBBCenter() * 1.8, "Buff Pulses Left: " .. lambda.l_TF_RagePulseCount, FrameTime() * 2 ) 
+            -- debugoverlay.Text( lambda:GetPos() + lambda:OBBCenter() * 1.8, "Buff Pulses Left: " .. lambda.l_TF_RagePulseCount, FrameTime() * 2 )
         end
 
         local parachute = lambda.l_TF_ParachuteModel
         if IsValid( parachute ) then
             if lambda.l_FallVelocity > 100 then
-                if !lambda.l_TF_ParachuteOpen then 
+                if !lambda.l_TF_ParachuteOpen then
                     if CurTime() >= lambda.l_TF_ParachuteCheckT then
                         lambda.l_TF_ParachuteOpen = true
                         parachute:SetBodygroup( 0, 1 )
@@ -890,18 +917,18 @@ local function OnLambdaThink( lambda, weapon, isdead )
             end
         end
 
-        -- if buffType then 
-        --     debugoverlay.Text( lambda:GetPos() + lambda:OBBCenter() * 2.2, "Buff Type: " .. lambda.l_TF_RageBuffType, FrameTime() * 2 ) 
-        --     debugoverlay.Text( lambda:GetPos() + lambda:OBBCenter() * 2, "Buff Meter: " .. Round( lambda.l_TF_RageMeter ) .. "%", FrameTime() * 2 ) 
+        -- if buffType then
+        --     debugoverlay.Text( lambda:GetPos() + lambda:OBBCenter() * 2.2, "Buff Type: " .. lambda.l_TF_RageBuffType, FrameTime() * 2 )
+        --     debugoverlay.Text( lambda:GetPos() + lambda:OBBCenter() * 2, "Buff Meter: " .. Round( lambda.l_TF_RageMeter ) .. "%", FrameTime() * 2 )
         -- end
 
         if lambda.l_TF_Medigun_ChargeReleased then
             lambda.l_TF_Medigun_ChargeMeter = max( 0, lambda.l_TF_Medigun_ChargeMeter - ( ( 100 / 9 ) * FrameTime() ) )
-    
-            if lambda.l_TF_Medigun_ChargeMeter <= 0 then                
+
+            if lambda.l_TF_Medigun_ChargeMeter <= 0 then
                 lambda.l_TF_Medigun_ChargeMeter = 0
                 lambda:EmitSound( lambda.l_TF_MedigunChargeDrainSound, nil, nil, nil, CHAN_STATIC )
-    
+
                 LAMBDA_TF2:StopSound( lambda, lambda.l_TF_Medigun_ChargeReleaseSound )
                 if lambda.l_TF_Medigun_ChargeReady then
                     LAMBDA_TF2:StopSound( lambda, lambda.l_TF_Medigun_ChargeSound )
@@ -911,13 +938,13 @@ local function OnLambdaThink( lambda, weapon, isdead )
                         net.WriteBool( false )
                     net.Broadcast()
                 end
-    
+
                 lambda.l_TF_Medigun_ChargeReleased = false
                 lambda.l_TF_Medigun_ChargeReady = false
             end
         end
-    
-        if !lambda.l_TF_IsUsingItem and CurTime() > lambda.l_TF_NextInventoryCheckT then 
+
+        if !lambda.l_TF_IsUsingItem and CurTime() > lambda.l_TF_NextInventoryCheckT then
             local wepName = lambda:GetWeaponName()
             local lambdaInv = lambda.l_TF_Inventory
 
@@ -944,13 +971,13 @@ local function OnLambdaThink( lambda, weapon, isdead )
                             item.IsReady = true
                             weapon:EmitSound( "player/recharged.wav", 65, nil, 0.5, CHAN_STATIC )
                         else
-                            continue 
+                            continue
                         end
                     end
 
                     if item.IsWeapon and wepName != name and invItems[ name ].Condition( lambda ) == true then
                         local wepClip = lambda.l_Clip
-                        
+
                         lambda:SwitchWeapon( name )
 
                         if lambda:GetWeaponName() == name then
@@ -964,13 +991,13 @@ local function OnLambdaThink( lambda, weapon, isdead )
                     end
                 end
             end
-    
+
             lambda.l_TF_NextInventoryCheckT = ( CurTime() + Rand( 0.1, 1.0 ) )
         end
-        
+
         if lambda.l_TF_AtomicPunched and CurTime() >= lambda.l_TF_AtomicPunched then
             lambda.l_TF_AtomicPunched = false
-    
+
             local damageTook = lambda.l_TF_AtomicPunched_DamageTaken
             if damageTook > 0 then
                 lambda:EmitSound( "player/pl_scout_dodge_tired.wav", 60, lambda:GetVoicePitch(), nil, CHAN_VOICE )
@@ -981,11 +1008,11 @@ local function OnLambdaThink( lambda, weapon, isdead )
                 lambda.l_TF_AtomicPunched_SlowdownScale = false
             end
             lambda.l_TF_AtomicPunched_DamageTaken = 0
-    
+
             local trail = lambda.l_TF_AtomicPunched_Trail
-            if IsValid( trail ) then 
+            if IsValid( trail ) then
                 trail:SetParent( NULL )
-                SafeRemoveEntityDelayed( trail, 1 ) 
+                SafeRemoveEntityDelayed( trail, 1 )
             end
         end
 
@@ -995,15 +1022,15 @@ local function OnLambdaThink( lambda, weapon, isdead )
             lambda.l_TF_AtomicPunched_SlowdownScale = bonkSlowdown
             lambda.l_nextspeedupdate = 0
         end
-    
+
         if lambda.l_TF_ThrownBaseball and CurTime() > lambda.l_TF_ThrownBaseball then
             lambda.l_TF_ThrownBaseball = false
             weapon:EmitSound( "player/recharged.wav", 65, nil, 0.5, CHAN_STATIC )
         end
-    
+
         for barIndex, bar in ipairs( lambda.l_TF_DalokohsBars ) do
             if CurTime() < bar.ExpireTime then continue end
-    
+
             local hpRatio = bar.HealthRatio
             local oldHP = Round( lambda:GetMaxHealth() / hpRatio )
 
@@ -1058,13 +1085,13 @@ local function OnLambdaThink( lambda, weapon, isdead )
             lambda.l_TF_NextCritUpdateT = ( CurTime() + 0.5 )
         end
 
-        if lambda.l_TF_HasMedigunEquipped then 
+        if lambda.l_TF_HasMedigunEquipped then
             if ( lambda:GetState() == "Idle" or lambda:GetState() == "Combat" or lambda:GetState() == "FindTarget" ) and lambda:GetState() != "HealWithMedigun" and !lambda:IsPanicking() then
                 lambda:CancelMovement()
                 lambda:SetState( "HealWithMedigun" )
             end
 
-            debugoverlay.Text( lambda:GetPos() + lambda:OBBCenter() * 2, "Uber-Charge: " .. Round( lambda.l_TF_Medigun_ChargeMeter ) .. "%", FrameTime() * 2 ) 
+            --debugoverlay.Text( lambda:GetPos() + lambda:OBBCenter() * 2, "Uber-Charge: " .. Round( lambda.l_TF_Medigun_ChargeMeter ) .. "%", FrameTime() * 2 )
 
             local chargeSnd = lambda.l_TF_Medigun_ChargeSound
             if lambda.l_TF_Medigun_ChargeMeter >= 100 and !lambda.l_TF_Medigun_ChargeReady then
@@ -1130,15 +1157,15 @@ local function OnLambdaThink( lambda, weapon, isdead )
                 end
             end
 
-            if lambda:GetIsBurning() then
+            if lambda:l_GetIsBurning() then
                 lambda:SetRun( true )
-    
+
                 if CurTime() > lambda.l_nextidlesound and !lambda:IsDisabled() and !lambda:GetIsTyping() and !lambda:IsSpeaking() and random( 1, 100 ) <= lambda:GetVoiceChance() then
                     lambda:PlaySoundFile( "panic" )
                 end
             end
         end
-        
+
         if GetConVar( "lambdaplayers_tf2_alwayscrit" ):GetBool() then
             LAMBDA_TF2:AddCritBoost( lambda, "AlwaysCritSetting", TF_CRIT_FULL, 0.1 )
         end
@@ -1151,13 +1178,13 @@ local function OnLambdaThink( lambda, weapon, isdead )
                 if bonkSlowdown then desSpeed = ( desSpeed * bonkSlowdown ) end
                 if lambda.l_TF_InSpeedBoost then desSpeed = ( desSpeed + min( desSpeed * 0.4, 105 ) ) end
                 if LAMBDA_TF2:HasCritBoost( lambda, "BuffaloSteakBoost" ) then desSpeed = ( desSpeed * 1.3 ) end
-    
+
                 local healTarget = lambda.l_TF_Medigun_HealTarget
                 if IsValid( healTarget ) and ( healTarget.IsLambdaPlayer or healTarget:IsPlayer() ) and healTarget:Alive() then
                     local targetSpeed = ( healTarget.IsLambdaPlayer and healTarget.loco:GetDesiredSpeed() or healTarget:GetRunSpeed() )
                     desSpeed = max( desSpeed, desSpeed * ( targetSpeed / desSpeed ) )
                 end
-    
+
                 lambda.loco:SetDesiredSpeed( desSpeed )
             end )
         end
@@ -1167,7 +1194,7 @@ end
 local function OnLambdaRespawn( lambda )
     table_Empty( lambda.l_TF_DamageEvents )
 
-    if lambda.l_TF_RevengeCrits > 0 and lambda:CanEquipWeapon( "tf2_frontierjustice" ) then 
+    if lambda.l_TF_RevengeCrits > 0 and lambda:CanEquipWeapon( "tf2_frontierjustice" ) then
         lambda:SwitchWeapon( "tf2_frontierjustice" )
 
         if random( 1, 100 ) <= lambda:GetVoiceChance() then
@@ -1201,7 +1228,7 @@ local function OnLambdaRespawn( lambda )
     for model, mdlEnt in pairs( bonemergedMdls ) do
         if !IsValid( mdlEnt ) then
             bonemergedMdls[ model ] = nil
-            continue 
+            continue
         end
 
         if mdlEnt.l_TF_ParentDied then
@@ -1222,8 +1249,8 @@ local function OnLambdaInjured( lambda, dmginfo )
             dmginfo:ScaleDamage( shieldType == 3 and 0.85 or shieldType == 2 and 0.8 or 0.7 )
         end
 
-        if lambda:GetIsShieldCharging() and shieldType == 3 and dmginfo:GetAttacker() != lambda and !dmginfo:IsDamageType( DMG_FALL ) then
-            lambda:SetShieldChargeMeter( lambda:GetShieldChargeMeter() - dmginfo:GetDamage() )
+        if lambda:l_GetIsShieldCharging() and shieldType == 3 and dmginfo:GetAttacker() != lambda and !dmginfo:IsDamageType( DMG_FALL ) then
+            lambda:l_SetShieldChargeMeter( lambda:l_GetShieldChargeMeter() - dmginfo:GetDamage() )
         end
     end
 
@@ -1240,11 +1267,11 @@ local function OnLambdaInjured( lambda, dmginfo )
     if LAMBDA_TF2:HasCritBoost( lambda, "BuffaloSteakBoost" ) then
         dmginfo:ScaleDamage( 1.2 )
     end
-    
+
     if lambda.l_TF_SniperShieldType == 3 and ( dmginfo:IsDamageType( DMG_BURN ) or LAMBDA_TF2:IsDamageCustom( dmginfo, TF_DMG_CUSTOM_IGNITE ) ) then
         dmginfo:ScaleDamage( 0.5 )
     end
-    
+
     lambda.l_TF_HypeMeter = max( 0, lambda.l_TF_HypeMeter + ( dmginfo:GetDamage() * 4 ) )
 end
 
@@ -1265,10 +1292,10 @@ local function OnLambdaKilled( lambda, dmginfo )
     local doDecapitation = ( LAMBDA_TF2:IsDamageCustom( dmgCustom, dmgCustomDecapitates ) )
     local isDissolving = ( LAMBDA_TF2:IsDamageCustom( dmgCustom, dmgCustomDissolves ) )
     local shouldBurn = ( LAMBDA_TF2:IsDamageCustom( dmgCustom, dmgCustomBurns + TF_DMG_CUSTOM_IGNITE ) )
-    
+
     local turnIntoAshes = ( LAMBDA_TF2:IsDamageCustom( dmgCustom, TF_DMG_CUSTOM_BURNING_PHLOG ) )
-    if !turnIntoAshes and lambda:GetIsBurning() then 
-        turnIntoAshes = ( LAMBDA_TF2:IsDamageCustom( lambda.l_TF_BurnDamageCustom, TF_DMG_CUSTOM_BURNING_PHLOG ) ) 
+    if !turnIntoAshes and lambda:l_GetIsBurning() then
+        turnIntoAshes = ( LAMBDA_TF2:IsDamageCustom( lambda.l_TF_BurnDamageCustom, TF_DMG_CUSTOM_BURNING_PHLOG ) )
     end
 
     local burnTime = LAMBDA_TF2:GetBurnEndTime( lambda )
@@ -1296,12 +1323,12 @@ local function OnLambdaKilled( lambda, dmginfo )
         local turnIntoIce = false
         if isDissolving then
             animTbl = tf2DeathAnims[ TF_DMG_CUSTOM_PLASMA ]
-        elseif doDecapitation or LAMBDA_TF2:IsDamageCustom( dmgCustom, dmgCustomHeadshots ) then 
-            animTbl = tf2DeathAnims[ TF_DMG_CUSTOM_HEADSHOT ] 
+        elseif doDecapitation or LAMBDA_TF2:IsDamageCustom( dmgCustom, dmgCustomHeadshots ) then
+            animTbl = tf2DeathAnims[ TF_DMG_CUSTOM_HEADSHOT ]
         elseif LAMBDA_TF2:IsDamageCustom( dmgCustom, dmgCustomBackstabs ) then
             local inflictor = dmginfo:GetInflictor()
             turnIntoIce = ( IsValid( inflictor ) and inflictor.TF2Data and inflictor:GetWeaponAttribute( "FreezeOnBackstab", false ) )
-            animTbl = tf2DeathAnims[ TF_DMG_CUSTOM_BACKSTAB ] 
+            animTbl = tf2DeathAnims[ TF_DMG_CUSTOM_BACKSTAB ]
         elseif shouldBurn then
             animTbl = tf2DeathAnims[ TF_DMG_CUSTOM_BURNING ]
         end
@@ -1317,7 +1344,7 @@ local function OnLambdaKilled( lambda, dmginfo )
 
         local groundTr = TraceHull( groundCheckTbl )
         local onGround = ( groundTr.Hit )
-        
+
         if animTbl and ( turnIntoIce or random( 1, 100 ) <= GetConVar( "lambdaplayers_tf2_deathanimchance" ):GetInt() ) and ( onGround or isDissolving ) then
             local isTFAnim = true
             local index, dur = lambda:LookupSequence( animTbl[ random( #animTbl ) ] )
@@ -1325,6 +1352,12 @@ local function OnLambdaKilled( lambda, dmginfo )
             if index <= 0 then
                 isTFAnim = false
                 index, dur = lambda:LookupSequence( gmodDeathAnims[ random( #gmodDeathAnims ) ] )
+
+                if index <= 0 then
+                    index = lambda:SelectWeightedSequence( ACT_DIESIMPLE )
+                    print( lambda:GetSequenceName( index ) )
+                    if index > 0 then dur = lambda:SequenceDuration( index ) end
+                end
             end
 
             if index > 0 and ( isTFAnim or !isDissolving and !shouldBurn ) then
@@ -1338,7 +1371,7 @@ local function OnLambdaKilled( lambda, dmginfo )
                 LAMBDA_TF2:TakeNoDamage( animEnt )
 
                 animEnt:SetSkin( lambda:GetSkin() )
-                for _, v in ipairs( lambda:GetBodyGroups() ) do 
+                for _, v in ipairs( lambda:GetBodyGroups() ) do
                     animEnt:SetBodygroup( v.id, lambda:GetBodygroup( v.id ) )
                 end
 
@@ -1350,7 +1383,7 @@ local function OnLambdaKilled( lambda, dmginfo )
                 animEnt.l_IsTFDeathAnimation = true
                 animEnt.l_FreezeTime = 0
                 animEnt.l_FrozenTime = 0
-                
+
                 local speed = Rand( 0.8, 1.1 )
                 animEnt.l_PlayBackSpeed = speed
 
@@ -1382,11 +1415,11 @@ local function OnLambdaKilled( lambda, dmginfo )
                         animEnt:SetPlaybackRate( speed )
                     end )
                 end
-                
+
                 if IsSinglePlayer() then
                     net.Start( "lambdaplayers_serversideragdollplycolor" )
                         net.WriteEntity( animEnt )
-                        net.WriteVector( lambda:GetPlyColor() ) 
+                        net.WriteVector( lambda:GetPlyColor() )
                     net.Broadcast()
                 else
                     SimpleTimer( FrameTime() * 2, function()
@@ -1394,7 +1427,7 @@ local function OnLambdaKilled( lambda, dmginfo )
 
                         net.Start( "lambdaplayers_serversideragdollplycolor" )
                             net.WriteEntity( animEnt )
-                            net.WriteVector( lambda:GetPlyColor() ) 
+                            net.WriteVector( lambda:GetPlyColor() )
                         net.Broadcast()
                     end )
                 end
@@ -1419,7 +1452,7 @@ local function OnLambdaKilled( lambda, dmginfo )
                     burningSnd:PlayEx( 0.8, 100 )
                     burningSnd:SetSoundLevel( 75 )
                 end
-                
+
                 local nextAshSpawnT
                 if turnIntoAshes then
                     nextAshSpawnT = ( CurTime() + 0.5 )
@@ -1428,7 +1461,7 @@ local function OnLambdaKilled( lambda, dmginfo )
 
                 local finishTime = ( CurTime() + ( dur / speed ) * ( isTFAnim and 1 or Rand( 0.8, 1 ) ) )
                 lambda:Thread( function()
-                    
+
                     while ( IsValid( animEnt ) and CurTime() < finishTime and ( animEnt.l_FreezeTime == 0 or CurTime() < animEnt.l_FreezeTime ) ) do
                         animEnt:FrameAdvance()
 
@@ -1437,7 +1470,7 @@ local function OnLambdaKilled( lambda, dmginfo )
                             ParticleEffectAttach( "drg_fiery_death", PATTACH_ABSORIGIN_FOLLOW, animEnt, 0 )
                         end
 
-                        coroutine_yield() 
+                        coroutine_yield()
                     end
                     if !IsValid( animEnt ) then return end
 
@@ -1451,7 +1484,7 @@ local function OnLambdaKilled( lambda, dmginfo )
                     end
 
                     while ( IsValid( animEnt ) and CurTime() < animEnt.l_FrozenTime ) do
-                        coroutine_yield() 
+                        coroutine_yield()
                     end
                     if !IsValid( animEnt ) then return end
 
@@ -1496,7 +1529,7 @@ local function OnLambdaKilled( lambda, dmginfo )
                             if turnIntoIce then
                                 LAMBDA_TF2:TurnIntoStatue( serverRag, "models/player/shared/ice_player", physProp_Ice )
                             else
-                                if doDecapitation then 
+                                if doDecapitation then
                                     LAMBDA_TF2:DecapitateHead( serverRag, false )
                                 end
 
@@ -1507,13 +1540,13 @@ local function OnLambdaKilled( lambda, dmginfo )
                                 if turnIntoAshes then
                                     serverRag:SetRenderMode( RENDERMODE_TRANSCOLOR )
                                     ParticleEffectAttach( "drg_fiery_death", PATTACH_ABSORIGIN_FOLLOW, serverRag, 0 )
-                            
+
                                     local removeT = ( CurTime() + 0.5 )
                                     LambdaCreateThread( function()
                                         while ( IsValid( serverRag ) and CurTime() < removeT ) do
                                             local ragColor = serverRag:GetColor()
                                             ragColor.a = LAMBDA_TF2:RemapClamped( ( removeT - CurTime() ), 0, 0.5, 0, 255 )
-                            
+
                                             serverRag:SetColor( ragColor )
                                             coroutine_yield()
                                         end
@@ -1526,10 +1559,10 @@ local function OnLambdaKilled( lambda, dmginfo )
 
                     animEnt:SetNoDraw( true )
                     animEnt:DrawShadow( false )
-                    
+
                     coroutine_wait( 0.1 )
                     if IsValid( animEnt ) then animEnt:Remove() end
-                
+
                 end, "TF2_DeathAnimation_" .. animEnt:EntIndex(), true )
             end
         end
@@ -1545,7 +1578,7 @@ local function OnLambdaKilled( lambda, dmginfo )
         if IsValid( ragdoll ) then
             if turnIntoIce then
                 local frozenTime = ( CurTime() + Rand( 9.0, 11.0 ) )
-    
+
                 if ragdoll.l_IsTFDeathAnimation then
                     ragdoll.l_FreezeTime = ( CurTime() + ( Rand( 0.2, 0.75 ) / ragdoll.l_PlayBackSpeed ) )
                     ragdoll.l_FrozenTime = frozenTime
@@ -1561,38 +1594,38 @@ local function OnLambdaKilled( lambda, dmginfo )
                     end )
                 else
                     LAMBDA_TF2:TurnIntoStatue( ragdoll, "models/player/shared/ice_player", physProp_Ice )
-                    
+
                     if onGround then
                         ragdoll:SetSolid( SOLID_NONE )
-        
+
                         local physObjs = {}
-                        for i = 0, ( ragdoll:GetPhysicsObjectCount() - 1 ) do    
+                        for i = 0, ( ragdoll:GetPhysicsObjectCount() - 1 ) do
                             local bonePhys = ragdoll:GetPhysicsObjectNum( i )
-                            bonePhys:SetVelocityInstantaneous( vector_origin ) 
+                            bonePhys:SetVelocityInstantaneous( vector_origin )
                             bonePhys:Sleep()
                             physObjs[ #physObjs + 1 ] = bonePhys
                         end
-                        
+
                         lambda:Thread( function()
-        
+
                             while ( IsValid( ragdoll ) ) do
                                 if CurTime() < frozenTime then
                                     for _, bonePhys in ipairs( physObjs ) do
-                                        bonePhys:SetVelocityInstantaneous( vector_origin ) 
+                                        bonePhys:SetVelocityInstantaneous( vector_origin )
                                         bonePhys:Sleep()
                                     end
                                 else
                                     for _, bonePhys in ipairs( physObjs ) do
                                         bonePhys:Wake()
                                     end
-        
+
                                     ragdoll:SetSolid( SOLID_VPHYSICS )
-                                    return 
+                                    return
                                 end
-        
+
                                 coroutine_yield()
                             end
-        
+
                         end, "TF2_FrozenRagdoll_" .. ragdoll:EntIndex(), true )
                     end
                 end
@@ -1611,19 +1644,19 @@ local function OnLambdaKilled( lambda, dmginfo )
                     end
                 else
                     if doDecapitation then
-                        LAMBDA_TF2:DecapitateHead( ragdoll, true, ( dmginfo:GetDamageForce() / 4 ) )
+                        LAMBDA_TF2:DecapitateHead( ragdoll, true, ( dmginfo:GetDamageForce() / 10 ) )
                     end
 
                     if turnIntoAshes and !ragdoll.l_IsTFDeathAnimation then
                         ragdoll:SetRenderMode( RENDERMODE_TRANSCOLOR )
                         ParticleEffectAttach( "drg_fiery_death", PATTACH_ABSORIGIN_FOLLOW, ragdoll, 0 )
-                
+
                         local removeT = ( CurTime() + 0.5 )
                         LambdaCreateThread( function()
                             while ( IsValid( ragdoll ) and CurTime() < removeT ) do
                                 local ragColor = ragdoll:GetColor()
                                 ragColor.a = LAMBDA_TF2:RemapClamped( ( removeT - CurTime() ), 0, 0.5, 0, 255 )
-                
+
                                 ragdoll:SetColor( ragColor )
                                 coroutine_yield()
                             end
@@ -1659,16 +1692,16 @@ local function OnLambdaKilled( lambda, dmginfo )
         end
     end
 
-    lambda:SetShieldChargeMeter( 100 )
+    lambda:l_SetShieldChargeMeter( 100 )
 
     local attacker = dmginfo:GetAttacker()
     LAMBDA_TF2:CalcDominationAndRevenge( attacker, lambda )
 
-    if IsValid( attacker ) and attacker.IsLambdaPlayer then 
+    if IsValid( attacker ) and attacker.IsLambdaPlayer then
         attacker.l_TF_Decapitations = ( attacker.l_TF_Decapitations + lambda.l_TF_Decapitations )
         attacker.l_TF_CollectedOrgans = ( attacker.l_TF_CollectedOrgans + lambda.l_TF_CollectedOrgans )
     end
-    
+
     lambda:SimpleTimer( 0.1, function()
         lambda.l_TF_Decapitations = 0
     end, true )
@@ -1676,6 +1709,10 @@ local function OnLambdaKilled( lambda, dmginfo )
     lambda.l_TF_IsUsingItem = false
     lambda.l_TF_CrikeyMeter = 0
     lambda.l_TF_CrikeyMeterFull = false
+
+    lambda.l_TF_FocusActivated = false
+    lambda.l_TF_FocusMeter = 0
+    lambda.l_TF_FocusMeterFull = false
 
     if lambda:GetWeaponName() == "tf2_frontierjustice" and lambda.l_TF_RevengeCrits > 0 then
         lambda.l_TF_RevengeCrits = 0
@@ -1709,9 +1746,9 @@ local function OnLambdaKilled( lambda, dmginfo )
     table_Empty( lambda.l_TF_MedicsToIgnoreList )
 
     local bonkTrail = lambda.l_TF_AtomicPunched_Trail
-    if IsValid( bonkTrail ) then 
+    if IsValid( bonkTrail ) then
         bonkTrail:SetParent( NULL )
-        SafeRemoveEntityDelayed( bonkTrail, 1 ) 
+        SafeRemoveEntityDelayed( bonkTrail, 1 )
     end
     lambda.l_TF_AtomicPunched_Trail = nil
 
@@ -1732,7 +1769,7 @@ local function OnLambdaKilled( lambda, dmginfo )
             local vecImpulse = vector_origin
             vecImpulse = ( vecImpulse + ammopack:GetUp() * Rand( -0.25, 0.25 ) + ammopack:GetRight() * Rand( -0.25, 0.25 ) ):GetNormalized()
             vecImpulse = ( vecImpulse * Rand( 100, 150 ) + ammopack:GetVelocity() )
-        
+
             local speed = vecImpulse:Length()
             if speed > 300 then vecImpulse = ( vecImpulse * ( 300 / speed ) ) end
 
@@ -1760,7 +1797,7 @@ local function OnLambdaKilled( lambda, dmginfo )
     for model, mdlEnt in pairs( bonemergedMdls ) do
         if !IsValid( mdlEnt ) then
             bonemergedMdls[ model ] = nil
-            continue 
+            continue
         end
 
         if !mdlEnt:GetNoDraw() then
@@ -1769,7 +1806,7 @@ local function OnLambdaKilled( lambda, dmginfo )
             mdlEnt:DrawShadow( false )
             mdlEnt.l_TF_ParentDied = true
 
-            if IsValid( ragdoll ) then 
+            if IsValid( ragdoll ) then
                 LAMBDA_TF2:CreateBonemergedModel( ragdoll, model )
             else
                 net.Start( "lambda_tf2_bonemergemodel" )
@@ -1825,9 +1862,9 @@ end
 
 local function OnLambdaSwitchWeapon( lambda, weapon, data )
     if data.origin != "Team Fortress 2" then weapon.TF2Data = nil end
-    
+
     local preInvWep = lambda.l_TF_PreInventorySwitchWeapon
-    if preInvWep and lambda:GetWeaponName() == preInvWep.Name then 
+    if preInvWep and lambda:GetWeaponName() == preInvWep.Name then
         lambda.l_Clip = preInvWep.Clip
     end
 
@@ -1848,7 +1885,7 @@ local function OnLambdaSwitchWeapon( lambda, weapon, data )
     lambda.l_TF_HolsterTimeMultiplier = data.holstermult
 
     local healthMult = lambda.l_TF_WeaponHealthMultiplier
-    if healthMult then 
+    if healthMult then
         local curHP = lambda:GetMaxHealth()
         local oldHP = Round( curHP / healthMult )
         lambda:SetHealth( Round( lambda:Health() * ( oldHP / curHP ) ) )
@@ -1869,7 +1906,7 @@ local function OnLambdaSwitchWeapon( lambda, weapon, data )
     if lambda.l_TF_HasGlovesOfRunning then
         gruHP = min( gruHP + lambda.l_TF_GRU_DrainRate, lambda.l_TF_GRU_MinHealth )
         lambda.l_TF_GRU_DrainedHP = gruHP
-        
+
         local newHP = max( lambda:GetMaxHealth() - lambda.l_TF_GRU_DrainRate, lambda.l_TF_GRU_MinHealth )
         lambda:SetHealth( Round( lambda:Health() * ( newHP / lambda:GetMaxHealth() ) ) )
         lambda:SetMaxHealth( newHP )
@@ -1919,8 +1956,8 @@ local function OnLambdaPlayGesture( lambda, gesture )
     local laughSnd, seqName = table_Random( tf2LaughAnims )
     if lambda:LookupSequence( seqName ) <= 0 then return end
 
-    if GetConVar( "lambdaplayers_tf2_schadenfreudeplaysclasslaughter" ):GetBool() then 
-        lambda:EmitSound( laughSnd, 80, lambda:GetVoicePitch(), nil, CHAN_VOICE ) 
+    if GetConVar( "lambdaplayers_tf2_schadenfreudeplaysclasslaughter" ):GetBool() then
+        lambda:EmitSound( laughSnd, 80, lambda:GetVoicePitch(), nil, CHAN_VOICE )
     end
     return seqName
 end
@@ -1931,9 +1968,9 @@ local function OnLambdaChangeState( lambda, old, new, arg )
     end
 
     if lambda:Alive() then
-        if old == "UseTFItem" and lambda.l_TF_IsUsingItem then 
+        if old == "UseTFItem" and lambda.l_TF_IsUsingItem then
             lambda.l_TF_PreUseItemState = new
-            return true 
+            return true
         end
 
         if old == "Stunned" and lambda.l_TF_IsStunned and CurTime() <= lambda.l_TF_StunStateChangeT then
@@ -1952,7 +1989,7 @@ local function OnLambdaCanSwitchWeapon( lambda, name, data )
     if !data.ismelee and LAMBDA_TF2:HasCritBoost( lambda, "BuffaloSteakBoost" ) then return true end
 
     local invWep = lambda.l_TF_Inventory[ name ]
-    if invWep then 
+    if invWep then
         if !invWep.IsReady then return true end
     else
         if data.isbuffpack then
@@ -1982,7 +2019,7 @@ end
 
 local function OnLambdaCanTarget( lambda, ent )
     local medicList = lambda.l_TF_MedicsToIgnoreList[ ent ]
-    if medicList then 
+    if medicList then
         if lambda:InCombat() and ent.l_TF_Medic_HealTarget == lambda:GetEnemy() then
             lambda.l_TF_MedicsToIgnoreList[ ent ] = nil
         elseif CurTime() <= medicList then
@@ -1995,7 +2032,7 @@ end
 
 local function OnLambdaBeginMove( lambda, pos, onNavmesh )
     local goPickup = nil
-    
+
     if random( 1, 4 ) != 1 and !lambda:InCombat() and !lambda:IsPanicking() then
         if ( lambda:Health() < ( lambda:GetMaxHealth() * Rand( 0.66, 0.9 ) ) or LAMBDA_TF2:IsBleeding( lambda ) or LAMBDA_TF2:IsBurning( lambda ) ) and LAMBDA_TF2:GetMedigunHealers( lambda, true ) == 0 then
             local medkits = lambda:FindInSphere( nil, random( 300, 1500 ), function( ent )
@@ -2032,7 +2069,7 @@ end
 
 local function OnLambdaOnOtherKilled( lambda, victim, dmginfo )
     if victim != lambda:GetEnemy() then return end
-    
+
     for medic, _ in RandomPairs( LAMBDA_TF2:GetMedigunHealers( victim ) ) do
         if lambda:CanTarget( medic ) then
             lambda:AttackTarget( medic )

@@ -40,7 +40,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent:SetWeaponAttribute( "TracerEffect", "bullet_pistol_tracer01" )
 
             wepent:SetWeaponAttribute( "BulletCallback", function( lambda, weapon, tr, dmginfo )
-                if !lambda.l_TF_CrikeyMeterFull or lambda:GetCritBoostType() != TF_CRIT_NONE then return end
+                if !lambda.l_TF_CrikeyMeterFull or lambda:l_GetCritBoostType() != TF_CRIT_NONE then return end
 
                 lambda.l_TF_CrikeyMeter = 0
                 lambda.l_TF_CrikeyMeterFull = false

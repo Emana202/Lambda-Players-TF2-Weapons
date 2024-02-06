@@ -32,10 +32,15 @@ local IsPredicted = IsFirstTimePredicted
 local Vector = Vector
 local SimpleTimer = timer.Simple
 
-local meleetbl = { 
+local meleetbl = {
     mins = Vector( -18, -18, -18 ),
     maxs = Vector( 18, 18, 18 ),
-    filter = { NULL, NULL } 
+    filter = { NULL, NULL }
+}
+local meleeExtraAnims = {
+    [ ACT_HL2MP_GESTURE_RANGE_ATTACK_KNIFE ] = { ACT_VM_SWINGMISS, ACT_VM_MISSLEFT, ACT_VM_MISSCENTER },
+    [ ACT_HL2MP_GESTURE_RANGE_ATTACK_MELEE ] = { ACT_VM_SWINGMISS, ACT_VM_MISSLEFT },
+    [ ACT_HL2MP_GESTURE_RANGE_ATTACK_MELEE2 ] = { ACT_VM_SWINGHARD, ACT_VM_MISSLEFT2 }
 }
 local bulletTbl = {
     Tracer = 0
@@ -49,14 +54,14 @@ local rayWorldTbl = {}
 local dmgTraceTbl = { mask = ( MASK_SOLID + CONTENTS_HITBOX ) }
 local fixedWpnSpreadPellets = {
     Vector( 0, 0, 0 ),
-    Vector( 1, 0, 0 ),	
-    Vector( -1, 0, 0 ),	
-    Vector( 0, -1, 0 ),	
-    Vector( 0, 1, 0 ),	
-    Vector( 0.85, -0.85, 0 ),	
-    Vector( 0.85, 0.85, 0 ),	
-    Vector( -0.85, -0.85, 0 ),	
-    Vector( -0.85, 0.85, 0 ),	
+    Vector( 1, 0, 0 ),
+    Vector( -1, 0, 0 ),
+    Vector( 0, -1, 0 ),
+    Vector( 0, 1, 0 ),
+    Vector( 0.85, -0.85, 0 ),
+    Vector( 0.85, 0.85, 0 ),
+    Vector( -0.85, -0.85, 0 ),
+    Vector( -0.85, 0.85, 0 ),
     Vector( 0, 0, 0 )
 }
 local shotgunCockingTimings = {
@@ -76,7 +81,7 @@ end
 local shotgunReloadEndFunc = function( lambda, weapon, interrupted )
     if interrupted then return end
     local cockTimings = shotgunCockingTimings[ random( #shotgunCockingTimings ) ]
-    
+
     lambda:SimpleWeaponTimer( cockTimings[ 1 ], function()
         weapon:EmitSound( "weapons/shotgun_cock_back.wav", 70, nil, nil, CHAN_STATIC )
     end )
@@ -92,7 +97,7 @@ function LAMBDA_TF2:ShotgunReload( lambda, weapon, dataTbl )
 
     local startFunc = dataTbl.StartFunction
     local cycleFunc = dataTbl.CycleFunction
-    
+
     local interruptCondition = dataTbl.InterruptCondition
     if interruptCondition == nil then interruptCondition = shotgunReloadInterruptCond end
 
@@ -148,13 +153,13 @@ function LAMBDA_TF2:ShotgunReload( lambda, weapon, dataTbl )
 
         if endSnd then weapon:EmitSound( ( istable( endSnd ) and endSnd[ random( #endSnd ) ] or endSnd ), 70, nil, nil, CHAN_STATIC ) end
         if endFunc then endFunc( lambda, weapon, interrupted ) end
-        
-        if !isstring( animAct ) then 
-            lambda:RemoveGesture( animAct ) 
+
+        if !isstring( animAct ) then
+            lambda:RemoveGesture( animAct )
         elseif lambda:IsValidLayer( reloadLayer ) then
             lambda:SetLayerCycle( reloadLayer, 1 )
         end
-        
+
         lambda:SetIsReloading( false )
 
     end, "TF2_ShotgunReload" )
@@ -215,7 +220,7 @@ function LAMBDA_TF2:WeaponAttack( lambda, weapon, target, isCrit )
         local cooldown = weapon:GetWeaponAttribute( "RateOfFire", 0.1 )
         if istable( cooldown ) then cooldown = Rand( cooldown[ 1 ], cooldown[ 2 ] ) end
         lambda.l_WeaponUseCooldown = ( CurTime() + cooldown )
-    
+
         local shellName = weapon:GetWeaponAttribute( "ShellEject", "ShellEject" )
         if shellName then LAMBDA_TF2:CreateShellEject( weapon, shellName ) end
 
@@ -249,10 +254,10 @@ function LAMBDA_TF2:WeaponAttack( lambda, weapon, target, isCrit )
             bulletTbl.Spread = spreadVector
 
             local firePos = ( isvector( target ) and target or target:WorldSpaceCenter() )
-            
+
             local preBulletCallback = weapon:GetWeaponAttribute( "PreFireBulletCallback" )
-            if preBulletCallback then 
-                local overridePos = preBulletCallback( lambda, weapon, target, dmginfo, bulletTbl ) 
+            if preBulletCallback then
+                local overridePos = preBulletCallback( lambda, weapon, target, dmginfo, bulletTbl )
                 if isvector( overridePos ) then firePos = overridePos end
             end
 
@@ -296,7 +301,7 @@ function LAMBDA_TF2:WeaponAttack( lambda, weapon, target, isCrit )
 
                     spreadX = ( fixedWpnSpreadPellets[ spreadIndex ].x * spreadScalar )
                     spreadY = ( fixedWpnSpreadPellets[ spreadIndex ].y * spreadScalar )
-                elseif !firstShotAccurate or ( CurTime() - weapon.l_TF_LastFireTime ) <= spreadRecovery then 
+                elseif !firstShotAccurate or ( CurTime() - weapon.l_TF_LastFireTime ) <= spreadRecovery then
                     spreadX = ( Rand( -spreadScalar, spreadScalar ) + Rand( -spreadScalar, spreadScalar ) )
                     spreadY = ( Rand( -spreadScalar, spreadScalar ) + Rand( -spreadScalar, spreadScalar ) )
                 end
@@ -311,7 +316,7 @@ function LAMBDA_TF2:WeaponAttack( lambda, weapon, target, isCrit )
     else
         local hitRange = weapon:GetWeaponAttribute( "HitRange", 42 )
         local hitDelay = weapon:GetWeaponAttribute( "HitDelay", 0.2 )
-        
+
         local attackRange = hitRange
         if isnumber( hitDelay ) and hitDelay > 0 then
             attackRange = ( attackRange * ( 1 + Rand( 0, hitDelay ) ) )
@@ -330,12 +335,17 @@ function LAMBDA_TF2:WeaponAttack( lambda, weapon, target, isCrit )
         end
 
         local attackAnim = weapon:GetWeaponAttribute( "Animation", ACT_HL2MP_GESTURE_RANGE_ATTACK_MELEE )
-        if attackAnim then 
-            lambda:RemoveGesture( attackAnim )
-            local attackLayer = lambda:AddGesture( attackAnim, true )
-            lambda:SetLayerPlaybackRate( attackLayer, 0.85 )
+        if attackAnim then
+            local animTbl = meleeExtraAnims[ attackAnim ]
+            if !lambda.l_HasExtendedAnims or !animTbl then
+                lambda:RemoveGesture( attackAnim )
+                lambda:SetLayerPlaybackRate( lambda:AddGesture( attackAnim, true ), 0.85 )
+            else
+                for _, anim in ipairs( animTbl ) do lambda:RemoveGesture( anim ) end
+                lambda:SetLayerPlaybackRate( lambda:AddGesture( animTbl[ random( #animTbl ) ] ), 1.33 )
+            end
         end
-    
+
         local cooldown = weapon:GetWeaponAttribute( "RateOfFire", 0.8 )
         if istable( cooldown ) then cooldown = Rand( cooldown[ 1 ], cooldown[ 2 ] ) end
         lambda.l_WeaponUseCooldown = ( CurTime() + cooldown )
@@ -366,9 +376,9 @@ function LAMBDA_TF2:WeaponAttack( lambda, weapon, target, isCrit )
                 dmginfo:SetDamageType( weapon:GetWeaponAttribute( "DamageType", DMG_CLUB ) )
 
                 local dmgCustom = ( TF_DMG_CUSTOM_MELEE + weapon:GetWeaponAttribute( "DamageCustom", 0 ) )
-                if isCrit then 
-                    dmgCustom = ( dmgCustom + TF_DMG_CUSTOM_CRITICAL ) 
-                elseif lambda:GetNextMeleeCrit() == TF_CRIT_MINI then 
+                if isCrit then
+                    dmgCustom = ( dmgCustom + TF_DMG_CUSTOM_CRITICAL )
+                elseif lambda:l_GetNextMeleeCrit() == TF_CRIT_MINI then
                     dmgCustom = ( dmgCustom + TF_DMG_CUSTOM_MINICRITICAL )
                 end
                 dmginfo:SetDamageCustom( dmgCustom )
@@ -384,7 +394,7 @@ function LAMBDA_TF2:WeaponAttack( lambda, weapon, target, isCrit )
                     hitEnt:DispatchTraceAttack( dmginfo, meleeTr, hitAng:Forward() )
                 end
 
-                lambda:SetNextMeleeCrit( TF_CRIT_NONE )
+                lambda:l_SetNextMeleeCrit( TF_CRIT_NONE )
             end
 
             if !isnumber( hitDelay ) or hitDelay <= 0 then
@@ -419,7 +429,7 @@ function LAMBDA_TF2:MedigunFire( lambda, weapon, target )
     lambda.l_TF_Medigun_HealTarget = target
     lambda.l_TF_Medigun_DetachTime = ( CurTime() + 0.5 )
 
-    return true 
+    return true
 end
 
 function LAMBDA_TF2:MedigunHeal( lambda, weapon, target, chargeRateMult, beamSparks, overhealMult, healRateMult )
@@ -429,8 +439,8 @@ function LAMBDA_TF2:MedigunHeal( lambda, weapon, target, chargeRateMult, beamSpa
     if CurTime() > lambda.l_TF_Medigun_HealTime then
         LAMBDA_TF2:GiveHealth( target, 1, LAMBDA_TF2:GetMaxBuffedHealth( target, ( overhealMult or 1.5 ) ) )
 
-        if target:GetIsBurning() then
-            target:SetFlameRemoveTime( target:GetFlameRemoveTime() - ( 1 / ( target:GetFlameRemoveTime() - CurTime() ) ) )
+        if target:l_GetIsBurning() then
+            target:l_SetFlameRemoveTime( target:l_GetFlameRemoveTime() - ( 1 / ( target:l_GetFlameRemoveTime() - CurTime() ) ) )
         end
         local bleedInfo = target.l_TF_BleedInfo
         if bleedInfo and #bleedInfo > 0 then
@@ -461,7 +471,7 @@ function LAMBDA_TF2:MedigunHeal( lambda, weapon, target, chargeRateMult, beamSpa
         if target:Health() > ( target:GetMaxHealth() * 1.425 ) then chargeRate = ( chargeRate * 0.5 ) end
         for _, v in ipairs( GetLambdaPlayers() ) do
             if v == lambda or !v.l_TF_HasMedigunEquipped or v.l_TF_Medigun_HealTarget != target then continue end
-            chargeRate = ( chargeRate * 0.5 ) 
+            chargeRate = ( chargeRate * 0.5 )
             break
         end
 
@@ -470,7 +480,7 @@ function LAMBDA_TF2:MedigunHeal( lambda, weapon, target, chargeRateMult, beamSpa
 
     if CurTime() > lambda.l_TF_Medigun_BeamUpdateTime then
         beamSparks = ( beamSparks == nil and false or beamSparks )
-        
+
         net.Start( "lambda_tf2_medigun_beameffect" )
             net.WriteEntity( weapon )
             net.WriteEntity( target )
@@ -503,7 +513,7 @@ function LAMBDA_TF2:MedigunDeploy( lambda, weapon )
 end
 
 function LAMBDA_TF2:MedigunHolster( lambda, weapon )
-    if IsValid( lambda.l_TF_Medigun_HealTarget ) then 
+    if IsValid( lambda.l_TF_Medigun_HealTarget ) then
         weapon:EmitSound( ")weapons/medigun_heal_detach.wav", nil, nil, nil, CHAN_STATIC )
 
         net.Start( "lambda_tf2_medigun_beameffect" )
@@ -513,7 +523,7 @@ function LAMBDA_TF2:MedigunHolster( lambda, weapon )
 
         lambda.l_nextspeedupdate = 0
     end
-    if lambda.l_TF_Medigun_HealSound then 
+    if lambda.l_TF_Medigun_HealSound then
         lambda.l_TF_Medigun_HealSound:Stop()
     end
 
@@ -542,7 +552,7 @@ function LAMBDA_TF2:MedigunDetach( lambda, weapon, target )
     weapon:EmitSound( ")weapons/medigun_heal_detach.wav", nil, nil, nil, CHAN_STATIC )
     lambda.l_WeaponUseCooldown = ( CurTime() + 0.5 )
 
-    if lambda.l_TF_Medigun_HealSound then 
+    if lambda.l_TF_Medigun_HealSound then
         lambda.l_TF_Medigun_HealSound:Stop()
     end
 
@@ -572,22 +582,22 @@ function LAMBDA_TF2:MinigunHolster( lambda, weapon )
     weapon:StopSound( weapon:GetWeaponAttribute( "WindUpSound" ) )
     weapon:StopSound( weapon:GetWeaponAttribute( "WindDownSound" ) )
 
-    if weapon.l_FireSound then weapon.l_FireSound:Stop(); weapon.l_FireSound = nil end 
-    if weapon.l_SpinSound then weapon.l_SpinSound:Stop(); weapon.l_SpinSound = nil end 
-    if weapon.l_CritSound then weapon.l_CritSound:Stop(); weapon.l_CritSound = nil end 
+    if weapon.l_FireSound then weapon.l_FireSound:Stop(); weapon.l_FireSound = nil end
+    if weapon.l_SpinSound then weapon.l_SpinSound:Stop(); weapon.l_SpinSound = nil end
+    if weapon.l_CritSound then weapon.l_CritSound:Stop(); weapon.l_CritSound = nil end
 end
 
 function LAMBDA_TF2:MinigunThink( lambda, weapon, isDead )
     if isDead then
         weapon:StopSound( weapon:GetWeaponAttribute( "WindUpSound" ) )
 
-        if weapon.l_WindUpState == 2 then 
-            weapon.l_WindUpState = 1 
+        if weapon.l_WindUpState == 2 then
+            weapon.l_WindUpState = 1
             weapon.l_SpinTime = CurTime()
             weapon:EmitSound( weapon:GetWeaponAttribute( "WindDownSound" ), nil, nil, nil, CHAN_WEAPON )
         end
 
-        if weapon.l_SpinSound then weapon.l_SpinSound:Stop() end 
+        if weapon.l_SpinSound then weapon.l_SpinSound:Stop() end
         if weapon.l_FireSound then weapon.l_FireSound:Stop() end
         if weapon.l_CritSound then weapon.l_CritSound:Stop() end
 
@@ -599,7 +609,7 @@ function LAMBDA_TF2:MinigunThink( lambda, weapon, isDead )
 
         if weapon.l_WindUpState == 2 and CurTime() > weapon.l_SpinSoundPlayT then
             local spinSnd = weapon.l_SpinSound
-            if spinSnd and !spinSnd:IsPlaying() then 
+            if spinSnd and !spinSnd:IsPlaying() then
                 spinSnd:Play()
                 weapon:StopSound( windUpSnd )
             end
@@ -617,7 +627,7 @@ function LAMBDA_TF2:MinigunThink( lambda, weapon, isDead )
                 if lambda:IsPanicking() or lambda:InCombat() and !lambda:IsInRange( lambda:GetEnemy(), ( lambda.l_CombatAttackRange or 1500 ) ) then
                     weapon.l_SpinTime = 0
                 else
-                    if CurTime() < weapon.l_FireTime then 
+                    if CurTime() < weapon.l_FireTime then
                         local isCrit = weapon:CalcIsAttackCriticalHelper()
                         local playSnd = ( isCrit and weapon.l_CritSound or weapon.l_FireSound )
                         local stopSnd = ( !isCrit and weapon.l_CritSound or weapon.l_FireSound )
@@ -626,7 +636,7 @@ function LAMBDA_TF2:MinigunThink( lambda, weapon, isDead )
                         if playSnd and !playSnd:IsPlaying() then playSnd:Play() end
                     else
                         if weapon.l_FireSound then weapon.l_FireSound:Stop() end
-                        if weapon.l_CritSound then weapon.l_CritSound:Stop() end 
+                        if weapon.l_CritSound then weapon.l_CritSound:Stop() end
                     end
                 end
             end
@@ -637,7 +647,7 @@ function LAMBDA_TF2:MinigunThink( lambda, weapon, isDead )
 
         if weapon.l_SpinSound then weapon.l_SpinSound:Stop() end
         if weapon.l_FireSound then weapon.l_FireSound:Stop() end
-        if weapon.l_CritSound then weapon.l_CritSound:Stop() end 
+        if weapon.l_CritSound then weapon.l_CritSound:Stop() end
 
         lambda.l_nextspeedupdate = 0
         weapon:EmitSound( weapon:GetWeaponAttribute( "WindDownSound" ), nil, nil, nil, CHAN_WEAPON )
@@ -656,7 +666,7 @@ function LAMBDA_TF2:MinigunFire( lambda, weapon, target )
     if weapon.l_WindUpState != 2 or CurTime() <= weapon.l_NextWindUpStateChangeT then return end
 
     if !LAMBDA_TF2:WeaponAttack( lambda, weapon, target ) then return end
-    
+
     local rateoffire = weapon:GetWeaponAttribute( "RateOfFire" )
     weapon.l_FireTime = ( CurTime() + rateoffire )
 
@@ -665,11 +675,11 @@ function LAMBDA_TF2:MinigunFire( lambda, weapon, target )
     local curROF = 0
     local rateOfFire = ( rateoffire / 4 )
     for i = 1, weapon:GetWeaponAttribute( "ProjectileCount" ) do
-        lambda:SimpleWeaponTimer( curROF, function() 
+        lambda:SimpleWeaponTimer( curROF, function()
             lambda:RemoveGesture( ACT_HL2MP_GESTURE_RANGE_ATTACK_AR2 )
             lambda:AddGesture( ACT_HL2MP_GESTURE_RANGE_ATTACK_AR2, true )
 
-            LAMBDA_TF2:CreateShellEject( weapon, "RifleShellEject" ) 
+            LAMBDA_TF2:CreateShellEject( weapon, "RifleShellEject" )
         end )
 
         curROF = ( curROF + rateOfFire )
@@ -700,7 +710,7 @@ local function OnFlameThink( self )
             rayWorldTbl.mins = mins
             rayWorldTbl.maxs = maxs
 
-            rayWorldTbl.filter = self    
+            rayWorldTbl.filter = self
             rayWorldTbl.mask = MASK_SOLID
             rayWorldTbl.collisiongroup = COLLISION_GROUP_DEBRIS
 
@@ -712,7 +722,7 @@ local function OnFlameThink( self )
                 if attacker.IsLambdaPlayer and LAMBDA_TF2:IsValidCharacter( ent, false ) and !attacker:CanTarget( ent ) then continue end
 
                 if hitWorld then
-                    rayWorldTbl.filter = NULL 
+                    rayWorldTbl.filter = NULL
                     rayWorldTbl.mask = ( MASK_SOLID + CONTENTS_HITBOX )
                     rayWorldTbl.collisiongroup = COLLISION_GROUP_NONE
 
@@ -765,7 +775,7 @@ function LAMBDA_TF2:FlamethrowerDeploy( lambda, weapon )
     weapon.l_FireLoopSound = LAMBDA_TF2:CreateSound( weapon, weapon:GetWeaponAttribute( "FireSound" ) )
     weapon.l_FireCritSound = LAMBDA_TF2:CreateSound( weapon, weapon:GetWeaponAttribute( "CritFireSound" ) )
     weapon.l_FireEndSound = LAMBDA_TF2:CreateSound( weapon, weapon:GetWeaponAttribute( "EndFireSound" ) )
-    
+
     weapon.l_FireState = 0
     weapon.l_NextFireStateUpdateT = CurTime()
 
@@ -776,7 +786,7 @@ function LAMBDA_TF2:FlamethrowerDeploy( lambda, weapon )
     local pilotSndName = weapon:GetWeaponAttribute( "PilotSound", "weapons/flame_thrower_pilot.wav" )
     if pilotSndName then weapon:EmitSound( pilotSndName, 70, 100, 0.25, CHAN_STATIC ) end
     weapon.l_FirePilotSound = pilotSndName
-    
+
     weapon.l_FireParticleName = weapon:GetWeaponAttribute( "FireParticleName", "flamethrower" )
     weapon.l_CurrentFireParticleName = false
 
@@ -792,10 +802,10 @@ function LAMBDA_TF2:FlamethrowerHolster( lambda, weapon )
     end
 
     if weapon.l_FirePilotSound then weapon:StopSound( weapon.l_FirePilotSound ) end
-    if weapon.l_FireStartSound then weapon.l_FireStartSound:Stop(); weapon.l_FireStartSound = nil end 
-    if weapon.l_FireLoopSound then weapon.l_FireLoopSound:Stop(); weapon.l_FireLoopSound = nil end 
-    if weapon.l_FireCritSound then weapon.l_FireCritSound:Stop(); weapon.l_FireCritSound = nil end 
-    if weapon.l_FireEndSound then weapon.l_FireEndSound:Stop(); weapon.l_FireEndSound = nil end 
+    if weapon.l_FireStartSound then weapon.l_FireStartSound:Stop(); weapon.l_FireStartSound = nil end
+    if weapon.l_FireLoopSound then weapon.l_FireLoopSound:Stop(); weapon.l_FireLoopSound = nil end
+    if weapon.l_FireCritSound then weapon.l_FireCritSound:Stop(); weapon.l_FireCritSound = nil end
+    if weapon.l_FireEndSound then weapon.l_FireEndSound:Stop(); weapon.l_FireEndSound = nil end
 end
 
 function LAMBDA_TF2:FlamethrowerFire( lambda, weapon, target )
@@ -806,7 +816,7 @@ end
 function LAMBDA_TF2:FlamethrowerThink( lambda, weapon, isDead )
     local firePartName = weapon.l_FireParticleName
     local curPartName = weapon.l_CurrentFireParticleName
-    
+
     if isDead then
         weapon.l_FireAttackTime = false
         weapon.l_FireState = 0
@@ -818,19 +828,19 @@ function LAMBDA_TF2:FlamethrowerThink( lambda, weapon, isDead )
         end
 
         if weapon.l_FirePilotSound then weapon:StopSound( weapon.l_FirePilotSound ) end
-        if weapon.l_FireStartSound then weapon.l_FireStartSound:Stop() end 
-        if weapon.l_FireLoopSound then weapon.l_FireLoopSound:Stop() end 
-        if weapon.l_FireCritSound then weapon.l_FireCritSound:Stop() end 
-        if weapon.l_FireEndSound then weapon.l_FireEndSound:Stop() end 
+        if weapon.l_FireStartSound then weapon.l_FireStartSound:Stop() end
+        if weapon.l_FireLoopSound then weapon.l_FireLoopSound:Stop() end
+        if weapon.l_FireCritSound then weapon.l_FireCritSound:Stop() end
+        if weapon.l_FireEndSound then weapon.l_FireEndSound:Stop() end
     else
-        if weapon.l_FireAttackTime then 
+        if weapon.l_FireAttackTime then
             if CurTime() > weapon.l_FireAttackTime then
                 if weapon.l_FirePilotSound then weapon:StopSound( weapon.l_FirePilotSound ) end
-                if weapon.l_FireStartSound then weapon.l_FireStartSound:Stop() end 
+                if weapon.l_FireStartSound then weapon.l_FireStartSound:Stop() end
                 if weapon.l_FireLoopSound then weapon.l_FireLoopSound:Stop() end
                 if weapon.l_FireCritSound then weapon.l_FireCritSound:Stop() end
-                if weapon.l_FireEndSound and !weapon.l_FireEndSound:IsPlaying() then weapon.l_FireEndSound:Play() end 
-                
+                if weapon.l_FireEndSound and !weapon.l_FireEndSound:IsPlaying() then weapon.l_FireEndSound:Play() end
+
                 weapon.l_FireAttackTime = false
                 weapon.l_FireState = 0
                 weapon.l_NextFireStateUpdateT = CurTime()
@@ -843,7 +853,7 @@ function LAMBDA_TF2:FlamethrowerThink( lambda, weapon, isDead )
                 local isCrit = weapon:CalcIsAttackCriticalHelper()
                 if isCrit then firePartName = firePartName .. "_crit" end
 
-                if StartWith( firePartName, "flamethrower" ) then 
+                if StartWith( firePartName, "flamethrower" ) then
                     if isCrit then
                         firePartName = firePartName .. "_red"
                     elseif lambda.l_TF_TeamColor == 1 then
@@ -859,9 +869,9 @@ function LAMBDA_TF2:FlamethrowerThink( lambda, weapon, isDead )
 
                 if CurTime() > weapon.l_NextFireStateUpdateT then
                     if weapon.l_FireState == 0 then
-                        if weapon.l_FireStartSound and !weapon.l_FireStartSound:IsPlaying() then weapon.l_FireStartSound:Play() end 
-                        if weapon.l_FireEndSound then weapon.l_FireEndSound:Stop() end 
-                        
+                        if weapon.l_FireStartSound and !weapon.l_FireStartSound:IsPlaying() then weapon.l_FireStartSound:Play() end
+                        if weapon.l_FireEndSound then weapon.l_FireEndSound:Stop() end
+
                         weapon.l_FireState = 1
                         weapon.l_NextFireStateUpdateT = ( CurTime() + SoundDuration( weapon:GetWeaponAttribute( "StartFireSound" ) ) )
                     else
@@ -942,10 +952,10 @@ end
 
 local function OnRocketTouch( rocket, ent )
     if !ent or !ent:IsSolid() or ent:GetSolidFlags() == FSOLID_VOLUME_CONTENTS then return end
-    
+
     local touchTr = rocket:GetTouchTrace()
     if touchTr.HitSky then rocket:Remove() return end
-    
+
     local hitPos, hitNormal = rocket:WorldSpaceCenter(), touchTr.HitNormal
     local owner = rocket:GetOwner()
 
@@ -978,7 +988,7 @@ end
 
 function LAMBDA_TF2:CreateRocketProjectile( pos, ang, owner, wepent, critical, attributes )
     attributes = attributes or {}
-    
+
     local rocket = ents_Create( "base_gmodentity" )
     rocket:SetPos( pos )
     rocket:SetAngles( ang )
@@ -989,10 +999,10 @@ function LAMBDA_TF2:CreateRocketProjectile( pos, ang, owner, wepent, critical, a
     rocket:SetSolid( SOLID_BBOX )
     rocket:SetMoveType( MOVETYPE_FLY )
     rocket:SetMoveCollide( MOVECOLLIDE_FLY_CUSTOM )
-    
+
     local flySpeed = ( attributes.Speed or 1100 )
     rocket:SetVelocity( ang:Forward() * flySpeed )
-    
+
     rocket:SetCollisionGroup( COLLISION_GROUP_PROJECTILE )
     rocket:SetCollisionBounds( -vector_origin, vector_origin )
     LAMBDA_TF2:TakeNoDamage( rocket )
@@ -1014,13 +1024,13 @@ function LAMBDA_TF2:CreateRocketProjectile( pos, ang, owner, wepent, critical, a
     rocket.IsLambdaWeapon = true
     rocket.l_killiconname = ( attributes.KillIcon or wepent.l_killiconname )
 
-    local critType = owner:GetCritBoostType()
+    local critType = owner:l_GetCritBoostType()
     if critical then critType = TF_CRIT_FULL end
     rocket.l_ExplodeCrit = critType
 
     if !attributes.HasCustomParticles then
         ParticleEffectAttach( "rockettrail", PATTACH_POINT_FOLLOW, rocket, 1 )
-        
+
         if critType == TF_CRIT_FULL then
             ParticleEffectAttach( "critical_rocket_" .. ( owner.l_TF_TeamColor == 1 and "blue" or "red" ), PATTACH_POINT_FOLLOW, rocket, 1 )
         end
@@ -1056,7 +1066,7 @@ local function OnPipeTouch( self, other )
         if self.l_ExplodeOnImpact and LambdaIsValid( other ) and LAMBDA_TF2:TakesDamage( other ) then
             ParticleEffect( "ExplosionCore_MidAir", vecOrigin, ( ( vecOrigin + tr.HitNormal ) - vecOrigin ):Angle() )
 
-            if IsValid( owner ) then     
+            if IsValid( owner ) then
                 local dmginfo = DamageInfo()
                 dmginfo:SetDamage( self.l_ExplodeDamage )
                 dmginfo:SetAttacker( owner )
@@ -1072,9 +1082,9 @@ local function OnPipeTouch( self, other )
             local snds = self.l_ExplodeSound
             if istable( snds ) then snds = snds[ random( #snds ) ] end
             self:EmitSound( snds, 85, nil, nil, CHAN_WEAPON )
-            
+
             self:Remove()
-            return 
+            return
         end
 
         self.l_ExplodeDamage = ( self.l_ExplodeDamage * 0.6 )
@@ -1094,7 +1104,7 @@ end
 
 function LAMBDA_TF2:CreatePipeGrenadeProjectile( pos, ang, owner, wepent, critical, attributes )
     attributes = attributes or {}
-    
+
     local pipe = ents_Create( "base_gmodentity" )
     pipe:SetPos( pos )
     pipe:SetAngles( ang )
@@ -1105,11 +1115,11 @@ function LAMBDA_TF2:CreatePipeGrenadeProjectile( pos, ang, owner, wepent, critic
     pipe:PhysicsInit( SOLID_VPHYSICS )
     pipe:SetMoveCollide( MOVECOLLIDE_FLY_CUSTOM )
     pipe:AddSolidFlags( FSOLID_NOT_STANDABLE + FSOLID_TRIGGER )
-    
+
     pipe:SetCollisionGroup( COLLISION_GROUP_PROJECTILE )
     pipe:SetCollisionBounds( -pipeBounds, pipeBounds )
     LAMBDA_TF2:TakeNoDamage( pipe )
-    
+
     pipe:SetGravity( 0.4 )
     pipe:SetFriction( 0.2 )
     pipe:SetElasticity( 0.45 )
@@ -1119,12 +1129,12 @@ function LAMBDA_TF2:CreatePipeGrenadeProjectile( pos, ang, owner, wepent, critic
     pipe.l_OnDealDamage = attributes.OnDealDamage
     pipe.l_OnPhysicsCollide = attributes.OnPhysicsCollide
     pipe.l_OnTouch = attributes.OnTouch
-    
+
     local phys = pipe:GetPhysicsObject()
     local flySpeed = ( attributes.Speed or 1200 )
     if IsValid( phys ) then
         phys:Wake()
-        
+
         local vel = ( ang:Forward() * flySpeed + ang:Up() * ( 200 + Rand( -10, 10 ) ) + ang:Right() * Rand( -10, 10 ) )
         phys:SetVelocity( vel )
 
@@ -1145,14 +1155,14 @@ function LAMBDA_TF2:CreatePipeGrenadeProjectile( pos, ang, owner, wepent, critic
     pipe.l_HasTouched = false
     pipe.l_FlySpeed = flySpeed
     pipe.l_BounceSound = ( attributes.BounceSound or "weapons/grenade_impact.wav" )
-    
+
     pipe.l_ExplodeOnImpact = attributes.ExplodeOnImpact
     if pipe.l_ExplodeOnImpact == nil then pipe.l_ExplodeOnImpact = true end
 
     pipe.IsLambdaWeapon = true
     pipe.l_killiconname = ( attributes.KillIcon or wepent.l_killiconname )
 
-    local critType = owner:GetCritBoostType()
+    local critType = owner:l_GetCritBoostType()
     if critical then critType = TF_CRIT_FULL end
     pipe.l_ExplodeCrit = critType
 
@@ -1181,7 +1191,7 @@ function LAMBDA_TF2:CreatePipeGrenadeProjectile( pos, ang, owner, wepent, critic
             ParticleEffect( "ExplosionCore_MidAir", pipePos, Angle( 0, random( -360, 360 ), 0 ) )
         end
 
-        if IsValid( owner ) then 
+        if IsValid( owner ) then
             local dmginfo = DamageInfo()
             dmginfo:SetDamage( pipe.l_ExplodeDamage )
             dmginfo:SetDamagePosition( pipePos )

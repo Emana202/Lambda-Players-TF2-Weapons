@@ -71,6 +71,8 @@ TF_DMG_CUSTOM_BURNING_PHLOG             = 2097152
 TF_DMG_CUSTOM_CANNONBALL_PUSH           = 4194304
 TF_DMG_CUSTOM_PLASMA                    = 8388608
 TF_DMG_CUSTOM_PLASMA_CHARGED            = 16777216
+TF_DMG_CUSTOM_PENETRATION               = 33554432
+TF_DMG_CUSTOM_PENETRATION_HEADSHOT      = 67108864
 
 TF_DAMAGE_CRIT_CHANCE                   = 0.02
 TF_DAMAGE_CRIT_CHANCE_RAPID             = 0.02
@@ -340,7 +342,7 @@ function LAMBDA_TF2:EntityThink( ent )
             ParticleEffectAttach( "peejar_drips_milk", PATTACH_ABSORIGIN_FOLLOW, ent, 0 )
             ent.l_TF_MilkEffect = true
 
-            if ent.IsLambdaPlayer and random( 1, 100 ) <= ent:GetVoiceChance() then
+            if ent.IsLambdaPlayer and random( 1, 100 ) <= ( ent:GetVoiceChance() * 1.5 ) then
                 local rndReact = random( 1, 3 )
                 if rndReact == 1 then
                     ent:PlaySoundFile( "death" )
@@ -385,8 +387,8 @@ function LAMBDA_TF2:EntityThink( ent )
         end
     end
     
-    if ent:GetIsBurning() then
-        if isDead or curTime > ent:GetFlameRemoveTime() or waterLvl >= 2 or curTime <= ent.l_TF_InvulnerabilityTime then
+    if ent:l_GetIsBurning() then
+        if isDead or curTime > ent:l_GetFlameRemoveTime() or waterLvl >= 2 or curTime <= ent.l_TF_InvulnerabilityTime then
             LAMBDA_TF2:RemoveBurn( ent )
         elseif curTime >= ent.l_TF_FlameBurnTime then
             local burnDamage = ent.l_TF_BurnDamage
@@ -409,7 +411,7 @@ function LAMBDA_TF2:EntityThink( ent )
     end
 
     if ent.l_TF_InvulnerabilityTime then 
-        local critBoosted = ( ent:GetCritBoostType() != TF_CRIT_NONE )
+        local critBoosted = ( ent:l_GetCritBoostType() != TF_CRIT_NONE )
         local invulnMat = LAMBDA_TF2:GetInvulnMaterial()
 
         if curTime <= ent.l_TF_InvulnerabilityTime then
@@ -432,8 +434,8 @@ function LAMBDA_TF2:EntityThink( ent )
             end
         end
 
-        ent:SetIsInvulnerable( curTime <= ent.l_TF_InvulnerabilityTime )
-        ent:SetInvulnerabilityWearingOff( ( ent.l_TF_InvulnerabilityTime - curTime ) < 0.9 )
+        ent:l_SetIsInvulnerable( curTime <= ent.l_TF_InvulnerabilityTime )
+        ent:l_SetInvulnerabilityWearingOff( ( ent.l_TF_InvulnerabilityTime - curTime ) < 0.9 )
     end
 
     if ent.l_TF_IsStunned then
@@ -653,7 +655,7 @@ function LAMBDA_TF2:UpdateCritBoostEffect( ent, boostType )
         LAMBDA_TF2:StopSound( ent, ent.l_TF_CritBoostSound )
     end
 
-    ent:SetCritBoostType( boostType )
+    ent:l_SetCritBoostType( boostType )
 end
 
 ///
@@ -761,14 +763,14 @@ end
 
 local function CalcIsAttackCriticalHelper( self )
     local owner = self.l_TF_Owner
-    if owner:GetCritBoostType() == TF_CRIT_FULL then return true end
+    if owner:l_GetCritBoostType() == TF_CRIT_FULL then return true end
 
     local remapCritMul = LAMBDA_TF2:RemapClamped( owner.l_TF_CritMult, 0, 255, 1, 4 )
     local randChance = random( 0, 9999 )
     local randCritsAllowed = GetConVar( "lambdaplayers_tf2_allowrandomcrits" ):GetBool()
 
     if self:GetWeaponAttribute( "IsMelee" ) then
-        if owner:GetNextMeleeCrit() == TF_CRIT_FULL then return true end
+        if owner:l_GetNextMeleeCrit() == TF_CRIT_FULL then return true end
         if !self:GetWeaponAttribute( "RandomCrits", true ) or !randCritsAllowed then return false end
         return ( randChance < ( TF_DAMAGE_CRIT_CHANCE_MELEE * remapCritMul * 9999 ) )
     end
@@ -838,8 +840,8 @@ function LAMBDA_TF2:Stun( target, time, stunAmount, freeze )
                 target:CancelMovement()
             end
 
-            if target:GetIsShieldCharging() then
-                target:SetShieldChargeMeter( 0 )
+            if target:l_GetIsShieldCharging() then
+                target:l_SetShieldChargeMeter( 0 )
             end
 
             target.l_nextspeedupdate = 0
@@ -868,8 +870,8 @@ function LAMBDA_TF2:Stun( target, time, stunAmount, freeze )
                     target:CancelMovement()
                 end
     
-                if target:GetIsShieldCharging() then
-                    target:SetShieldChargeMeter( 0 )
+                if target:l_GetIsShieldCharging() then
+                    target:l_SetShieldChargeMeter( 0 )
                 end
 
                 target.l_nextspeedupdate = 0
@@ -1065,7 +1067,7 @@ end
 function LAMBDA_TF2:GetMediGunHealRate( target )
     local healRate = ( 24 * LAMBDA_TF2:RemapClamped( LAMBDA_TF2:GetTimeSinceLastDamage( target ), 10, 15, 1, 3 ) )
     healRate = ( healRate * target.l_TF_HealRateMultiplier )
-    if target:GetIsBurning() then healRate = ( healRate * 0.5 ) end
+    if target:l_GetIsBurning() then healRate = ( healRate * 0.5 ) end
     return ( 1 / healRate )
 end
 
@@ -1200,8 +1202,8 @@ function LAMBDA_TF2:RemoveBleeding( ent )
 end
 
 function LAMBDA_TF2:Burn( ent, attacker, weapon, burningTime )
-    if !ent:GetIsBurning() then
-        ent:SetIsBurning( true )
+    if !ent:l_GetIsBurning() then
+        ent:l_SetIsBurning( true )
         ent.l_TF_FlameBurnTime = CurTime()
 
         local inflictor = ents_Create( "base_gmodentity" )
@@ -1239,7 +1241,7 @@ function LAMBDA_TF2:Burn( ent, attacker, weapon, burningTime )
     local flameLife
     if afterBurnImmune then
         flameLife = 0.25
-        ent:SetFlameRemoveTime( 0 )
+        ent:l_SetFlameRemoveTime( 0 )
     else
         local burnDuration = weapon.l_TF_AfterburnDuration
         if burnDuration then
@@ -1250,8 +1252,8 @@ function LAMBDA_TF2:Burn( ent, attacker, weapon, burningTime )
     end
 
     local burnEnd = ( CurTime() + flameLife )
-    if burnEnd > ent:GetFlameRemoveTime() then
-        ent:SetFlameRemoveTime( burnEnd )
+    if burnEnd > ent:l_GetFlameRemoveTime() then
+        ent:l_SetFlameRemoveTime( burnEnd )
     end
 
     ent.l_TF_BurnAttacker = attacker
@@ -1265,11 +1267,11 @@ function LAMBDA_TF2:Burn( ent, attacker, weapon, burningTime )
 end
 
 function LAMBDA_TF2:IsBurning( ent )
-    return ( ent:GetIsBurning() or ent:IsOnFire() )
+    return ( ent:l_GetIsBurning() or ent:IsOnFire() )
 end
 
 function LAMBDA_TF2:GetBurnEndTime( ent )
-    if ent:GetIsBurning() then return ent:GetFlameRemoveTime() end
+    if ent:l_GetIsBurning() then return ent:l_GetFlameRemoveTime() end
     
     for _, child in ipairs( ent:GetChildren() ) do
         if !IsValid( child ) or child:GetClass() != "entityflame" then continue end
@@ -1283,8 +1285,8 @@ end
 function LAMBDA_TF2:RemoveBurn( ent )
     ent:Extinguish()
 
-    if ent:GetIsBurning() then
-        ent:SetIsBurning( false )
+    if ent:l_GetIsBurning() then
+        ent:l_SetIsBurning( false )
         ent.l_TF_BurnAttacker = nil
         ent.l_TF_BurnWeapon = nil
         SafeRemoveEntity( ent.l_TF_BurnInflictor )
