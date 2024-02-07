@@ -59,9 +59,9 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         OnDealDamage = function( self, wepent, target, dmginfo, tookDamage, lethal )
             if !wepent.l_TF_MakeLaugh then return end
             if target.IsLambdaPlayer then
-                if target:GetState() != "Schadenfreude" then
+                if target:GetState() != "Laughing" then
                     target:CancelMovement()
-                    target:SetState( "Schadenfreude" )
+                    target:SetState( "Laughing" )
                 end
             elseif target:IsPlayer() then
                 target:ConCommand( "act laugh" )
