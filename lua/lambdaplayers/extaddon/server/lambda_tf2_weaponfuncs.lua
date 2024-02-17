@@ -200,7 +200,7 @@ function LAMBDA_TF2:CreateMuzzleFlash( weapon, muzzleName )
 end
 
 function LAMBDA_TF2:WeaponAttack( lambda, weapon, target, isCrit )
-    if !IsValid( target ) then return end
+    if isentity( target ) and !IsValid( target ) then return end
 
     isCrit = ( isCrit == nil and weapon:CalcIsAttackCriticalHelper() or isCrit )
     local isMelee = weapon:GetWeaponAttribute( "IsMelee", false )
