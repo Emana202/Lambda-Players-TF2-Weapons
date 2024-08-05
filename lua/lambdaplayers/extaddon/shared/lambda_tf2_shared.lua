@@ -364,9 +364,13 @@ local function OnEntityCreated( ent )
     LAMBDA_TF2:PseudoNetworkVar( ent, "CritBoostType", TF_CRIT_NONE ) 
 
     if ( SERVER ) then
-        if ent:GetClass() == "prop_dynamic" then 
-            local entMdl = ent:GetModel()
-            if lockerMdls[ entMdl ] then
+        if ent:GetClass() == "prop_dynamic" then
+            SimpleTimer( 0.1, function()
+                if !IsValid( ent ) then return end
+
+                local entMdl = ent:GetModel()
+                if !lockerMdls[ entMdl ] then return end
+
                 local locker = ents_Create( "lambda_tf_resupplylocker" )
                 locker.Model = entMdl
                 locker:SetPos( ent:GetPos() )
@@ -374,8 +378,7 @@ local function OnEntityCreated( ent )
                 locker:Spawn()
 
                 ent:Remove()
-                return
-            end
+            end )
         end
 
         ent.l_TF_HasOverheal = false
