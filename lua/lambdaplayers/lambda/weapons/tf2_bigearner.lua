@@ -45,7 +45,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
 				lambda:SetLayerPlaybackRate( attackLayer, 1.1 )
 
 				dmginfo:SetDamage( target:Health() * 2 )
-				dmginfo:SetDamageCustom( TF_DMG_CUSTOM_BACKSTAB )
+				dmginfo:SetDamageCustom( dmginfo:GetDamageCustom() + TF_DMG_CUSTOM_BACKSTAB )
 			end )
 
             wepent:EmitSound( "weapons/draw_melee.wav", nil, nil, 0.5 )

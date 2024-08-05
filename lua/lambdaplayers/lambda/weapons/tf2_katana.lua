@@ -40,7 +40,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent:SetWeaponAttribute( "PreHitCallback", function( lambda, weapon, target, dmginfo )
 				if !target.IsLambdaPlayer or target:GetWeaponName() != "tf2_katana" then return end
                 dmginfo:SetDamage( target:Health() * 3 )
-                dmginfo:SetDamageCustom( TF_DMG_CUSTOM_KATANA_DUEL )
+                dmginfo:SetDamageCustom( dmginfo:GetDamageCustom() + TF_DMG_CUSTOM_KATANA_DUEL )
 			end )
 
             wepent.l_TF_IsHonorbound = true

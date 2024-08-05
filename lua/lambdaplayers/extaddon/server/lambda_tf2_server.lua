@@ -118,18 +118,6 @@ net.Receive( "lambda_tf2_removempragdoll", function()
     if IsValid( ragdoll ) then ragdoll:Remove() end
 end )
 
-local backstabDeathAnims = {
-    "sniper_death_backstab",
-    "pyro_death_backstab",
-    "medic_death_backstab",
-    "demoman_death_backstab",
-    "soldier_death_backstab",
-    "engineer_death_backstab",
-    "spy_death_backstab",
-    "scout_death_backstab",
-    "heavy_death_backstab"
-}
-
 local function OnDeathAnimEntThink( self )
     if CurTime() < self.l_FreezeTime then
         self:FrameAdvance()

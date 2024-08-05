@@ -46,7 +46,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
 
                 wepent.l_TF_TargetHealth = target:Health()
 				dmginfo:SetDamage( wepent.l_TF_TargetHealth * 2 )
-				dmginfo:SetDamageCustom( TF_DMG_CUSTOM_BACKSTAB )
+				dmginfo:SetDamageCustom( dmginfo:GetDamageCustom() + TF_DMG_CUSTOM_BACKSTAB )
 			end )
 
             wepent.l_TF_TargetHealth = 0

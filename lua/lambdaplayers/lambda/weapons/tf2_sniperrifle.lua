@@ -124,7 +124,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
                 LAMBDA_TF2:CreateCritBulletTracer( muzzlePos, tr.HitPos, self:GetPlyColor():ToColor(), 0.4, 0.33 )
 
                 if chargeStartTime > 0.2 and tr.HitGroup == HITGROUP_HEAD then 
-                    dmginfo:SetDamageCustom( TF_DMG_CUSTOM_HEADSHOT ) 
+                    dmginfo:SetDamageCustom( dmginfo:GetDamageCustom() + TF_DMG_CUSTOM_HEADSHOT ) 
                 end
             end
 

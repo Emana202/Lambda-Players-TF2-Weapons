@@ -134,7 +134,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
                 LAMBDA_TF2:CreateCritBulletTracer( muzzlePos, tr.HitPos, plyClr, 1.5, 3 )
                 
                 if chargeStartTime > 0.2 and tr.HitGroup == HITGROUP_HEAD then
-                    dmginfo:SetDamageCustom( TF_DMG_CUSTOM_HEADSHOT ) 
+                    dmginfo:SetDamageCustom( dmginfo:GetDamageCustom() + TF_DMG_CUSTOM_HEADSHOT ) 
                 end
 
                 local hitEnt = tr.Entity
@@ -149,7 +149,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
                             bulletTbl.IgnoreEntity = prevTr.Entity
                             bulletTbl.Callback = function( attacker, tr, dmginfo )
                                 LAMBDA_TF2:CreateCritBulletTracer( prevTr.HitPos, tr.HitPos, plyClr, 1.5, 3 )
-                                dmginfo:SetDamageCustom( tr.HitGroup != HITGROUP_HEAD and TF_DMG_CUSTOM_PENETRATION or TF_DMG_CUSTOM_PENETRATION_HEADSHOT ) 
+                                dmginfo:SetDamageCustom( dmginfo:GetDamageCustom() + ( tr.HitGroup != HITGROUP_HEAD and TF_DMG_CUSTOM_PENETRATION or TF_DMG_CUSTOM_PENETRATION_HEADSHOT ) )
     
                                 local hitEnt = tr.Entity
                                 if IsValid( hitEnt ) and LAMBDA_TF2:IsValidCharacter( hitEnt ) then 
