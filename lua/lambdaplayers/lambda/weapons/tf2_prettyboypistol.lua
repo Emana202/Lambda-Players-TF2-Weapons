@@ -8,6 +8,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         holdtype = "revolver",
         bonemerge = true,
         killicon = "lambdaplayers/killicons/icon_tf2_prettyboypocketpistol",
+        tfclass = 1,
         
         clip = 9,
         islethal = true,

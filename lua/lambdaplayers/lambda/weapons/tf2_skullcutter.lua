@@ -1,6 +1,5 @@
 local min = math.min
 local Round = math.Round
-local random = math.random
 
 table.Merge( _LAMBDAPLAYERSWEAPONS, {
     tf2_skullcutter = {
@@ -9,6 +8,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         prettyname = "Scotsman's Skullcutter",
         holdtype = "melee2",
         bonemerge = true,
+        tfclass = 4,
 
         killicon = "lambdaplayers/killicons/icon_tf2_scotsmans_skullcutter",
         keepdistance = 10,

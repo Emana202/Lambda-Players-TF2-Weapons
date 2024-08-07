@@ -1,6 +1,5 @@
 local min = math.min
 local Round = math.Round
-local random = math.random
 
 table.Merge( _LAMBDAPLAYERSWEAPONS, {
     tf2_hhhheadtaker = {
@@ -9,6 +8,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         prettyname = "Horseless Headless Horseman's Headtaker",
         holdtype = "melee2",
         bonemerge = true,
+        tfclass = 4,
 
         killicon = "lambdaplayers/killicons/icon_tf2_horseless_headless_horsemanns_headtaker",
         keepdistance = 10,

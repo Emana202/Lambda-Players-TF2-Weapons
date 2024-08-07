@@ -1,5 +1,3 @@
-local Rand = math.Rand
-local random = math.random
 local min = math.min
 local max = math.max
 local Clamp = math.Clamp
@@ -27,6 +25,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         },
         bonemerge = true,
         killicon = "lambdaplayers/killicons/icon_tf2_sniperrifle",
+        tfclass = 8,
 
         clip = 25,
         keepdistance = 2000,
@@ -63,7 +62,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             if !isdead then
                 local ene = self:GetEnemy()
                 if self:GetState() == "Combat" and IsValid( ene ) and ( self:CanSee( ene ) or self:IsInRange( ene, 512 ) ) then
-                    wepent.l_TF_ZoomedTime = CurTime() + Rand( 1.0, 3.0 )
+                    wepent.l_TF_ZoomedTime = CurTime() + LambdaRNG( 1.0, 3.0, true )
                 end
 
                 wepent.l_TF_IsCharging = ( CurTime() > wepent.l_TF_NextZoomTime and CurTime() <= wepent.l_TF_ZoomedTime )
@@ -72,7 +71,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         
                     if self:InCombat() then
                         local distMap = LAMBDA_TF2:RemapClamped( self:GetRangeTo( ene ), 128, 768, 0, 1 )
-                        wepent.l_TF_ChargeTimeRequired = LAMBDA_TF2:RemapClamped( distMap, 0, 1, 0.5, Rand( 3.3, 4 ) )
+                        wepent.l_TF_ChargeTimeRequired = LAMBDA_TF2:RemapClamped( distMap, 0, 1, 0.5, LambdaRNG( 3.3, 4, true ) )
                     else
                         wepent.l_TF_ChargeTimeRequired = 3.3
                     end
@@ -101,7 +100,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent.l_TF_NextZoomTime = ( CurTime() + 1 )
 
             local headHitBox = LAMBDA_TF2:GetEntityHeadBone( target )
-            local targetPos = ( ( wepent.l_TF_IsCharging and headHitBox and ( wepent.l_TF_ChargeIsFull or random( 1, 3 ) != 1 ) ) and LAMBDA_TF2:GetBoneTransformation( target, headHitBox ) or target:WorldSpaceCenter() )
+            local targetPos = ( ( wepent.l_TF_IsCharging and headHitBox and ( wepent.l_TF_ChargeIsFull or LambdaRNG( 1, 3 ) != 1 ) ) and LAMBDA_TF2:GetBoneTransformation( target, headHitBox ) or target:WorldSpaceCenter() )
             wepent.l_TF_ChargeIsFull = false
 
             local srcPos = wepent:GetPos()

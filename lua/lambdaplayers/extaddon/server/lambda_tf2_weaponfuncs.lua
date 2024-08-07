@@ -2,7 +2,6 @@ local TraceLine = util.TraceLine
 local TraceHull = util.TraceHull
 local CurTime = CurTime
 local ipairs = ipairs
-local random = math.random
 local net = net
 local min = math.min
 local max = math.max
@@ -13,7 +12,6 @@ local coroutine_wait = coroutine.wait
 local coroutine_yield = coroutine.yield
 local SoundDuration = SoundDuration
 local DamageInfo = DamageInfo
-local Rand = math.Rand
 local VectorRand = VectorRand
 local ents_Create = ents.Create
 local FindAlongRay = ents.FindAlongRay
@@ -76,11 +74,11 @@ local pipeTouchTrTbl = { mask = MASK_SOLID }
 local groundTrTbl = { mask = MASK_SOLID_BRUSHONLY }
 
 local shotgunReloadInterruptCond = function( lambda, weapon )
-    return ( lambda.l_Clip > 0 and random( 1, 3 ) == 1 and lambda:InCombat() and lambda:IsInRange( lambda:GetEnemy(), 512 ) and lambda:CanSee( lambda:GetEnemy() ) )
+    return ( lambda.l_Clip > 0 and LambdaRNG( 1, 3 ) == 1 and lambda:InCombat() and lambda:IsInRange( lambda:GetEnemy(), 512 ) and lambda:CanSee( lambda:GetEnemy() ) )
 end
 local shotgunReloadEndFunc = function( lambda, weapon, interrupted )
     if interrupted then return end
-    local cockTimings = shotgunCockingTimings[ random( #shotgunCockingTimings ) ]
+    local cockTimings = shotgunCockingTimings[ LambdaRNG( #shotgunCockingTimings ) ]
 
     lambda:SimpleWeaponTimer( cockTimings[ 1 ], function()
         weapon:EmitSound( "weapons/shotgun_cock_back.wav", 70, nil, nil, CHAN_STATIC )
@@ -126,7 +124,7 @@ function LAMBDA_TF2:ShotgunReload( lambda, weapon, dataTbl )
     lambda:Thread( function()
 
         if startFunc then startFunc( lambda, weapon ) end
-        if startSnd then weapon:EmitSound( ( istable( startSnd ) and startSnd[ random( #startSnd ) ] or startSnd ), 70, nil, nil, CHAN_STATIC ) end
+        if startSnd then weapon:EmitSound( ( istable( startSnd ) and startSnd[ LambdaRNG( #startSnd ) ] or startSnd ), 70, nil, nil, CHAN_STATIC ) end
         coroutine_wait( startTime )
 
         local interrupted = false
@@ -147,11 +145,11 @@ function LAMBDA_TF2:ShotgunReload( lambda, weapon, dataTbl )
             if cycleFunc then cycleFunc( lambda, weapon ) end
 
             lambda.l_Clip = lambda.l_Clip + 1
-            if cycleSnd then weapon:EmitSound( ( istable( cycleSnd ) and cycleSnd[ random( #cycleSnd ) ] or cycleSnd ), 70, nil, nil, CHAN_STATIC ) end
+            if cycleSnd then weapon:EmitSound( ( istable( cycleSnd ) and cycleSnd[ LambdaRNG( #cycleSnd ) ] or cycleSnd ), 70, nil, nil, CHAN_STATIC ) end
             coroutine_wait( cycleTime )
         end
 
-        if endSnd then weapon:EmitSound( ( istable( endSnd ) and endSnd[ random( #endSnd ) ] or endSnd ), 70, nil, nil, CHAN_STATIC ) end
+        if endSnd then weapon:EmitSound( ( istable( endSnd ) and endSnd[ LambdaRNG( #endSnd ) ] or endSnd ), 70, nil, nil, CHAN_STATIC ) end
         if endFunc then endFunc( lambda, weapon, interrupted ) end
 
         if !isstring( animAct ) then
@@ -220,7 +218,7 @@ function LAMBDA_TF2:WeaponAttack( lambda, weapon, target, isCrit )
         end
 
         local cooldown = weapon:GetWeaponAttribute( "RateOfFire", 0.1 )
-        if istable( cooldown ) then cooldown = Rand( cooldown[ 1 ], cooldown[ 2 ] ) end
+        if istable( cooldown ) then cooldown = LambdaRNG( cooldown[ 1 ], cooldown[ 2 ], true ) end
         lambda.l_WeaponUseCooldown = ( CurTime() + cooldown )
 
         local shellName = weapon:GetWeaponAttribute( "ShellEject", "ShellEject" )
@@ -233,7 +231,7 @@ function LAMBDA_TF2:WeaponAttack( lambda, weapon, target, isCrit )
         if fireSnd then
             local critSnd = weapon:GetWeaponAttribute( "CritSound" )
             if critSnd and isCrit then fireSnd = critSnd end
-            if istable( fireSnd ) then fireSnd = fireSnd[ random( #fireSnd ) ] end
+            if istable( fireSnd ) then fireSnd = fireSnd[ LambdaRNG( #fireSnd ) ] end
             weapon:EmitSound( fireSnd, 75, 100, 1, CHAN_WEAPON )
         end
 
@@ -246,7 +244,7 @@ function LAMBDA_TF2:WeaponAttack( lambda, weapon, target, isCrit )
             bulletTbl.Src = wepPos
 
             local damage = weapon:GetWeaponAttribute( "Damage", 5 )
-            if istable( damage ) then damage = random( damage[ 1 ], damage[ 2 ] ) end
+            if istable( damage ) then damage = LambdaRNG( damage[ 1 ], damage[ 2 ] ) end
             bulletTbl.Damage = damage
             bulletTbl.Force = ( damage / 3 )
 
@@ -265,7 +263,7 @@ function LAMBDA_TF2:WeaponAttack( lambda, weapon, target, isCrit )
 
             local lambdaAccuracyOffset = LAMBDA_TF2:RemapClamped( lambda:GetRangeTo( firePos ), 128, 1024, 3, 30 )
             local fireAng = ( firePos - wepPos ):Angle()
-            fireAng = ( ( firePos + fireAng:Right() * Rand( -lambdaAccuracyOffset, lambdaAccuracyOffset ) + fireAng:Up() * Rand( -lambdaAccuracyOffset, lambdaAccuracyOffset ) ) - wepPos ):Angle()
+            fireAng = ( ( firePos + fireAng:Right() * LambdaRNG( -lambdaAccuracyOffset, lambdaAccuracyOffset, true ) + fireAng:Up() * LambdaRNG( -lambdaAccuracyOffset, lambdaAccuracyOffset, true ) ) - wepPos ):Angle()
 
             bulletTbl.Callback = function( attacker, tr, dmginfo )
                 dmginfo:SetDamageType( dmginfo:GetDamageType() + weapon:GetWeaponAttribute( "DamageType", 0 ) )
@@ -304,8 +302,8 @@ function LAMBDA_TF2:WeaponAttack( lambda, weapon, target, isCrit )
                     spreadX = ( fixedWpnSpreadPellets[ spreadIndex ].x * spreadScalar )
                     spreadY = ( fixedWpnSpreadPellets[ spreadIndex ].y * spreadScalar )
                 elseif !firstShotAccurate or ( CurTime() - weapon.l_TF_LastFireTime ) <= spreadRecovery then
-                    spreadX = ( Rand( -spreadScalar, spreadScalar ) + Rand( -spreadScalar, spreadScalar ) )
-                    spreadY = ( Rand( -spreadScalar, spreadScalar ) + Rand( -spreadScalar, spreadScalar ) )
+                    spreadX = ( LambdaRNG( -spreadScalar, spreadScalar, true ) + LambdaRNG( -spreadScalar, spreadScalar, true ) )
+                    spreadY = ( LambdaRNG( -spreadScalar, spreadScalar, true ) + LambdaRNG( -spreadScalar, spreadScalar, true ) )
                 end
                 bulletTbl.Dir = ( fireAng:Forward() + ( spreadX * bulletTbl.Spread.x * fireAng:Right() ) + ( spreadY * bulletTbl.Spread.y * fireAng:Up() ) )
 
@@ -321,7 +319,7 @@ function LAMBDA_TF2:WeaponAttack( lambda, weapon, target, isCrit )
 
         local attackRange = hitRange
         if isnumber( hitDelay ) and hitDelay > 0 then
-            attackRange = ( attackRange * ( 1 + Rand( 0, hitDelay ) ) )
+            attackRange = ( attackRange * ( 1 + LambdaRNG( 0, hitDelay, true ) ) )
         end
 
         local eyePos = lambda:GetAttachmentPoint( "eyes" ).Pos
@@ -332,7 +330,7 @@ function LAMBDA_TF2:WeaponAttack( lambda, weapon, target, isCrit )
         if fireSnd then
             local critSnd = weapon:GetWeaponAttribute( "CritSound", ")weapons/cbar_miss1_crit.wav" )
             if critSnd and isCrit then fireSnd = critSnd end
-            if istable( fireSnd ) then fireSnd = fireSnd[ random( #fireSnd ) ] end
+            if istable( fireSnd ) then fireSnd = fireSnd[ LambdaRNG( #fireSnd ) ] end
             weapon:EmitSound( fireSnd, 64, nil, 0.6, CHAN_WEAPON )
         end
 
@@ -344,19 +342,19 @@ function LAMBDA_TF2:WeaponAttack( lambda, weapon, target, isCrit )
                 lambda:SetLayerPlaybackRate( lambda:AddGesture( attackAnim, true ), 0.85 )
             else
                 for _, anim in ipairs( animTbl ) do lambda:RemoveGesture( anim ) end
-                lambda:SetLayerPlaybackRate( lambda:AddGesture( animTbl[ random( #animTbl ) ] ), 1.33 )
+                lambda:SetLayerPlaybackRate( lambda:AddGesture( animTbl[ LambdaRNG( #animTbl ) ] ), 1.33 )
             end
         end
 
         local cooldown = weapon:GetWeaponAttribute( "RateOfFire", 0.8 )
-        if istable( cooldown ) then cooldown = Rand( cooldown[ 1 ], cooldown[ 2 ] ) end
+        if istable( cooldown ) then cooldown = LambdaRNG( cooldown[ 1 ], cooldown[ 2 ], true ) end
         lambda.l_WeaponUseCooldown = ( CurTime() + cooldown )
 
         local damage = weapon:GetWeaponAttribute( "Damage", 40 )
         if isfunction( damage ) then damage = damage( lambda, weapon, target ) end
 
         if damage then
-            if istable( damage ) then damage = random( damage[ 1 ], damage[ 2 ] ) end
+            if istable( damage ) then damage = LambdaRNG( damage[ 1 ], damage[ 2 ] ) end
             local onMissFunc = weapon:GetWeaponAttribute( "OnMiss" )
 
             local hitFunction = function()
@@ -465,7 +463,7 @@ function LAMBDA_TF2:MedigunHeal( lambda, weapon, target, chargeRateMult, beamSpa
     end
 
     if target.IsLambdaPlayer then
-        target.l_TF_MedicsToIgnoreList[ lambda ] = ( CurTime() + random( 5, 20 ) )
+        target.l_TF_MedicsToIgnoreList[ lambda ] = ( CurTime() + LambdaRNG( 5, 20 ) )
     end
 
     if !lambda.l_TF_Medigun_ChargeReleased then
@@ -539,7 +537,7 @@ end
 
 function LAMBDA_TF2:MedigunDetach( lambda, weapon, target )
     if IsValid( target ) then
-        if target.IsLambdaPlayer and target:Alive() and target:Health() >= target:GetMaxHealth() and random( 1, 100 ) <= target:GetVoiceChance() and ( target:GetLastSpokenVoiceType() != "assist" or !target:IsSpeaking() ) then
+        if target.IsLambdaPlayer and target:Alive() and target:Health() >= target:GetMaxHealth() and LambdaRNG( 1, 100 ) <= target:GetVoiceChance() and ( target:GetLastSpokenVoiceType() != "assist" or !target:IsSpeaking() ) then
             target:PlaySoundFile( "assist" )
         end
 
@@ -664,7 +662,7 @@ function LAMBDA_TF2:MinigunThink( lambda, weapon, isDead )
 end
 
 function LAMBDA_TF2:MinigunFire( lambda, weapon, target )
-    weapon.l_SpinTime = ( CurTime() + Rand( 1, 4 ) )
+    weapon.l_SpinTime = ( CurTime() + LambdaRNG( 1, 4, true ) )
     if weapon.l_WindUpState != 2 or CurTime() <= weapon.l_NextWindUpStateChangeT then return end
 
     if !LAMBDA_TF2:WeaponAttack( lambda, weapon, target ) then return end
@@ -811,7 +809,7 @@ function LAMBDA_TF2:FlamethrowerHolster( lambda, weapon )
 end
 
 function LAMBDA_TF2:FlamethrowerFire( lambda, weapon, target )
-    weapon.l_FireAttackTime = CurTime() + Rand( 0.25, 0.66 )
+    weapon.l_FireAttackTime = CurTime() + LambdaRNG( 0.25, 0.66, true )
     weapon.l_FireDirection = ( target:WorldSpaceCenter() - lambda:WorldSpaceCenter() ):GetNormalized()
 end
 
@@ -928,7 +926,7 @@ function LAMBDA_TF2:FlamethrowerThink( lambda, weapon, isDead )
                     flameEnt.l_DmgCustom = dmgCustom
                     flameEnt.l_DmgAmount = totalDamage
                     flameEnt.l_AttackerVelocity = lambda.loco:GetVelocity()
-                    flameEnt.l_RemoveTime = ( CurTime() + ( 0.5 * Rand( 0.9, 1.1 ) ) )
+                    flameEnt.l_RemoveTime = ( CurTime() + ( 0.5 * LambdaRNG( 0.9, 1.1, true ) ) )
                     flameEnt.l_EntitiesBurnt = {}
                     flameEnt.l_AfterburnDamage = weapon:GetWeaponAttribute( "AfterburnDamage", 3 )
                     flameEnt.l_AfterburnDuration = weapon:GetWeaponAttribute( "AfterburnDuration", 10 )
@@ -983,7 +981,7 @@ local function OnRocketTouch( rocket, ent )
     if ent:IsWorld() then util_Decal( "Scorch", hitPos + hitNormal, hitPos - hitNormal ) end
 
     local snds = rocket.l_ExplodeSound
-    if istable( snds ) then snds = snds[ random( #snds ) ] end
+    if istable( snds ) then snds = snds[ LambdaRNG( #snds ) ] end
     rocket:EmitSound( snds, 85, nil, nil, CHAN_WEAPON )
     rocket:Remove()
 end
@@ -1082,7 +1080,7 @@ local function OnPipeTouch( self, other )
             end
 
             local snds = self.l_ExplodeSound
-            if istable( snds ) then snds = snds[ random( #snds ) ] end
+            if istable( snds ) then snds = snds[ LambdaRNG( #snds ) ] end
             self:EmitSound( snds, 85, nil, nil, CHAN_WEAPON )
 
             self:Remove()
@@ -1100,7 +1098,7 @@ local function OnPipeCollide( self, colData, collider )
     if onPhysCollide then onPhysCollide( self, colData, collider ) end
 
     if colData.Speed >= 100 then
-        self:EmitSound( self.l_BounceSound, nil, random( 96, 100 ), 0.5, CHAN_STATIC )
+        self:EmitSound( self.l_BounceSound, nil, LambdaRNG( 96, 100 ), 0.5, CHAN_STATIC )
     end
 end
 
@@ -1137,11 +1135,11 @@ function LAMBDA_TF2:CreatePipeGrenadeProjectile( pos, ang, owner, wepent, critic
     if IsValid( phys ) then
         phys:Wake()
 
-        local vel = ( ang:Forward() * flySpeed + ang:Up() * ( 200 + Rand( -10, 10 ) ) + ang:Right() * Rand( -10, 10 ) )
+        local vel = ( ang:Forward() * flySpeed + ang:Up() * ( 200 + LambdaRNG( -10, 10, true ) ) + ang:Right() * LambdaRNG( -10, 10, true ) )
         phys:SetVelocity( vel )
 
         if !attributes.NoSpin then
-            phys:SetAngleVelocity( Vector( 600, random( -1200, 1200 ), 0 ) )
+            phys:SetAngleVelocity( Vector( 600, LambdaRNG( -1200, 1200 ), 0 ) )
         end
     end
 
@@ -1190,7 +1188,7 @@ function LAMBDA_TF2:CreatePipeGrenadeProjectile( pos, ang, owner, wepent, critic
             ParticleEffect( "ExplosionCore_Wall", hitPos, ( ( hitPos + hitNormal ) - hitPos ):Angle() )
             util_Decal( "Scorch", hitPos + hitNormal, hitPos - hitNormal )
         else
-            ParticleEffect( "ExplosionCore_MidAir", pipePos, Angle( 0, random( -360, 360 ), 0 ) )
+            ParticleEffect( "ExplosionCore_MidAir", pipePos, Angle( 0, LambdaRNG( -360, 360 ), 0 ) )
         end
 
         if IsValid( owner ) then
@@ -1213,7 +1211,7 @@ function LAMBDA_TF2:CreatePipeGrenadeProjectile( pos, ang, owner, wepent, critic
         end
 
         local snds = pipe.l_ExplodeSound
-        if istable( snds ) then snds = snds[ random( #snds ) ] end
+        if istable( snds ) then snds = snds[ LambdaRNG( #snds ) ] end
         pipe:EmitSound( snds, 85, nil, nil, CHAN_WEAPON )
         pipe:Remove()
     end )

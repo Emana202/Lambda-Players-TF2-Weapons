@@ -1,6 +1,4 @@
 local CurTime = CurTime
-local random = math.random
-local Rand = math.Rand
 local IsValid = IsValid
 local FrameTime = FrameTime
 local pairs = pairs
@@ -40,7 +38,7 @@ local grenadeAttributes = {
         end
 
         pipe:SetPos( pipe:GetPos() - ( pipe:GetPhysicsObject():GetVelocity() * FrameTime() ) )
-        pipe:EmitSound( "weapons/loose_cannon_ball_impact.wav", 80, random( 95, 105 ), 0.7, CHAN_WEAPON )
+        pipe:EmitSound( "weapons/loose_cannon_ball_impact.wav", 80, LambdaRNG( 95, 105 ), 0.7, CHAN_WEAPON )
 
         for victim, expireTime in pairs( owner.l_TF_DonkVictims ) do
             if expireTime > CurTime() then continue end
@@ -70,6 +68,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         holdtype = "shotgun",
         bonemerge = true,
         killicon = "lambdaplayers/killicons/icon_tf2_loose_cannon",
+        tfclass = 4,
 
         clip = 4,
         islethal = true,
@@ -94,7 +93,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
 
         OnAttack = function( self, wepent, target )
             local maxChargeTime = LAMBDA_TF2:RemapClamped( self:GetRangeTo( target ), 128, 768, 7.5, 0 )
-            local chargeTime = ( random( 0, maxChargeTime ) / 10 )
+            local chargeTime = ( LambdaRNG( 0, maxChargeTime ) / 10 )
             self.l_WeaponUseCooldown = ( CurTime() + chargeTime )
 
             wepent:EmitSound( "weapons/loose_cannon_charge.wav", 70, nil, 0.45, CHAN_WEAPON )
@@ -103,11 +102,11 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
                 if !IsValid( target ) then return end
 
                 local spawnPos = wepent:GetAttachment( wepent:LookupAttachment( "muzzle" ) ).Pos
-                local targetPos = ( self:IsInRange( target, 100 ) and target:WorldSpaceCenter() or target:GetPos() + vector_up * ( self:GetRangeTo( target ) / random( 15, 20 ) ) )
-                targetPos = LAMBDA_TF2:CalculateEntityMovePosition( target, spawnPos:Distance( targetPos ), 1200, Rand( 0.5, 1.1 ), targetPos )
+                local targetPos = ( self:IsInRange( target, 100 ) and target:WorldSpaceCenter() or target:GetPos() + vector_up * ( self:GetRangeTo( target ) / LambdaRNG( 15, 20 ) ) )
+                targetPos = LAMBDA_TF2:CalculateEntityMovePosition( target, spawnPos:Distance( targetPos ), 1200, LambdaRNG( 0.5, 1.1, true ), targetPos )
     
                 local spawnAng = ( targetPos - spawnPos ):Angle()
-                spawnAng = ( ( targetPos + spawnAng:Right() * random( -10, 10 ) + spawnAng:Up() * random( -10, 10 ) ) - spawnPos ):Angle()
+                spawnAng = ( ( targetPos + spawnAng:Right() * LambdaRNG( -10, 10 ) + spawnAng:Up() * LambdaRNG( -10, 10 ) ) - spawnPos ):Angle()
                 if self:GetForward():Dot( spawnAng:Forward() ) <= 0.5 then self.l_WeaponUseCooldown = ( CurTime() + 0.1 ) return end
     
                 local isCrit = wepent:CalcIsAttackCriticalHelper()

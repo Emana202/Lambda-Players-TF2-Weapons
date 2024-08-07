@@ -8,6 +8,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         prettyname = "Kritzkrieg",
         holdtype = "physgun",
         bonemerge = true,
+        tfclass = 7,
     
 		islethal = true,
         ismedigun = true,

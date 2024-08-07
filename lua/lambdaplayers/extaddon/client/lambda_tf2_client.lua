@@ -3,7 +3,6 @@ local net = net
 local CreateParticleSystem = CreateParticleSystem
 local IsValid = IsValid
 local ipairs = ipairs
-local random = math.random
 local SimpleTimer = timer.Simple
 local max = math.max
 local hook_Add = hook.Add
@@ -211,7 +210,7 @@ net.Receive( "lambda_tf2_attackbonuseffect", function()
     receiver.l_TF_LastAttackBonusEffectT = CurTime()
 
     if ply == receiver and partName == "crit_text" and net.ReadBool() == true then
-        receiver:EmitSound( "player/crit_received" .. random( 3 ) .. ".wav", 80, random( 95, 105 ), nil, CHAN_STATIC )
+        receiver:EmitSound( "player/crit_received" .. LambdaRNG( 3 ) .. ".wav", 80, LambdaRNG( 95, 105 ), nil, CHAN_STATIC )
     end
 end )
 

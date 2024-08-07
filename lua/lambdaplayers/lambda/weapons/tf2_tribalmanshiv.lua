@@ -5,6 +5,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         prettyname = "Tribalman's Shiv",
         holdtype = "knife",
         bonemerge = true,
+        tfclass = 8,
 
         killicon = "lambdaplayers/killicons/icon_tf2_tribalmanshiv",
         keepdistance = 10,

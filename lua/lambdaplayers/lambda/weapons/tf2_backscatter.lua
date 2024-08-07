@@ -1,4 +1,3 @@
-local random = math.random
 local coroutine_wait = coroutine.wait
 
 local reloadData = {
@@ -19,6 +18,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         holdtype = "shotgun",
         bonemerge = true,
         killicon = "lambdaplayers/killicons/icon_tf2_backscatter",
+        tfclass = 1,
 
         clip = 4,
         islethal = true,

@@ -1,5 +1,3 @@
-local random = math.random
-local Rand = math.Rand
 local CurTime = CurTime
 local IsValid = IsValid
 local SafeRemoveEntityDelayed = SafeRemoveEntityDelayed
@@ -55,7 +53,7 @@ local function OnCleaverTouch( self, ent )
     self:SetMoveType( MOVETYPE_NONE )
 
     if IsValid( ent ) and LAMBDA_TF2:IsValidCharacter( ent, false ) then
-        self:EmitSound( hitFleshSnds[ random( #hitFleshSnds ) ], nil, nil, nil, CHAN_STATIC )
+        self:EmitSound( hitFleshSnds[ LambdaRNG( #hitFleshSnds ) ], nil, nil, nil, CHAN_STATIC )
         LAMBDA_TF2:CreateBloodParticle( self:GetPos(), AngleRand( -180, 180 ), ent )
 
         self:SetNoDraw( true )
@@ -79,6 +77,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         prettyname = "Flying Guillotine",
         holdtype = "melee",
         bonemerge = true,
+        tfclass = 1,
 
         killicon = "lambdaplayers/killicons/icon_tf2_flyingguillotine",
         keepdistance = 750,
@@ -89,7 +88,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
 
         OnDeploy = function( self, wepent )
             LAMBDA_TF2:InitializeWeaponData( self, wepent )
-            if !wepent.l_TF_CleaverSkin then wepent.l_TF_CleaverSkin = random( 1, 2 ) end
+            if !wepent.l_TF_CleaverSkin then wepent.l_TF_CleaverSkin = LambdaRNG( 1, 2 ) end
             wepent:SetSkin( wepent.l_TF_CleaverSkin )
             wepent:EmitSound( "weapons/cleaver_draw.wav", nil, nil, nil, CHAN_STATIC )
         end,

@@ -6,6 +6,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         holdtype = "fist",
         bonemerge = true,
         dropondeath = false,
+        tfclass = 5,
 
         killicon = "lambdaplayers/killicons/icon_tf2_holidaypunch",
         keepdistance = 10,
@@ -38,7 +39,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
                     dmginfo:SetDamage( 0 )
                     if isCrit then dmgCustom = ( dmgCustom - TF_DMG_CUSTOM_CRITICAL ) end
                 end
-                if target:IsPlayer() and target:IsPlayingTaunt() or target.IsLambdaPlayer and ( target:GetState() == "Schadenfreude" or target:GetState() == "Laughing" ) then
+                if target:IsPlayer() and target:IsPlayingTaunt() or target.IsLambdaPlayer and target:GetState() == "Laughing" then
                     dmgCustom = ( dmgCustom + TF_DMG_CUSTOM_GLOVES_LAUGHING )
                 end
 
@@ -61,7 +62,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             if target.IsLambdaPlayer then
                 if target:GetState() != "Laughing" then
                     target:CancelMovement()
-                    target:SetState( "Laughing" )
+                    target:SetState( "Laughing", { target, target:GetDestination() } )
                 end
             elseif target:IsPlayer() then
                 target:ConCommand( "act laugh" )

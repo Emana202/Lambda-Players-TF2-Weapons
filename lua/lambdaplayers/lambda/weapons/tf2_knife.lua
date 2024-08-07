@@ -1,4 +1,3 @@
-local random = math.random
 
 table.Merge( _LAMBDAPLAYERSWEAPONS, {
     tf2_knife = {
@@ -7,6 +6,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         prettyname = "Knife",
         holdtype = "knife",
         bonemerge = true,
+        tfclass = 9,
 
         killicon = "lambdaplayers/killicons/icon_tf2_knife",
         keepdistance = 10,

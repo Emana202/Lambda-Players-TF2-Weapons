@@ -5,6 +5,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         prettyname = "Conscientious Objector",
         holdtype = "melee2",
         bonemerge = true,
+        tfclass = { [ 1 ] = true, [ 2 ] = true, [ 3 ] = true, [ 4 ] = true, [ 5 ] = true, [ 7 ] = true, [ 8 ] = true },
 
         killicon = "lambdaplayers/killicons/icon_tf2_conscientious_objector",
         keepdistance = 10,

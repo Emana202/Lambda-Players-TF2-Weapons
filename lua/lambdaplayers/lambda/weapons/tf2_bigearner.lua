@@ -8,6 +8,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         prettyname = "Big Earner",
         holdtype = "knife",
         bonemerge = true,
+        tfclass = 9,
 
         killicon = "lambdaplayers/killicons/icon_tf2_bigearner",
         keepdistance = 10,

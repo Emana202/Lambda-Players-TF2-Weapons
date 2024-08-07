@@ -1,4 +1,3 @@
-local random = math.random
 
 table.Merge( _LAMBDAPLAYERSWEAPONS, {
     tf2_katana = {
@@ -7,6 +6,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         prettyname = "Half-Zatoichi",
         holdtype = "melee",
         bonemerge = true,
+        tfclass = { [ 2 ] = true, [ 4 ] = true },
 
         killicon = "lambdaplayers/killicons/icon_tf2_katana",
         keepdistance = 10,
@@ -44,7 +44,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
 			end )
 
             wepent.l_TF_IsHonorbound = true
-            wepent:EmitSound( ")weapons/samurai/TF_katana_draw_0" .. random( 1, 2 ) .. ".wav", 70, nil, 0.7 )
+            wepent:EmitSound( ")weapons/samurai/TF_katana_draw_0" .. LambdaRNG( 1, 2 ) .. ".wav", 70, nil, 0.7 )
         end,
 
         OnHolster = function( self, wepent )

@@ -1,4 +1,3 @@
-local random = math.random
 local reloadData = { InterruptCondition = false }
 
 table.Merge( _LAMBDAPLAYERSWEAPONS, {
@@ -9,6 +8,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         holdtype = "shotgun",
         bonemerge = true,
         killicon = "lambdaplayers/killicons/icon_tf2_frontier_justice",
+        tfclass = 6,
 
         clip = 3,
         islethal = true,

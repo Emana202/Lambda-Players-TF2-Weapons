@@ -8,6 +8,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         prettyname = "Conniver's Kunai",
         holdtype = "knife",
         bonemerge = true,
+        tfclass = 9,
 
         killicon = "lambdaplayers/killicons/icon_tf2_kunai",
         keepdistance = 10,

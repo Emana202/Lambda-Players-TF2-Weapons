@@ -6,6 +6,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         holdtype = "fist",
         bonemerge = true,
         dropondeath = false,
+        tfclass = 5,
 
         killicon = "lambdaplayers/killicons/icon_tf2_fists_of_steel",
         keepdistance = 10,

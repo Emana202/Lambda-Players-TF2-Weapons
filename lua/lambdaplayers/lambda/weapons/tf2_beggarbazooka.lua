@@ -1,5 +1,3 @@
-local random = math.random
-local Rand = math.Rand
 local CurTime = CurTime
 
 local rocketAttributes = {
@@ -12,7 +10,7 @@ local reloadData = {
     LayerCycle = 0.076923,
     LayerPlayRate = 0.923077,
     InterruptCondition = function( lambda, weapon )
-        return ( lambda.l_Clip > 0 and ( !lambda:InCombat() and CurTime() > weapon.l_FireTime or lambda:InCombat() and random( 1, 3 ) == 1 and lambda:IsInRange( lambda:GetEnemy(), 512 ) and lambda:CanSee( lambda:GetEnemy() ) ) )
+        return ( lambda.l_Clip > 0 and ( !lambda:InCombat() and CurTime() > weapon.l_FireTime or lambda:InCombat() and LambdaRNG( 1, 3 ) == 1 and lambda:IsInRange( lambda:GetEnemy(), 512 ) and lambda:CanSee( lambda:GetEnemy() ) ) )
     end,
     EndFunction = false
 }
@@ -25,6 +23,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         holdtype = "rpg",
         bonemerge = true,
         killicon = "lambdaplayers/killicons/icon_tf2_beggarbazooka",
+        tfclass = 2,
 
         clip = 3,
         islethal = true,
@@ -73,13 +72,13 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             if isvector( target ) then
                 targetPos = target
             else
-                targetPos = ( ( !target:IsOnGround() or random( 1, 2 ) == 1 and self:IsInRange( target, 500 ) ) and target:WorldSpaceCenter() or target:GetPos() )
-                targetPos = LAMBDA_TF2:CalculateEntityMovePosition( target, spawnPos:Distance( targetPos ), 1100, Rand( 0.5, 1.1 ), targetPos )
+                targetPos = ( ( !target:IsOnGround() or LambdaRNG( 1, 2 ) == 1 and self:IsInRange( target, 500 ) ) and target:WorldSpaceCenter() or target:GetPos() )
+                targetPos = LAMBDA_TF2:CalculateEntityMovePosition( target, spawnPos:Distance( targetPos ), 1100, LambdaRNG( 0.5, 1.1, true ), targetPos )
             end
 
 
             local spawnAng = ( targetPos - spawnPos ):Angle()
-            spawnAng = ( ( targetPos + spawnAng:Right() * random( -5, 5 ) + spawnAng:Up() * random( -5, 5 ) ) - spawnPos ):Angle()
+            spawnAng = ( ( targetPos + spawnAng:Right() * LambdaRNG( -5, 5 ) + spawnAng:Up() * LambdaRNG( -5, 5 ) ) - spawnPos ):Angle()
 
             local angSpread = AngleRand( -3, 3 )
             angSpread.z = 0.0

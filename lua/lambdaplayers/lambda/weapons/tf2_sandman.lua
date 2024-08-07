@@ -1,6 +1,4 @@
 local Round = math.Round
-local random = math.random
-local Rand = math.Rand
 local min = math.min
 local SimpleTimer = timer.Simple
 local IsValid = IsValid
@@ -69,7 +67,7 @@ local function OnBallTouch( self, ent )
             ent:DispatchTraceAttack( dmginfo, touchTr, self:GetForward() )
             ent:EmitSound( ")weapons/bat_baseball_hit_flesh.wav", nil, nil, nil, CHAN_STATIC )
         elseif touchTr.HitWorld then
-            self:EmitSound( "weapons/baseball_hitworld" .. random( 1, 3 ) .. ".wav", nil, nil, nil, CHAN_STATIC )
+            self:EmitSound( "weapons/baseball_hitworld" .. LambdaRNG( 1, 3 ) .. ".wav", nil, nil, nil, CHAN_STATIC )
         end
     end
 
@@ -91,6 +89,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         prettyname = "Sandman",
         holdtype = "melee",
         bonemerge = true,
+        tfclass = 1,
 
         killicon = "lambdaplayers/killicons/icon_tf2_sandman",
         keepdistance = 10,
@@ -131,11 +130,11 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
 
                     self:SimpleWeaponTimer( 0.45, function()
                         self.l_TF_ThrownBaseball = ( CurTime() + 10 )
-                        wepent:EmitSound( ")weapons/bat_baseball_hit" .. random( 1, 2 ) .. ".wav", 75, nil, nil, CHAN_STATIC )
+                        wepent:EmitSound( ")weapons/bat_baseball_hit" .. LambdaRNG( 1, 2 ) .. ".wav", 75, nil, nil, CHAN_STATIC )
 
                         local spawnPos = self:GetAttachmentPoint( "eyes" ).Pos
                         local targetPos = ene:GetPos()                        
-                        targetPos = LAMBDA_TF2:CalculateEntityMovePosition( ene, spawnPos:Distance( targetPos ), 3000, Rand( 0.5, 1.1 ), targetPos )
+                        targetPos = LAMBDA_TF2:CalculateEntityMovePosition( ene, spawnPos:Distance( targetPos ), 3000, LambdaRNG( 0.5, 1.1, true ), targetPos )
                         targetPos = ( targetPos + ( vector_up * ( spawnPos:Distance( targetPos ) / 100 ) ) )
 
                         local spawnAng = ( targetPos - spawnPos ):Angle()
@@ -161,7 +160,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
                         SafeRemoveEntityDelayed( ball, 15 )
 
                         ball:SetLocalVelocity( ( spawnAng:Forward() * 10 + spawnAng:Up() * 1 ):GetNormalized() * 3000 )
-                        ball:SetLocalAngularVelocity( Angle( 0, Rand( 0, 100 ), 0 ) )
+                        ball:SetLocalAngularVelocity( Angle( 0, LambdaRNG( 0, 100, true ), 0 ) )
 
                         local trail = LAMBDA_TF2:CreateSpriteTrailEntity( nil, nil, 5.4, 0, 0.4, "effects/baseballtrail_" .. ( self.l_TF_TeamColor == 1 and "blu" or "red" ), ball:WorldSpaceCenter(), ball )
                         SimpleTimer( 3, function()
@@ -191,7 +190,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
                 end
             end
 
-            return Rand( 0.1, 0.33 )
+            return LambdaRNG( 0.1, 0.33, true )
         end,
 
         OnAttack = function( self, wepent, target )

@@ -1,5 +1,3 @@
-local random = math.random
-local Rand = math.Rand
 local CurTime = CurTime
 local IsValid = IsValid
 local ParticleEffectAttach = ParticleEffectAttach
@@ -21,7 +19,7 @@ local reloadData = {
             return
         end
 
-        weapon:EmitSound( reloadSnds[ random( #reloadSnds ) ], 70, nil, nil, CHAN_STATIC )
+        weapon:EmitSound( reloadSnds[ LambdaRNG( #reloadSnds ) ], 70, nil, nil, CHAN_STATIC )
     end,    
     CycleDelay = 0.8,
     LayerCycle = 0.6,
@@ -65,6 +63,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         holdtype = "rpg",
         bonemerge = true,
         killicon = "lambdaplayers/killicons/icon_tf2_cowmangler5000",
+        tfclass = 2,
 
         clip = 4,
         islethal = true,
@@ -106,7 +105,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             local chargedShot = false
             local teamColor = self.l_TF_TeamColor
 
-            if self.l_Clip == self.l_MaxClip and random( 1, 3 ) == 1 and target == self:GetEnemy() and self:IsInRange( target, 1000 ) then
+            if self.l_Clip == self.l_MaxClip and LambdaRNG( 1, 3 ) == 1 and target == self:GetEnemy() and self:IsInRange( target, 1000 ) then
                 chargedShot = true
                 wepent.l_IsCharging = true
                 wepent:EmitSound( ")weapons/cow_mangler_over_charge.wav", 75, nil, nil, CHAN_STATIC )
@@ -132,14 +131,14 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
                 local spawnPos = wepent:GetAttachment( wepent:LookupAttachment( "muzzle" ) ).Pos
                 local targetPos
                 if IsValid( target ) then
-                    targetPos = ( ( ( !target:IsOnGround() or random( 1, 2 ) == 1 and self:IsInRange( target, 500 ) ) and !chargedShot ) and target:WorldSpaceCenter() or target:GetPos() )
-                    targetPos = LAMBDA_TF2:CalculateEntityMovePosition( target, spawnPos:Distance( targetPos ), 1100, Rand( 0.5, 1.1 ), targetPos )
+                    targetPos = ( ( ( !target:IsOnGround() or LambdaRNG( 1, 2 ) == 1 and self:IsInRange( target, 500 ) ) and !chargedShot ) and target:WorldSpaceCenter() or target:GetPos() )
+                    targetPos = LAMBDA_TF2:CalculateEntityMovePosition( target, spawnPos:Distance( targetPos ), 1100, LambdaRNG( 0.5, 1.1, true ), targetPos )
                 else
                     targetPos = ( lambda:WorldSpaceCenter() + lambda:GetForward() * 500 )
                 end
 
                 local spawnAng = ( targetPos - spawnPos ):Angle()
-                spawnAng = ( ( targetPos + spawnAng:Right() * random( -5, 5 ) + spawnAng:Up() * random( -5, 5 ) ) - spawnPos ):Angle()
+                spawnAng = ( ( targetPos + spawnAng:Right() * LambdaRNG( -5, 5 ) + spawnAng:Up() * LambdaRNG( -5, 5 ) ) - spawnPos ):Angle()
 
                 local energyBall = LAMBDA_TF2:CreateRocketProjectile( spawnPos, spawnAng, self, wepent, isCrit, ( chargedShot and rocketChargedAttributes or rocketAttributes ) )
                 energyBall.l_TF_AfterburnDuration = 6

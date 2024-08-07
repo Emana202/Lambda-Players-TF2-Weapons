@@ -10,6 +10,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         holdtype = "fist",
         bonemerge = true,
         dropondeath = false,
+        tfclass = 5,
 
         killicon = "lambdaplayers/killicons/icon_tf2_boxinggloves_running",
         keepdistance = 10,

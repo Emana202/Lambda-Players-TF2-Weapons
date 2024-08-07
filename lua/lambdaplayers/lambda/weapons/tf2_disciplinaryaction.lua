@@ -1,4 +1,3 @@
-local random = math.random
 local ignorePlys = GetConVar( "ai_ignoreplayers" )
 
 table.Merge( _LAMBDAPLAYERSWEAPONS, {
@@ -8,6 +7,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         prettyname = "Disciplinary Action",
         holdtype = "melee",
         bonemerge = true,
+        tfclass = 2,
 
         killicon = "lambdaplayers/killicons/icon_tf2_disciplinaryaction",
         keepdistance = 10,
@@ -40,7 +40,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
                 weapon.l_IsSpeedBuffAttack = false
 
                 if isSpeedBuff then
-                    target:EmitSound( ")weapons/discipline_device_impact_0" .. random( 2 ) .. ".wav", nil, nil, nil, CHAN_STATIC )
+                    target:EmitSound( ")weapons/discipline_device_impact_0" .. LambdaRNG( 2 ) .. ".wav", nil, nil, nil, CHAN_STATIC )
                     
                     if !target.l_TF_InSpeedBoost then target:EmitSound( ")weapons/discipline_device_power_up.wav", 65, nil, nil, CHAN_STATIC ) end
                     target.l_TF_InSpeedBoost = ( CurTime() + 2 )
@@ -70,12 +70,12 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
                     if self:IsPanicking() and ent == retTarg then return false end
                     if ent.IsLambdaPlayer and ent:InCombat() and ent:GetEnemy() == self then return false end
                     if ent:IsPlayer() and ignorePlys:GetBool() then return false end
-                    return ( LAMBDA_TF2:IsValidCharacter( ent ) and ( random( 3 ) == 1 and self:CanTarget( ent ) or self.IsFriendsWith and self:IsFriendsWith( ent ) or LambdaTeams and LambdaTeams:AreTeammates( self, ent ) == true ) and self:CanSee( ent ) )
+                    return ( LAMBDA_TF2:IsValidCharacter( ent ) and ( LambdaRNG( 3 ) == 1 and self:CanTarget( ent ) or self.IsFriendsWith and self:IsFriendsWith( ent ) or LambdaTeams and LambdaTeams:AreTeammates( self, ent ) == true ) and self:CanSee( ent ) )
                 end )
 
                 if #nearTargets > 0 then
                     wepent.l_IsSpeedBuffAttack = true
-                    local rndTarget = nearTargets[ random( #nearTargets ) ]
+                    local rndTarget = nearTargets[ LambdaRNG( #nearTargets ) ]
                     self:LookTo( rndTarget, 0.66 )
                     self:UseWeapon( rndTarget )
                 end

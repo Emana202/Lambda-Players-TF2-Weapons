@@ -5,6 +5,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         prettyname = "Solemn Vow",
         holdtype = "melee",
         bonemerge = true,
+        tfclass = 7,
 
         killicon = "lambdaplayers/killicons/icon_tf2_solemn_vow",
         keepdistance = 10,

@@ -1,6 +1,5 @@
 local table_Empty = table.Empty
 local CurTime = CurTime
-local random = math.random
 local ScreenShake = util.ScreenShake
 local ents_Create = ents.Create
 local SafeRemoveEntityDelayed = SafeRemoveEntityDelayed
@@ -15,7 +14,6 @@ local net = net
 local isfunction = isfunction
 local ipairs = ipairs
 local table_remove = table.remove
-local Rand = math.Rand
 local coroutine_yield = coroutine.yield
 local ParticleEffectAttach = ParticleEffectAttach
 local Clamp = math.Clamp
@@ -185,7 +183,7 @@ local function OnEntityTakeDamage( ent, dmginfo )
         end
         if ent.l_TF_AtomicPunched then
             if dmginfo:IsDamageType( DMG_BULLET + DMG_CLUB + DMG_SLASH ) then
-                ent:EmitSound( "player/pl_scout_jump" .. random( 1, 4 ) .. ".wav", 65, random( 90, 110 ), nil, CHAN_STATIC )
+                ent:EmitSound( "player/pl_scout_jump" .. LambdaRNG( 1, 4 ) .. ".wav", 65, LambdaRNG( 90, 110 ), nil, CHAN_STATIC )
             end
             damageBlocked = true
         end
@@ -234,7 +232,7 @@ local function OnEntityTakeDamage( ent, dmginfo )
             if attacker.IsLambdaPlayer then
                 attacker.l_WeaponUseCooldown = ( CurTime() + 2.0 )
 
-                if random( 1, 100 ) <= attacker:GetVoiceChance() then
+                if LambdaRNG( 1, 100 ) <= attacker:GetVoiceChance() then
                     attacker:PlaySoundFile( "panic" )
                 end
             end
@@ -404,7 +402,7 @@ local function OnPostEntityTakeDamage( ent, dmginfo, tookDamage )
         if hitSnd then
             local critSnd = inflictor:GetWeaponAttribute( "HitCritSound" )
             if critSnd and LAMBDA_TF2:IsDamageCustom( dmgCustom, TF_DMG_CUSTOM_CRITICAL ) then hitSnd = critSnd end
-            if istable( hitSnd ) then hitSnd = hitSnd[ random( #hitSnd ) ] end
+            if istable( hitSnd ) then hitSnd = hitSnd[ LambdaRNG( #hitSnd ) ] end
             inflictor:EmitSound( hitSnd, nil, nil, nil, CHAN_STATIC )
         end
     end
@@ -435,7 +433,7 @@ local function OnPostEntityTakeDamage( ent, dmginfo, tookDamage )
             local bonusEffect = ent.l_TF_AttackBonusEffect
             if #bonusEffect != 0 then
                 local snd = bonusEffect[ 2 ]
-                if istable( snd ) then snd = snd[ random( #snd ) ] end
+                if istable( snd ) then snd = snd[ LambdaRNG( #snd ) ] end
 
                 net.Start( "lambda_tf2_attackbonuseffect" )
                     net.WriteEntity( ent )
@@ -483,7 +481,7 @@ local function OnPostEntityTakeDamage( ent, dmginfo, tookDamage )
                 LAMBDA_TF2:RecordDamageEvent( attacker, dmginfo, isDead, entHealth )
 
                 if attacker.l_TF_RageBuffType and !attacker.l_TF_RageActivated and attacker:Alive() then
-                    local gainRage = ( dmginfo:GetDamage() / ( random( 4, 5 ) * LambdaGetWeaponDamageScale( ent ) ) )
+                    local gainRage = ( dmginfo:GetDamage() / ( LambdaRNG( 4, 5 ) * LambdaGetWeaponDamageScale( ent ) ) )
                     if attacker.l_TF_RageBuffType == 3 then gainRage = ( gainRage * 1.25 ) end
                     attacker.l_TF_RageMeter = min( attacker.l_TF_RageMeter + gainRage, 100 )
                 end
@@ -552,7 +550,7 @@ local function OnCreateEntityRagdoll( owner, ragdoll )
             physObjs[ #physObjs + 1 ] = bonePhys
         end
 
-        local frozenTime = ( CurTime() + Rand( 9.0, 11.0 ) )
+        local frozenTime = ( CurTime() + LambdaRNG( 9.0, 11.0, true ) )
         LambdaCreateThread( function()
             while ( IsValid( ragdoll ) ) do
                 if CurTime() < frozenTime then
@@ -660,7 +658,7 @@ hook.Add( "EntityFireBullets", "LambdaTF2_OnEntityFireBullets", OnEntityFireBull
 local function OnLambdaThink( lambda, weapon, isdead )
     local shieldType = lambda.l_TF_Shield_Type
     if shieldType then
-        if !isdead and lambda.l_issmoving and !lambda:l_GetIsShieldCharging() and lambda:l_GetShieldChargeMeter() == 100 and random( 1, 30 ) == 1 then
+        if !isdead and lambda.l_issmoving and !lambda:l_GetIsShieldCharging() and lambda:l_GetShieldChargeMeter() == 100 and LambdaRNG( 1, 30 ) == 1 then
             local enemy = lambda:GetEnemy()
             local isPanicking = ( lambda:IsPanicking() and !lambda:GetIsFiring() or !lambda:InCombat() and ( lambda.l_TF_CoveredInUrine or lambda.l_TF_CoveredInMilk or LAMBDA_TF2:IsBurning( lambda ) or LAMBDA_TF2:IsBleeding( lambda ) ) )
 
@@ -739,9 +737,9 @@ local function OnLambdaThink( lambda, weapon, isdead )
                     local impactEnt = chargeResult.Entity
                     if LAMBDA_TF2:IsValidCharacter( impactEnt ) then
                         if lambda:l_GetShieldChargeMeter() <= 40 then
-                            impactEnt:EmitSound( "weapons/demo_charge_hit_flesh_range" .. random( 1, 3 ) .. ".wav", 80, nil, nil, CHAN_STATIC )
+                            impactEnt:EmitSound( "weapons/demo_charge_hit_flesh_range" .. LambdaRNG( 1, 3 ) .. ".wav", 80, nil, nil, CHAN_STATIC )
                         else
-                            impactEnt:EmitSound( "weapons/demo_charge_hit_flesh" .. random( 1, 3 ) .. ".wav", 80, nil, nil, CHAN_STATIC )
+                            impactEnt:EmitSound( "weapons/demo_charge_hit_flesh" .. LambdaRNG( 1, 3 ) .. ".wav", 80, nil, nil, CHAN_STATIC )
                         end
 
                         local bashDmg = LAMBDA_TF2:RemapClamped( lambda:l_GetShieldChargeMeter(), 90, 40, 10, 30 )
@@ -759,7 +757,7 @@ local function OnLambdaThink( lambda, weapon, isdead )
                         dmginfo:SetDamageCustom( TF_DMG_CUSTOM_CHARGE_IMPACT )
                         impactEnt:DispatchTraceAttack( dmginfo, chargeResult, lambda:GetForward() )
                     else
-                        lambda:EmitSound( "weapons/demo_charge_hit_world" .. random( 1, 3 ) .. ".wav", 80, nil, nil, CHAN_STATIC )
+                        lambda:EmitSound( "weapons/demo_charge_hit_world" .. LambdaRNG( 1, 3 ) .. ".wav", 80, nil, nil, CHAN_STATIC )
                     end
 
                     lambda:l_SetIsShieldCharging( false )
@@ -831,6 +829,8 @@ local function OnLambdaThink( lambda, weapon, isdead )
     end
 
     if !isdead then
+        -- debugoverlay.Text( lambda:GetPos() + lambda:OBBCenter() * 2.2, "TF Class: " .. ( lambda.l_TF_FavClass or lambda.l_TF_Class ), FrameTime() * 2 )
+
         if lambda.l_TF_RageActivated then
             lambda.l_TF_RageMeter = ( lambda.l_TF_RageMeter - ( FrameTime() * 10 ) )
 
@@ -992,7 +992,7 @@ local function OnLambdaThink( lambda, weapon, isdead )
                 end
             end
 
-            lambda.l_TF_NextInventoryCheckT = ( CurTime() + Rand( 0.1, 1.0 ) )
+            lambda.l_TF_NextInventoryCheckT = ( CurTime() + LambdaRNG( 0.1, 1.0, true ) )
         end
 
         if lambda.l_TF_AtomicPunched and CurTime() >= lambda.l_TF_AtomicPunched then
@@ -1160,7 +1160,7 @@ local function OnLambdaThink( lambda, weapon, isdead )
             if lambda:l_GetIsBurning() then
                 lambda:SetRun( true )
 
-                if CurTime() > lambda.l_nextidlesound and !lambda:IsDisabled() and !lambda:GetIsTyping() and !lambda:IsSpeaking() and random( 1, 100 ) <= lambda:GetVoiceChance() then
+                if CurTime() > lambda.l_nextidlesound and !lambda:IsDisabled() and !lambda:GetIsTyping() and !lambda:IsSpeaking() and LambdaRNG( 1, 100 ) <= lambda:GetVoiceChance() then
                     lambda:PlaySoundFile( "panic" )
                 end
             end
@@ -1194,10 +1194,13 @@ end
 local function OnLambdaRespawn( lambda )
     table_Empty( lambda.l_TF_DamageEvents )
 
+    local rndClass = GetConVar( "lambdaplayers_tf2_changeclasschance" ):GetInt()
+    if LambdaRNG( 1, 100 ) <= rndClass then lambda.l_TF_Class = LambdaRNG( 1, 9 ) end
+
     if lambda.l_TF_RevengeCrits > 0 and lambda:CanEquipWeapon( "tf2_frontierjustice" ) then
         lambda:SwitchWeapon( "tf2_frontierjustice" )
 
-        if random( 1, 100 ) <= lambda:GetVoiceChance() then
+        if LambdaRNG( 1, 100 ) <= lambda:GetVoiceChance() then
             lambda:PlaySoundFile( "taunt" )
         end
 
@@ -1222,7 +1225,7 @@ local function OnLambdaRespawn( lambda )
     end
 
     local rndItems = GetConVar( "lambdaplayers_tf2_randomizeitemsonrespawn" ):GetInt()
-    if random( 1, 100 ) <= rndItems then LAMBDA_TF2:AssignLambdaInventory( lambda ) end
+    if LambdaRNG( 1, 100 ) <= rndItems then LAMBDA_TF2:AssignLambdaInventory( lambda ) end
 
     local bonemergedMdls = lambda.l_TF_BonemergedModels
     for model, mdlEnt in pairs( bonemergedMdls ) do
@@ -1302,7 +1305,7 @@ local function OnLambdaKilled( lambda, dmginfo )
     if burnTime then
         burnTime = ( burnTime - CurTime() )
     elseif shouldBurn then
-        burnTime = Rand( 2, 5 )
+        burnTime = LambdaRNG( 2, 5, true )
     end
 
     if LAMBDA_TF2:IsDamageCustom( dmgCustom, TF_DMG_CUSTOM_TURNGOLD ) then
@@ -1345,17 +1348,16 @@ local function OnLambdaKilled( lambda, dmginfo )
         local groundTr = TraceHull( groundCheckTbl )
         local onGround = ( groundTr.Hit )
 
-        if animTbl and ( turnIntoIce or random( 1, 100 ) <= GetConVar( "lambdaplayers_tf2_deathanimchance" ):GetInt() ) and ( onGround or isDissolving ) then
+        if animTbl and ( turnIntoIce or LambdaRNG( 1, 100 ) <= GetConVar( "lambdaplayers_tf2_deathanimchance" ):GetInt() ) and ( onGround or isDissolving ) then
             local isTFAnim = true
-            local index, dur = lambda:LookupSequence( animTbl[ random( #animTbl ) ] )
+            local index, dur = lambda:LookupSequence( animTbl[ LambdaRNG( #animTbl ) ] )
 
             if index <= 0 then
                 isTFAnim = false
-                index, dur = lambda:LookupSequence( gmodDeathAnims[ random( #gmodDeathAnims ) ] )
+                index, dur = lambda:LookupSequence( gmodDeathAnims[ LambdaRNG( #gmodDeathAnims ) ] )
 
                 if index <= 0 then
                     index = lambda:SelectWeightedSequence( ACT_DIESIMPLE )
-                    print( lambda:GetSequenceName( index ) )
                     if index > 0 then dur = lambda:SequenceDuration( index ) end
                 end
             end
@@ -1384,7 +1386,7 @@ local function OnLambdaKilled( lambda, dmginfo )
                 animEnt.l_FreezeTime = 0
                 animEnt.l_FrozenTime = 0
 
-                local speed = Rand( 0.8, 1.1 )
+                local speed = LambdaRNG( 0.8, 1.1, true )
                 animEnt.l_PlayBackSpeed = speed
 
                 if isTFAnim then
@@ -1448,7 +1450,7 @@ local function OnLambdaKilled( lambda, dmginfo )
                 if burnTime then
                     ParticleEffectAttach( "burningplayer_" .. ( lambda.l_TF_TeamColor == 1 and "blue" or "red" ), PATTACH_ABSORIGIN_FOLLOW, animEnt, 0 )
 
-                    local burningSnd = LAMBDA_TF2:CreateSound( animEnt, "ambient/fire/fire_small_loop" .. random( 1, 2 ) .. ".wav" )
+                    local burningSnd = LAMBDA_TF2:CreateSound( animEnt, "ambient/fire/fire_small_loop" .. LambdaRNG( 1, 2 ) .. ".wav" )
                     burningSnd:PlayEx( 0.8, 100 )
                     burningSnd:SetSoundLevel( 75 )
                 end
@@ -1459,7 +1461,7 @@ local function OnLambdaKilled( lambda, dmginfo )
                     ParticleEffectAttach( "drg_fiery_death", PATTACH_ABSORIGIN_FOLLOW, animEnt, 0 )
                 end
 
-                local finishTime = ( CurTime() + ( dur / speed ) * ( isTFAnim and 1 or Rand( 0.8, 1 ) ) )
+                local finishTime = ( CurTime() + ( dur / speed ) * ( isTFAnim and 1 or LambdaRNG( 0.8, 1, true ) ) )
                 lambda:Thread( function()
 
                     while ( IsValid( animEnt ) and CurTime() < finishTime and ( animEnt.l_FreezeTime == 0 or CurTime() < animEnt.l_FreezeTime ) ) do
@@ -1577,10 +1579,10 @@ local function OnLambdaKilled( lambda, dmginfo )
 
         if IsValid( ragdoll ) then
             if turnIntoIce then
-                local frozenTime = ( CurTime() + Rand( 9.0, 11.0 ) )
+                local frozenTime = ( CurTime() + LambdaRNG( 9.0, 11.0, true ) )
 
                 if ragdoll.l_IsTFDeathAnimation then
-                    ragdoll.l_FreezeTime = ( CurTime() + ( Rand( 0.2, 0.75 ) / ragdoll.l_PlayBackSpeed ) )
+                    ragdoll.l_FreezeTime = ( CurTime() + ( LambdaRNG( 0.2, 0.75, true ) / ragdoll.l_PlayBackSpeed ) )
                     ragdoll.l_FrozenTime = frozenTime
                     ragdoll:SetMaterial( "models/player/shared/ice_player" )
 
@@ -1757,7 +1759,7 @@ local function OnLambdaKilled( lambda, dmginfo )
     local dropAmmo = GetConVar( "lambdaplayers_tf2_dropammobox" ):GetInt()
     if dropAmmo == 1 and wepent.TF2Data or dropAmmo == 2 then
         if lambda.l_TF_HasEdibles then
-            ammopack = LAMBDA_TF2:CreateMedkit( wepent:GetPos(), "models/items/ammopack_medium.mdl", ( random( 1, 9 ) == 1 and 0.6 or 0.3 ), false, nil, true )
+            ammopack = LAMBDA_TF2:CreateMedkit( wepent:GetPos(), "models/items/ammopack_medium.mdl", ( LambdaRNG( 1, 9 ) == 1 and 0.6 or 0.3 ), false, nil, true )
         else
             ammopack = LAMBDA_TF2:CreateAmmobox( wepent:GetPos(), "models/items/ammopack_medium.mdl", 0.5 )
         end
@@ -1767,8 +1769,8 @@ local function OnLambdaKilled( lambda, dmginfo )
             ammopack.IsLambdaSpawned = true
 
             local vecImpulse = vector_origin
-            vecImpulse = ( vecImpulse + ammopack:GetUp() * Rand( -0.25, 0.25 ) + ammopack:GetRight() * Rand( -0.25, 0.25 ) ):GetNormalized()
-            vecImpulse = ( vecImpulse * Rand( 100, 150 ) + ammopack:GetVelocity() )
+            vecImpulse = ( vecImpulse + ammopack:GetUp() * LambdaRNG( -0.25, 0.25, true ) + ammopack:GetRight() * LambdaRNG( -0.25, 0.25, true ) ):GetNormalized()
+            vecImpulse = ( vecImpulse * LambdaRNG( 100, 150, true ) + ammopack:GetVelocity() )
 
             local speed = vecImpulse:Length()
             if speed > 300 then vecImpulse = ( vecImpulse * ( 300 / speed ) ) end
@@ -1778,7 +1780,7 @@ local function OnLambdaKilled( lambda, dmginfo )
                 phys:SetMass( 25 )
                 phys:SetVelocityInstantaneous( vecImpulse )
 
-                ammoboxAngImpulse.y = Rand( 0, 100 )
+                ammoboxAngImpulse.y = LambdaRNG( 0, 100, true )
                 phys:SetAngleVelocityInstantaneous( ammoboxAngImpulse )
             end
         end
@@ -1963,7 +1965,7 @@ local function OnLambdaPlayGesture( lambda, gesture )
 end
 
 local function OnLambdaChangeState( lambda, old, new, arg )
-    if new == "Laughing" and old == "HealWithMedigun" and ( lambda.l_TF_Medigun_ChargeReleased or random( 1, 4 ) != 1 ) then
+    if new == "Laughing" and old == "HealWithMedigun" and ( lambda.l_TF_Medigun_ChargeReleased or LambdaRNG( 1, 4 ) != 1 ) then
         return true
     end
 
@@ -1988,15 +1990,20 @@ local function OnLambdaCanSwitchWeapon( lambda, name, data )
     if data.ismedigun and lambda:InCombat() then return true end
     if !data.ismelee and LAMBDA_TF2:HasCritBoost( lambda, "BuffaloSteakBoost" ) then return true end
 
-    local invWep = lambda.l_TF_Inventory[ name ]
-    if invWep then
-        if !invWep.IsReady then return true end
-    else
-        if data.isbuffpack then
-            local buffType = lambda.l_TF_RageBuffType
-            if !buffType or buffType != data.bufftype then return true end
+    if GetConVar( "lambdaplayers_tf2_lockwpnsforclasses" ):GetBool() then
+        local plyClass = ( lambda.l_TF_FavClass or lambda.l_TF_Class )
+        local classReq = data.tfclass
+        if plyClass and classReq then
+            if istable( classReq ) then 
+                if !classReq[ plyClass ] then return true end
+            elseif plyClass != classReq then 
+                return true 
+            end
         end
     end
+
+    local invWep = lambda.l_TF_Inventory[ name ]
+    if invWep and !invWep.IsReady then return true end
 
     local preInvWep = lambda.l_TF_PreInventorySwitchWeapon
     if preInvWep and name != preInvWep.Name then return true end
@@ -2006,7 +2013,7 @@ local function OnLambdaAttackTarget( lambda, target )
     if lambda.l_TF_IsUsingItem then return true end
 
     local state = lambda:GetState()
-    if state == "Schadenfreude" or state == "Stunned" then return true end
+    if state == "Stunned" then return true end
 
     if state == "HealWithMedigun" then
         local healTarget = lambda.l_TF_Medigun_HealTarget
@@ -2033,13 +2040,13 @@ end
 local function OnLambdaBeginMove( lambda, pos, onNavmesh )
     local goPickup = nil
 
-    if random( 1, 4 ) != 1 and !lambda:InCombat() and !lambda:IsPanicking() then
-        if ( lambda:Health() < ( lambda:GetMaxHealth() * Rand( 0.66, 0.9 ) ) or LAMBDA_TF2:IsBleeding( lambda ) or LAMBDA_TF2:IsBurning( lambda ) ) and LAMBDA_TF2:GetMedigunHealers( lambda, true ) == 0 then
-            local medkits = lambda:FindInSphere( nil, random( 300, 1500 ), function( ent )
+    if LambdaRNG( 1, 4 ) != 1 and !lambda:InCombat() and !lambda:IsPanicking() then
+        if ( lambda:Health() < ( lambda:GetMaxHealth() * LambdaRNG( 0.66, 0.9, true ) ) or LAMBDA_TF2:IsBleeding( lambda ) or LAMBDA_TF2:IsBurning( lambda ) ) and LAMBDA_TF2:GetMedigunHealers( lambda, true ) == 0 then
+            local medkits = lambda:FindInSphere( nil, LambdaRNG( 300, 1500 ), function( ent )
                 return ( ent.IsLambdaTFMedkit and !ent.IsRespawning or ent.IsLambdaTFLocker )
             end )
             if #medkits != 0 then
-                local rndMedkit = medkits[ random( #medkits ) ]
+                local rndMedkit = medkits[ LambdaRNG( #medkits ) ]
                 lambda:SetRun( true )
                 lambda:RecomputePath( rndMedkit )
                 goPickup = rndMedkit
@@ -2052,11 +2059,11 @@ local function OnLambdaBeginMove( lambda, pos, onNavmesh )
         end
 
         if !goPickup and lambda.l_TF_ThrownBaseball then
-            local balls = lambda:FindInSphere( nil, random( 300, 1500 ), function( ent )
+            local balls = lambda:FindInSphere( nil, LambdaRNG( 300, 1500 ), function( ent )
                 return ( ent.l_IsTFBaseball )
             end )
             if #balls != 0 then
-                local rndBall = balls[ random( #balls ) ]
+                local rndBall = balls[ LambdaRNG( #balls ) ]
                 lambda:SetRun( true )
                 lambda:RecomputePath( rndBall )
                 goPickup = rndBall

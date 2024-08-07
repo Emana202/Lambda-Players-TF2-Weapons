@@ -1,4 +1,3 @@
-local random = math.random
 local IsValid = IsValid
 local CurTime = CurTime
 
@@ -6,6 +5,7 @@ LAMBDA_TF2 = LAMBDA_TF2 or {}
 
 LAMBDA_TF2.InventoryItems = {
     [ "tf2_sandwich" ] = {
+        Class = 5,
         Condition = function( lambda )
             return ( LAMBDA_TF2:GetTimeSinceLastDamage( lambda ) > 10 and !lambda:InCombat() and !lambda:IsPanicking() and lambda:Health() <= ( lambda:GetMaxHealth() * 0.5 ) )
         end,
@@ -16,6 +16,7 @@ LAMBDA_TF2.InventoryItems = {
         Cooldown = 30
     },
     [ "tf2_banana" ] = {
+        Class = 5,
         Condition = function( lambda )
             return ( LAMBDA_TF2:GetTimeSinceLastDamage( lambda ) > 10 and !lambda:InCombat() and !lambda:IsPanicking() and lambda:Health() <= ( lambda:GetMaxHealth() * 0.75 ) )
         end,
@@ -26,9 +27,10 @@ LAMBDA_TF2.InventoryItems = {
         Cooldown = 10
     },
     [ "tf2_buffalosteak" ] = {
+        Class = 5,
         Condition = function( lambda )
             local ene = lambda:GetEnemy()
-            return ( random( 1, 20 ) == 1 and lambda.l_HasMelee and lambda:l_GetCritBoostType() == TF_CRIT_NONE and lambda:InCombat() and ( !lambda:CanSee( ene ) or !lambda:IsInRange( ene, 1500 ) ) )
+            return ( LambdaRNG( 1, 20 ) == 1 and lambda.l_HasMelee and lambda:l_GetCritBoostType() == TF_CRIT_NONE and lambda:InCombat() and ( !lambda:CanSee( ene ) or !lambda:IsInRange( ene, 1500 ) ) )
         end,
         SwitchBackCond = function( lambda )
             local ene = lambda:GetEnemy()
@@ -37,16 +39,18 @@ LAMBDA_TF2.InventoryItems = {
         Cooldown = 30
     },
     [ "tf2_chocolate" ] = {
+        Class = 5,
         Condition = function( lambda )
             local ene = lambda:GetEnemy()
-            return ( LAMBDA_TF2:GetTimeSinceLastDamage( lambda ) > 10 and lambda:Health() < lambda:GetMaxHealth() and !lambda:InCombat() and !lambda:IsPanicking() or lambda:InCombat() and !lambda:IsInRange( ene, 300 ) and !lambda:CanSee( ene ) and random( 1, 12 ) == 1 )
+            return ( LAMBDA_TF2:GetTimeSinceLastDamage( lambda ) > 10 and lambda:Health() < lambda:GetMaxHealth() and !lambda:InCombat() and !lambda:IsPanicking() or lambda:InCombat() and !lambda:IsInRange( ene, 300 ) and !lambda:CanSee( ene ) and LambdaRNG( 1, 12 ) == 1 )
         end,
         Cooldown = 10
     },
     [ "tf2_jarate" ] = {
+        Class = 8,
         Condition = function( lambda )
             local ene = lambda:GetEnemy()
-            return ( random( 1, 5 ) == 1 and lambda:InCombat() and lambda:l_GetCritBoostType() == TF_CRIT_NONE and !LAMBDA_TF2:IsBurning( ene ) and !ene.l_TF_CoveredInMilk and !ene.l_TF_CoveredInUrine and !LAMBDA_TF2:IsBurning( ene ) and !lambda:IsInRange( ene, 200 ) and lambda:IsInRange( ene, 750 ) or !lambda:InCombat() and LAMBDA_TF2:IsBurning( lambda ) )
+            return ( LambdaRNG( 1, 5 ) == 1 and lambda:InCombat() and lambda:l_GetCritBoostType() == TF_CRIT_NONE and !LAMBDA_TF2:IsBurning( ene ) and !ene.l_TF_CoveredInMilk and !ene.l_TF_CoveredInUrine and !LAMBDA_TF2:IsBurning( ene ) and !lambda:IsInRange( ene, 200 ) and lambda:IsInRange( ene, 750 ) or !lambda:InCombat() and LAMBDA_TF2:IsBurning( lambda ) )
         end,
         SwitchBackCond = function( lambda )
             return ( ( !lambda:InCombat() or lambda:l_GetCritBoostType() != TF_CRIT_NONE ) and !LAMBDA_TF2:IsBurning( lambda )  )
@@ -54,9 +58,10 @@ LAMBDA_TF2.InventoryItems = {
         Cooldown = 20 
     },
     [ "tf2_madmilk" ] = {
+        Class = 1,
         Condition = function( lambda )
             local ene = lambda:GetEnemy()
-            return ( random( 1, 5 ) == 1 and lambda:InCombat() and lambda:l_GetCritBoostType() == TF_CRIT_NONE and !LAMBDA_TF2:IsBurning( ene ) and !ene.l_TF_CoveredInMilk and !ene.l_TF_CoveredInUrine and !LAMBDA_TF2:IsBurning( ene ) and !lambda:IsInRange( ene, 200 ) and lambda:IsInRange( ene, 750 ) or !lambda:InCombat() and LAMBDA_TF2:IsBurning( lambda ) )
+            return ( LambdaRNG( 1, 5 ) == 1 and lambda:InCombat() and lambda:l_GetCritBoostType() == TF_CRIT_NONE and !LAMBDA_TF2:IsBurning( ene ) and !ene.l_TF_CoveredInMilk and !ene.l_TF_CoveredInUrine and !LAMBDA_TF2:IsBurning( ene ) and !lambda:IsInRange( ene, 200 ) and lambda:IsInRange( ene, 750 ) or !lambda:InCombat() and LAMBDA_TF2:IsBurning( lambda ) )
         end,
         SwitchBackCond = function( lambda )
             return ( ( !lambda:InCombat() or lambda:l_GetCritBoostType() != TF_CRIT_NONE ) and !LAMBDA_TF2:IsBurning( lambda )  )
@@ -64,9 +69,10 @@ LAMBDA_TF2.InventoryItems = {
         Cooldown = 20 
     },
     [ "tf2_critacola" ] = {
+        Class = 1,
         Condition = function( lambda )
             local ene = lambda:GetEnemy()
-            return ( random( 1, 20 ) == 1 and lambda:InCombat() and lambda:l_GetCritBoostType() == TF_CRIT_NONE and !ene.l_TF_CoveredInMilk and !ene.l_TF_CoveredInUrine and ( !lambda:IsInRange( ene, 300 ) or !lambda:CanSee( ene ) ) )
+            return ( LambdaRNG( 1, 20 ) == 1 and lambda:InCombat() and lambda:l_GetCritBoostType() == TF_CRIT_NONE and !ene.l_TF_CoveredInMilk and !ene.l_TF_CoveredInUrine and ( !lambda:IsInRange( ene, 300 ) or !lambda:CanSee( ene ) ) )
         end,
         SwitchBackCond = function( lambda )
             return ( lambda:l_GetCritBoostType() != TF_CRIT_NONE )
@@ -74,11 +80,12 @@ LAMBDA_TF2.InventoryItems = {
         Cooldown = 30
     },
     [ "tf2_cleaver" ] = {
+        Class = 1,
         Condition = function( lambda )
             local ene = lambda:GetEnemy()
             local attackDist = lambda.l_CombatAttackRange
             if !attackDist then attackDist = ( lambda.l_HasMelee and 70 or 1000 ) end
-            return ( random( 1, 10 ) == 1 and lambda:InCombat() and lambda:CanSee( ene ) and lambda:IsInRange( ene, 1500 ) and ( lambda.l_Clip == 0 or lambda:GetIsReloading() or !lambda:IsInRange( ene, attackDist ) or random( 1, 10 ) == 1 ) )
+            return ( LambdaRNG( 1, 10 ) == 1 and lambda:InCombat() and lambda:CanSee( ene ) and lambda:IsInRange( ene, 1500 ) and ( lambda.l_Clip == 0 or lambda:GetIsReloading() or !lambda:IsInRange( ene, attackDist ) or LambdaRNG( 1, 10 ) == 1 ) )
         end,
         SwitchBackCond = function( lambda )
             local ene = lambda:GetEnemy()
@@ -87,6 +94,7 @@ LAMBDA_TF2.InventoryItems = {
         Cooldown = 5.1
     },
     [ "tf2_bonk" ] = {
+        Class = 1,
         Condition = function( lambda )
             local ene = lambda:GetEnemy()
             return ( lambda:IsPanicking() and ( !LambdaIsValid( ene ) or !lambda:CanSee( ene ) or !lambda:IsInRange( ene, 1000 ) ) )
@@ -94,6 +102,7 @@ LAMBDA_TF2.InventoryItems = {
         Cooldown = 30
     },
     [ "tf2_razorback" ] = {
+        Class = 8,
         IsWeapon = false,
         PrettyName = "Razorback",
         WorldModel = "models/lambdaplayers/tf2/items/knife_shield.mdl",
@@ -123,6 +132,7 @@ LAMBDA_TF2.InventoryItems = {
         end
     },
     [ "tf2_cozycamper" ] = {
+        Class = 8,
         IsWeapon = false,
         PrettyName = "Cozy Camper",
         WorldModel = "models/lambdaplayers/tf2/items/commandobackpack.mdl",
@@ -134,6 +144,7 @@ LAMBDA_TF2.InventoryItems = {
         OnUnequip = function( lambda ) lambda.l_TF_SniperShieldType = nil end
     },
     [ "tf2_darvinshield" ] = {
+        Class = 8,
         IsWeapon = false,
         PrettyName = "Darvin's Danger Shield",
         WorldModel = "models/lambdaplayers/tf2/items/croc_shield.mdl",
@@ -145,6 +156,7 @@ LAMBDA_TF2.InventoryItems = {
         OnUnequip = function( lambda ) lambda.l_TF_SniperShieldType = nil end
     },
     [ "tf2_basejumper" ] = {
+        Class = 2,
         IsWeapon = false,
         PrettyName = "B.A.S.E. Jumper",
         WorldModel = "models/lambdaplayers/tf2/items/base_jumper.mdl",
@@ -160,11 +172,13 @@ LAMBDA_TF2.InventoryItems = {
         end
     },
     [ "tf2_chargintarge" ] = {
+        Class = 4,
         IsWeapon = false,
         PrettyName = "Chargin' Targe",
         WorldModel = "models/lambdaplayers/tf2/weapons/w_targe.mdl",
         IsDemoShield = true,
         Initialize = function( lambda, mdlEnt ) 
+            if lambda.l_TF_Shield_Type then return true end
             mdlEnt.IsLambdaWeapon = true
             mdlEnt.l_killiconname = "lambdaplayers_weaponkillicons_tf2_chargintarge"
             lambda.l_TF_Shield_Entity = mdlEnt
@@ -176,11 +190,13 @@ LAMBDA_TF2.InventoryItems = {
         end
     },
     [ "tf2_splendidscreen" ] = {
+        Class = 4,
         IsWeapon = false,
         PrettyName = "Splendid Screen",
         WorldModel = "models/lambdaplayers/tf2/weapons/w_persian_shield.mdl",
         IsDemoShield = true,
         Initialize = function( lambda, mdlEnt ) 
+            if lambda.l_TF_Shield_Type then return true end
             mdlEnt.IsLambdaWeapon = true
             mdlEnt.l_killiconname = "lambdaplayers_weaponkillicons_tf2_splendidscreen"
             lambda.l_TF_Shield_Entity = mdlEnt
@@ -192,11 +208,13 @@ LAMBDA_TF2.InventoryItems = {
         end
     },
     [ "tf2_tideturner" ] = {
+        Class = 4,
         IsWeapon = false,
         PrettyName = "Tide Turner",
         WorldModel = "models/lambdaplayers/tf2/weapons/w_wheel_shield.mdl",
         IsDemoShield = true,
         Initialize = function( lambda, mdlEnt ) 
+            if lambda.l_TF_Shield_Type then return true end
             mdlEnt.IsLambdaWeapon = true
             mdlEnt.l_killiconname = "lambdaplayers_weaponkillicons_tf2_chargintarge"
             lambda.l_TF_Shield_Entity = mdlEnt
@@ -212,11 +230,16 @@ LAMBDA_TF2.InventoryItems = {
 for name, data in pairs( _LAMBDAPLAYERSWEAPONS ) do
     if data.isbuffpack then
         local buffType = data.bufftype
-        local buffpackMdl = data.buffpackmdl
 
         LAMBDA_TF2.InventoryItems[ name ] = {
+            Class = 2,
+            IsWeapon = true,
+            PrettyName = data.prettyname,
+            WorldModel = data.buffpackmdl,
+            WearsOnBack = true,
+            
             Condition = function( lambda )
-            local ene = lambda:GetEnemy()
+                local ene = lambda:GetEnemy()
                 return ( !lambda:InCombat() and #LAMBDA_TF2:GetFriendlyTargets( lambda, 450 ) > 1 or lambda:InCombat() and ( !lambda.l_HasMelee or CurTime() > lambda.l_WeaponUseCooldown ) and !lambda:IsInRange( ene, 600 ) )
             end,
             Cooldown = function( lambda )
@@ -230,9 +253,7 @@ for name, data in pairs( _LAMBDAPLAYERSWEAPONS ) do
             OnUnequip = function( lambda ) 
                 lambda.l_TF_RageBuffPack = NULL
                 lambda.l_TF_RageBuffType = nil
-            end,
-            WorldModel = buffpackMdl,
-            WearsOnBack = true
+            end
         }
     end
 end

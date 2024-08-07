@@ -1,7 +1,6 @@
 local IsValid = IsValid
 local net = net
 local SimpleTimer = timer.Simple
-local random = math.random
 local min = math.min
 local VectorRand = VectorRand
 local isnumber = isnumber
@@ -14,7 +13,6 @@ local ParticleEffectAttach = ParticleEffectAttach
 local GetConVar = GetConVar
 local band = bit.band
 local string_Explode = string.Explode
-local Rand = math.Rand
 local Clamp = math.Clamp
 local Round = math.Round
 local max = math.max
@@ -202,7 +200,7 @@ net.Receive( "lambda_tf2_turncsragdollintostatue", function()
                     physObjs[ #physObjs + 1 ] = bonePhys
                 end
 
-                local frozenTime = ( CurTime() + Rand( 9.0, 11.0 ) )
+                local frozenTime = ( CurTime() + LambdaRNG( 9.0, 11.0, true ) )
                 LambdaCreateThread( function()
                     while ( IsValid( ragdoll ) ) do
                         if CurTime() < frozenTime then
@@ -304,8 +302,8 @@ function LAMBDA_TF2:EntityThink( ent )
             ParticleEffectAttach( "peejar_drips", PATTACH_ABSORIGIN_FOLLOW, ent, 0 )
             ent.l_TF_UrineEffect = true
 
-            if ent.IsLambdaPlayer and random( 1, 100 ) <= ent:GetVoiceChance() then
-                local rndReact = random( 1, 3 )
+            if ent.IsLambdaPlayer and LambdaRNG( 1, 100 ) <= ent:GetVoiceChance() then
+                local rndReact = LambdaRNG( 1, 3 )
                 if rndReact == 1 then
                     ent:PlaySoundFile( "death" )
                 elseif rndReact == 2 then
@@ -330,8 +328,8 @@ function LAMBDA_TF2:EntityThink( ent )
             ParticleEffectAttach( "peejar_drips_milk", PATTACH_ABSORIGIN_FOLLOW, ent, 0 )
             ent.l_TF_MilkEffect = true
 
-            if ent.IsLambdaPlayer and random( 1, 100 ) <= ( ent:GetVoiceChance() * 1.5 ) then
-                local rndReact = random( 1, 3 )
+            if ent.IsLambdaPlayer and LambdaRNG( 1, 100 ) <= ( ent:GetVoiceChance() * 1.5 ) then
+                local rndReact = LambdaRNG( 1, 3 )
                 if rndReact == 1 then
                     ent:PlaySoundFile( "death" )
                 elseif rndReact == 2 then
@@ -754,7 +752,7 @@ local function CalcIsAttackCriticalHelper( self )
     if owner:l_GetCritBoostType() == TF_CRIT_FULL then return true end
 
     local remapCritMul = LAMBDA_TF2:RemapClamped( owner.l_TF_CritMult, 0, 255, 1, 4 )
-    local randChance = random( 0, 9999 )
+    local randChance = LambdaRNG( 0, 9999 )
     local randCritsAllowed = GetConVar( "lambdaplayers_tf2_allowrandomcrits" ):GetBool()
 
     if self:GetWeaponAttribute( "IsMelee" ) then
@@ -934,7 +932,7 @@ function LAMBDA_TF2:RadiusDamageInfo( dmginfo, pos, radius, impactEnt, ignoreEnt
 
         local dirToEnt = ( entPos - pos ):GetNormalized()
         if baseDamageForce:IsZero() or baseDamagePos:IsZero() then
-            dmginfo:SetDamageForce( dirToEnt * ( min( baseDamage * 300, 30000 ) * Rand( 0.85, 1.15 ) ) * LAMBDA_TF2:GetPushScale() * 1.5 )
+            dmginfo:SetDamageForce( dirToEnt * ( min( baseDamage * 300, 30000 ) * LambdaRNG( 0.85, 1.15, true ) ) * LAMBDA_TF2:GetPushScale() * 1.5 )
         else
             dmginfo:SetDamageForce( dirToEnt * ( baseDamageForce:Length() * fallOff ) )
         end
@@ -1214,7 +1212,7 @@ function LAMBDA_TF2:Burn( ent, attacker, weapon, burningTime )
 
         local burningSnd = ent.l_TF_FireBurningSound
         if !burningSnd then
-            burningSnd = LAMBDA_TF2:CreateSound( ent, "ambient/fire/fire_small_loop" .. random( 1, 2 ) .. ".wav" )
+            burningSnd = LAMBDA_TF2:CreateSound( ent, "ambient/fire/fire_small_loop" .. LambdaRNG( 1, 2 ) .. ".wav" )
             burningSnd:PlayEx( 0.8, 100 )
             burningSnd:SetSoundLevel( 75 )
             ent.l_TF_FireBurningSound = burningSnd
@@ -1412,7 +1410,7 @@ function LAMBDA_TF2:LambdaMedigunAI( lambda )
 
             local healTarget = lambda.l_TF_Medic_HealTarget
             local targetDead = ( !IsValid( healTarget ) or !LAMBDA_TF2:IsValidCharacter( healTarget ) )
-            if targetDead or random( 1, ( ( lambda.l_TF_Medigun_ChargeReleased or healTarget.IsLambdaPlayer and ( healTarget:InCombat() or healTarget:IsPanicking() or healTarget:GetState() == "FindTarget" or healTarget.l_TF_HasEdibles or healTarget.l_TF_IsUsingItem ) ) and 400 or 140 ) ) == 1 then
+            if targetDead or LambdaRNG( 1, ( ( lambda.l_TF_Medigun_ChargeReleased or healTarget.IsLambdaPlayer and ( healTarget:InCombat() or healTarget:IsPanicking() or healTarget:GetState() == "FindTarget" or healTarget.l_TF_HasEdibles or healTarget.l_TF_IsUsingItem ) ) and 400 or 140 ) ) == 1 then
                 if CurTime() > lambda.l_TF_Medic_TargetSearchT then
                     lambda.l_TF_Medic_TargetSearchT = ( CurTime() + 1.0 )
 
@@ -1519,8 +1517,8 @@ function LAMBDA_TF2:LambdaMedigunAI( lambda )
                 if lambda:IsInRange( healTarget, closeRange ) and lambda.l_TF_Medigun_HealTarget == healTarget then 
                     if LAMBDA_TF2:GetTimeSinceLastDamage( lambda ) <= 5 or targetInCombat or lambda:IsInRange( healTarget, 30 ) then
                         local desSpeed = ( lambda.loco:GetDesiredSpeed() / 2 )
-                        rndMovePos.x = random( -desSpeed, desSpeed )
-                        rndMovePos.y = random( -desSpeed, desSpeed )
+                        rndMovePos.x = LambdaRNG( -desSpeed, desSpeed )
+                        rndMovePos.y = LambdaRNG( -desSpeed, desSpeed )
                         lambda.l_movepos = ( lambda:GetPos() + rndMovePos )
                     elseif canSee then
                         lambda:WaitWhileMoving( 0.1 )
@@ -1545,11 +1543,11 @@ function LAMBDA_TF2:LambdaMedigunAI( lambda )
                         net.WriteUInt( lambda.l_TF_TeamColor, 1 )
                     net.Broadcast()
 
-                    if random( 1, 100 ) <= lambda:GetVoiceChance() then
+                    if LambdaRNG( 1, 100 ) <= lambda:GetVoiceChance() then
                         lambda:PlaySoundFile( "taunt" )
                     end
 
-                    if healTarget.IsLambdaPlayer and random( 1, 100 ) <= healTarget:GetVoiceChance() then
+                    if healTarget.IsLambdaPlayer and LambdaRNG( 1, 100 ) <= healTarget:GetVoiceChance() then
                         healTarget:PlaySoundFile( "taunt" )
                     end
                 end
@@ -1717,12 +1715,14 @@ function LAMBDA_TF2:AssignLambdaInventory( lambda )
     local invLimit = GetConVar( "lambdaplayers_tf2_inventoryitemlimit" ):GetInt()
     if invLimit == 0 then return end
 
+    local plyClass = ( lambda.l_TF_FavClass or lambda.l_TF_Class )
     local invCount = 0
     local chance = GetConVar( "lambdaplayers_tf2_randomrechargeablechance" ):GetInt()
-    local oneBackpack = GetConVar( "lambdaplayers_tf2_wearonlyonebackpack" ):GetInt()
+    local oneBackpack = GetConVar( "lambdaplayers_tf2_wearonlyonebackpack" ):GetBool()
 
     for name, data in RandomPairs( LAMBDA_TF2.InventoryItems ) do
-        if lambdaInv[ name ] or random( 1, 100 ) > chance or !lambda:CanEquipWeapon( name ) then continue end
+        if lambdaInv[ name ] or LambdaRNG( 1, 100 ) > chance then return end
+        if !lambda:CanEquipWeapon( name ) then continue end
 
         if data.WearsOnBack then
             if !lambda.l_TF_HasBackpackItem then
@@ -1731,7 +1731,17 @@ function LAMBDA_TF2:AssignLambdaInventory( lambda )
                 continue
             end
         end
-        if data.IsDemoShield and lambda.l_TF_Shield_Type then continue end
+
+        if GetConVar( "lambdaplayers_tf2_lockwpnsforclasses" ):GetBool() then
+            local classReq = data.Class
+            if plyClass and classReq then
+                if istable( classReq ) then 
+                    if !classReq[ plyClass ] then continue end
+                elseif plyClass != classReq then 
+                    continue 
+                end
+            end
+        end
 
         local itemMdl, itemMdlEnt = data.WorldModel
         if itemMdl then itemMdlEnt = LAMBDA_TF2:CreateBonemergedModel( lambda, itemMdl ) end

@@ -16,6 +16,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         holdtype = "shotgun",
         bonemerge = true,
         killicon = "lambdaplayers/killicons/icon_tf2_scattergun",
+        tfclass = 1,
 
         clip = 6,
         islethal = true,

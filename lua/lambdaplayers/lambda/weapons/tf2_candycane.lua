@@ -7,6 +7,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         prettyname = "Candy Cane",
         holdtype = "melee",
         bonemerge = true,
+        tfclass = 1,
 
         killicon = "lambdaplayers/killicons/icon_tf2_candy_cane",
         keepdistance = 10,

@@ -5,6 +5,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         prettyname = "Buffalo Steak Sandvich",
         holdtype = "slam",
         bonemerge = true,
+        tfclass = 5,
   
 		islethal = true,
         isedible = true,

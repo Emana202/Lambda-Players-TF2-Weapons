@@ -1,4 +1,3 @@
-local random = math.random
 
 table.Merge( _LAMBDAPLAYERSWEAPONS, {
     tf2_pistol = {
@@ -8,6 +7,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         holdtype = "pistol",
         bonemerge = true,
         killicon = "lambdaplayers/killicons/icon_tf2_pistol",
+        tfclass = { [ 1 ] = true, [ 6 ] = true },
         
         clip = 12,
         islethal = true,
@@ -32,7 +32,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent:SetWeaponAttribute( "TracerEffect", "bullet_pistol_tracer01" )
 
             wepent:EmitSound( "weapons/draw_secondary.wav", nil, nil, 0.5 )
-            local holdtype = ( random( 2 ) == 1 and "pistol" or "revolver" )
+            local holdtype = ( LambdaRNG( 2 ) == 1 and "pistol" or "revolver" )
             if holdtype == "pistol" then wepent:EmitSound( "weapons/draw_pistol_engineer.wav", nil, nil, 0.5, CHAN_STATIC ) end 
             self.l_HoldType = holdtype
         end,

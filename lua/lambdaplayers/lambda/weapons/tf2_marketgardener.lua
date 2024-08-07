@@ -5,6 +5,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         prettyname = "Market Gardener",
         holdtype = "melee",
         bonemerge = true,
+        tfclass = 2,
 
         killicon = "lambdaplayers/killicons/icon_tf2_market_gardener",
         keepdistance = 10,

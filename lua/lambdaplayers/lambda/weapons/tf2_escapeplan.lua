@@ -5,6 +5,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         prettyname = "Escape Plan",
         holdtype = "melee",
         bonemerge = true,
+        tfclass = 2,
 
         killicon = "lambdaplayers/killicons/icon_tf2_equalizer",
         keepdistance = 10,

@@ -5,6 +5,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         prettyname = "Buff Banner",
         holdtype = "melee",
         bonemerge = true,
+        tfclass = 2,
 
 		islethal = false,
         deploydelay = 0.5,

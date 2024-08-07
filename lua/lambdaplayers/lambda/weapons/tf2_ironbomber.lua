@@ -1,6 +1,4 @@
 local CurTime = CurTime
-local random = math.random
-local Rand = math.Rand
 
 local grenadeAttributes = {
     Model = "models/workshop/weapons/c_models/c_quadball/w_quadball_grenade.mdl",
@@ -35,6 +33,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         holdtype = "shotgun",
         bonemerge = true,
         killicon = "lambdaplayers/killicons/icon_tf2_iron_bomber",
+        tfclass = 4,
 
         clip = 4,
         islethal = true,
@@ -59,11 +58,11 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
 
         OnAttack = function( self, wepent, target )
             local spawnPos = wepent:GetAttachment( wepent:LookupAttachment( "muzzle" ) ).Pos
-            local targetPos = ( self:IsInRange( target, 100 ) and target:WorldSpaceCenter() or target:GetPos() + vector_up * ( self:GetRangeTo( target ) / random( 10, 12 ) ) )
-            targetPos = LAMBDA_TF2:CalculateEntityMovePosition( target, spawnPos:Distance( targetPos ), 1200, Rand( 0.5, 1.1 ), targetPos )
+            local targetPos = ( self:IsInRange( target, 100 ) and target:WorldSpaceCenter() or target:GetPos() + vector_up * ( self:GetRangeTo( target ) / LambdaRNG( 10, 12 ) ) )
+            targetPos = LAMBDA_TF2:CalculateEntityMovePosition( target, spawnPos:Distance( targetPos ), 1200, LambdaRNG( 0.5, 1.1, true ), targetPos )
 
             local spawnAng = ( targetPos - spawnPos ):Angle()
-            spawnAng = ( ( targetPos + spawnAng:Right() * random( -10, 10 ) + spawnAng:Up() * random( -10, 10 ) ) - spawnPos ):Angle()
+            spawnAng = ( ( targetPos + spawnAng:Right() * LambdaRNG( -10, 10 ) + spawnAng:Up() * LambdaRNG( -10, 10 ) ) - spawnPos ):Angle()
             if self:GetForward():Dot( spawnAng:Forward() ) <= 0.5 then self.l_WeaponUseCooldown = ( CurTime() + 0.1 ) return true end
 
             local isCrit = wepent:CalcIsAttackCriticalHelper()

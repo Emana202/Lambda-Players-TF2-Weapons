@@ -1,5 +1,3 @@
-local random = math.random
-local Rand = math.Rand
 local CurTime = CurTime
 
 local rocketAttributes = {
@@ -23,6 +21,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         holdtype = "rpg",
         bonemerge = true,
         killicon = "lambdaplayers/killicons/icon_tf2_libertylauncher",
+        tfclass = 2,
 
         clip = 4,
         islethal = true,
@@ -47,11 +46,11 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
 
         OnAttack = function( self, wepent, target )
             local spawnPos = wepent:GetAttachment( wepent:LookupAttachment( "muzzle" ) ).Pos
-            local targetPos = ( ( !target:IsOnGround() or random( 1, 2 ) == 1 and self:IsInRange( target, 500 ) ) and target:WorldSpaceCenter() or target:GetPos() )
-            targetPos = LAMBDA_TF2:CalculateEntityMovePosition( target, spawnPos:Distance( targetPos ), 1100, Rand( 0.5, 1.1 ), targetPos )
+            local targetPos = ( ( !target:IsOnGround() or LambdaRNG( 1, 2 ) == 1 and self:IsInRange( target, 500 ) ) and target:WorldSpaceCenter() or target:GetPos() )
+            targetPos = LAMBDA_TF2:CalculateEntityMovePosition( target, spawnPos:Distance( targetPos ), 1100, LambdaRNG( 0.5, 1.1, true ), targetPos )
 
-            local spawnAng = ( ( targetPos + ( ( target:IsNextBot() and target.loco or target ):GetVelocity() * ( ( self:GetRangeTo( targetPos ) * Rand( 0.66, 1.1 ) ) / 1100 ) ) ) - spawnPos ):Angle()
-            spawnAng = ( ( targetPos + spawnAng:Right() * random( -5, 5 ) + spawnAng:Up() * random( -5, 5 ) ) - spawnPos ):Angle()
+            local spawnAng = ( ( targetPos + ( ( target:IsNextBot() and target.loco or target ):GetVelocity() * ( ( self:GetRangeTo( targetPos ) * LambdaRNG( 0.66, 1.1, true ) ) / 1100 ) ) ) - spawnPos ):Angle()
+            spawnAng = ( ( targetPos + spawnAng:Right() * LambdaRNG( -5, 5 ) + spawnAng:Up() * LambdaRNG( -5, 5 ) ) - spawnPos ):Angle()
             if self:GetForward():Dot( spawnAng:Forward() ) <= 0.5 then self.l_WeaponUseCooldown = ( CurTime() + 0.1 ) return true end
 
             local isCrit = wepent:CalcIsAttackCriticalHelper()

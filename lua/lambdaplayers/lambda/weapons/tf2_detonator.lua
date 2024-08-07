@@ -1,5 +1,3 @@
-local random = math.random
-local Rand = math.Rand
 local CurTime = CurTime
 local IsValid = IsValid
 local DamageInfo = DamageInfo
@@ -88,7 +86,7 @@ local function OnFlareTouch( flare, ent )
         } )
         ParticleEffect( "ExplosionCore_MidAir_Flare", flarePos, ( ( flarePos + detonateTr.HitNormal ) - flarePos ):Angle() )   
     else
-        flare:EmitSound( "player/pl_impact_flare" .. random( 1, 3 ) .. ".wav", nil, nil, 0.7 )
+        flare:EmitSound( "player/pl_impact_flare" .. LambdaRNG( 1, 3 ) .. ".wav", nil, nil, 0.7 )
     end
 
     flare:Remove()     
@@ -102,6 +100,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         holdtype = "revolver",
         bonemerge = true,
         killicon = "lambdaplayers/killicons/icon_tf2_detonator",
+        tfclass = 3,
 
         clip = 1,
         islethal = true,
@@ -124,17 +123,17 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
 
             wepent:SetSkin( self.l_TF_TeamColor )
             wepent:EmitSound( "weapons/draw_secondary.wav", nil, nil, 0.5 )
-            self:SimpleWeaponTimer( 0.266667, function() wepent:EmitSound( "weapons/metal_hit_hand" .. random( 1, 3 ) .. ".wav", nil, nil, 0.74 ) end )
+            self:SimpleWeaponTimer( 0.266667, function() wepent:EmitSound( "weapons/metal_hit_hand" .. LambdaRNG( 1, 3 ) .. ".wav", nil, nil, 0.74 ) end )
         end,
 
         OnAttack = function( self, wepent, target )
             local spawnPos = wepent:GetAttachment( wepent:LookupAttachment( "muzzle" ) ).Pos
             local targetPos = target:WorldSpaceCenter()
-            targetPos = LAMBDA_TF2:CalculateEntityMovePosition( target, spawnPos:Distance( targetPos ), 2000, Rand( 0.4, 1.2 ), targetPos )
-            targetPos = ( targetPos + vector_up * ( spawnPos:Distance( targetPos ) / random( 17.5, 25 ) ) )
+            targetPos = LAMBDA_TF2:CalculateEntityMovePosition( target, spawnPos:Distance( targetPos ), 2000, LambdaRNG( 0.4, 1.2, true ), targetPos )
+            targetPos = ( targetPos + vector_up * ( spawnPos:Distance( targetPos ) / LambdaRNG( 17.5, 25 ) ) )
 
             local spawnAng = ( targetPos - spawnPos ):Angle()
-            spawnAng = ( ( targetPos + spawnAng:Right() * random( -15, 15 ) + spawnAng:Up() * random( -15, 15 ) ) - spawnPos ):Angle()
+            spawnAng = ( ( targetPos + spawnAng:Right() * LambdaRNG( -15, 15 ) + spawnAng:Up() * LambdaRNG( -15, 15 ) ) - spawnPos ):Angle()
             if self:GetForward():Dot( spawnAng:Forward() ) <= 0.5 then self.l_WeaponUseCooldown = ( CurTime() + 0.1 ) return true end
 
             local isCrit = wepent:CalcIsAttackCriticalHelper()

@@ -1,4 +1,3 @@
-local random = math.random
 local ents_Create = ents.Create
 
 table.Merge( _LAMBDAPLAYERSWEAPONS, {
@@ -8,6 +7,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         prettyname = "Bonk! Atomic Punch",
         holdtype = "slam",
         bonemerge = true,
+        tfclass = 1,
     
 		islethal = true,
         deploydelay = 0.5,

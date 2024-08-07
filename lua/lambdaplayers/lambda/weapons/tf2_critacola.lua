@@ -7,6 +7,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         prettyname = "Crit-a-Cola",
         holdtype = "slam",
         bonemerge = true,
+        tfclass = 1,
 
         islethal = true,
         deploydelay = 0.5,

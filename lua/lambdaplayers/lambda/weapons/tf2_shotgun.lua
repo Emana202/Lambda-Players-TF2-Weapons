@@ -1,4 +1,3 @@
-local random = math.random
 
 table.Merge( _LAMBDAPLAYERSWEAPONS, {
     tf2_shotgun = {
@@ -8,6 +7,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         holdtype = "shotgun",
         bonemerge = true,
         killicon = "lambdaplayers/killicons/icon_tf2_shotgun",
+        tfclass = { [ 2 ] = true, [ 3 ] = true, [ 5 ] = true, [ 6 ] = true },
         
         clip = 6,
         islethal = true,
@@ -33,7 +33,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             wepent:SetWeaponAttribute( "TracerEffect", "bullet_shotgun_tracer01" )
             wepent:SetWeaponAttribute( "ShellEject", false )
 
-            wepent:EmitSound( random( 1, 4 ) != 1 and "weapons/draw_secondary.wav" or "weapons/draw_shotgun_pyro.wav", nil, nil, 0.5 )
+            wepent:EmitSound( LambdaRNG( 1, 4 ) != 1 and "weapons/draw_secondary.wav" or "weapons/draw_shotgun_pyro.wav", nil, nil, 0.5 )
         end,
 
         OnAttack = function( self, wepent, target )

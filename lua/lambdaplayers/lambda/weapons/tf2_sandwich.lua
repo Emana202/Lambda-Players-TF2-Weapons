@@ -1,4 +1,3 @@
-local random = math.random
 
 table.Merge( _LAMBDAPLAYERSWEAPONS, {
     tf2_sandwich = {
@@ -7,6 +6,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         prettyname = "Sandvich",
         holdtype = "slam",
         bonemerge = true,
+        tfclass = 5,
   
 		islethal = false,
         isedible = true,

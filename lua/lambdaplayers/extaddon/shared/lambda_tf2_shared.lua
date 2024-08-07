@@ -21,11 +21,9 @@ local pairs = pairs
 local Round = math.Round
 local max = math.max
 local Clamp = math.Clamp
-local Rand = math.Rand
 local CreateSound = CreateSound
 local ParticleEffectAttach = ParticleEffectAttach
 local RandomPairs = RandomPairs
-local random = math.random
 local table_Copy = table.Copy
 local table_Random = table.Random
 local table_Count = table.Count
@@ -49,6 +47,16 @@ TF_CRIT_NONE = 0
 TF_CRIT_MINI = 1
 TF_CRIT_FULL = 2
 
+TF_CLASS_SCOUT      = 1
+TF_CLASS_SOLDIER    = 2
+TF_CLASS_PYRO       = 3
+TF_CLASS_DEMOMAN    = 4
+TF_CLASS_HEAVY      = 5
+TF_CLASS_ENGINEER   = 6
+TF_CLASS_MEDIC      = 7
+TF_CLASS_SNIPER     = 8
+TF_CLASS_SPY        = 9
+
 ---
 
 CreateLambdaConvar( "lambdaplayers_tf2_allowrandomcrits", 1, true, false, false, "If the weapons from TF2 should have a chance to earn a random crit", 0, 1, { type = "Bool", name = "Allow Random Crits", category = "TF2 Stuff" } )
@@ -67,7 +75,38 @@ CreateLambdaConvar( "lambdaplayers_tf2_wearonlyonebackpack", 1, true, false, fal
 CreateLambdaConvar( "lambdaplayers_tf2_randomizeitemsonrespawn", 0, true, false, false, "If not zero, determines the chance that the Lambda Player's items will be randomized on its respawn", 0, 100, { type = "Slider", decimals = 0, name = "Random Items On Respawn Chance", category = "TF2 Stuff" } )
 local objectorIncludePfps = CreateLambdaConvar( "lambdaplayers_tf2_objectorincludepfps", 0, true, false, false, "If Lambda Players using The Conscientious Objector should also use Lambda Profile Pictures as their image?", 0, 1, { type = "Bool", name = "Objector Includes PFPs", category = "TF2 Stuff" } )
 
+CreateLambdaConvar( "lambdaplayers_tf2_lockwpnsforclasses", 0, true, false, false, "If enabled, Lambda Players are assigned TF2 classes, to which only weapons that are equipable to that class are accessible to them.", 0, 1, { type = "Bool", name = "Lock Weapons Under Classes", category = "TF2 Stuff" } )
+CreateLambdaConvar( "lambdaplayers_tf2_changeclasschance", 10, true, false, false, "If not zero, determines the chance that the Lambda Player's class will be switched on its respawn", 0, 100, { type = "Slider", decimals = 0, name = "Class Change On Respawn Chance", category = "TF2 Stuff" } )
+
 ---
+
+-- Favorite TF2 Class Profile Setting
+LambdaCreateProfileSetting( "DComboBox", "l_TF_FavClass", "TF2 Stuff", function( pnl, parent )
+    pnl:SetZPos( 100 ) -- ZPos is important for the order
+
+    --
+
+    pnl:AddChoice( "None", false, true )
+    pnl:AddChoice( "Scout", 1 )
+    pnl:AddChoice( "Soldier", 2 )
+    pnl:AddChoice( "Pyro", 3 )
+    pnl:AddChoice( "Demoman", 4 )
+    pnl:AddChoice( "Heavy", 5 )
+    pnl:AddChoice( "Engineer", 6 )
+    pnl:AddChoice( "Medic", 7 )
+    pnl:AddChoice( "Sniper", 8 )
+    pnl:AddChoice( "Spy", 9 )
+
+    --
+
+    local lbl = LAMBDAPANELS:CreateLabel( "[ Favorite TF2 Class ]\nDecides the weapons to use from TF2", parent, TOP )
+    lbl:SetSize( 100, 100 )
+    lbl:Dock( TOP )
+    lbl:SetWrap( true )
+    lbl:SetZPos( 99 )
+end )
+
+--
 
 function LAMBDA_TF2:PseudoNetworkVar( ent, name, initVar )
     local setFunc, getFunc, typeIndex
@@ -292,11 +331,11 @@ function LAMBDA_TF2:AttachFlameParticle( ent, removeTime, teamClr )
     local partName = ( isstring( teamClr ) and teamClr or "burningplayer_" .. ( teamClr == 1 and "blue" or "red" ) )
     ParticleEffectAttach( partName, PATTACH_ABSORIGIN_FOLLOW, ent, 0 )
 
-    local burningSnd = LAMBDA_TF2:CreateSound( ent, "ambient/fire/fire_small_loop" .. random( 2 ) .. ".wav" )
+    local burningSnd = LAMBDA_TF2:CreateSound( ent, "ambient/fire/fire_small_loop" .. LambdaRNG( 2 ) .. ".wav" )
     burningSnd:PlayEx( 0.8, 100 )
     burningSnd:SetSoundLevel( 75 )
 
-    local hookName = "LambdaTF2_ExtinguishFlame_" .. ent:GetClass() .. CurTime() .. random( 9999 )
+    local hookName = "LambdaTF2_ExtinguishFlame_" .. ent:GetClass() .. CurTime() .. LambdaRNG( 9999 )
     local removeFlameTime = ( CurTime() + removeTime )
     hook_Add( "Tick", hookName, function() 
         if IsValid( ent ) and CurTime() < removeFlameTime and ent:WaterLevel() < 2 then return end
@@ -564,7 +603,7 @@ local function TFState_TauntWithPartner( lambda )
 
         local loopAnimEndTime = ( CurTime() + startLoopTime )
 
-        local stopTauntTime = ( CurTime() + random( 20, 40 ) )
+        local stopTauntTime = ( CurTime() + LambdaRNG( 20, 40 ) )
         while ( !IsValid( lambda.TauntPartner ) and CurTime() < stopTauntTime ) do
             if CurTime() > loopAnimEndTime then
                 local loopAnim, loopEndTime = lambda:LookupSequence( lambda.TauntName .. "_loop" )
@@ -599,7 +638,7 @@ local function OnLambdaInitialize( lambda, weapon )
         objectorImgs = table_Merge( objectorImgs, Lambdaprofilepictures )
     end
 
-    local objectorPath = ( #objectorImgs != 0 and objectorImgs[ random( #objectorImgs ) ] )
+    local objectorPath = ( #objectorImgs != 0 and objectorImgs[ LambdaRNG( #objectorImgs ) ] )
     if !objectorPath then 
         objectorPath = ""
     elseif SERVER and !EndsWith( objectorPath, ".vtf" ) then
@@ -613,6 +652,8 @@ local function OnLambdaInitialize( lambda, weapon )
 
     if ( SERVER ) then
         lambda:l_SetShieldChargeMeter( 100 )
+
+        lambda.l_TF_Class = LambdaRNG( 1, 9 )
 
         lambda.l_TF_DamageEvents = {}
         lambda.l_TF_CritMult = 0
@@ -711,7 +752,7 @@ local function OnLambdaInitialize( lambda, weapon )
 
         lambda.l_TF_IsUsingItem = false
         lambda.l_TF_Inventory = {}
-        lambda.l_TF_NextInventoryCheckT = ( CurTime() + Rand( 0.1, 1.0 ) )
+        lambda.l_TF_NextInventoryCheckT = ( CurTime() + LambdaRNG( 0.1, 1.0, true ) )
         lambda.l_TF_PreInventorySwitchWeapon = nil
         lambda.l_TF_HasBackpackItem = false
 

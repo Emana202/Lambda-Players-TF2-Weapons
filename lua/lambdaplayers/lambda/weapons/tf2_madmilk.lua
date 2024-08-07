@@ -1,5 +1,3 @@
-local random = math.random
-local Rand = math.Rand
 local CurTime = CurTime
 local IsValid = IsValid
 local ents_Create = ents.Create
@@ -69,6 +67,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         prettyname = "Mad Milk",
         holdtype = "grenade",
         bonemerge = true,
+        tfclass = 1,
 
         keepdistance = 400,
         attackrange = 750,
@@ -92,7 +91,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
                     return ( IsValid( ent ) and LAMBDA_TF2:IsValidCharacter( ent ) and LAMBDA_TF2:IsBurning( ent ) and self:CanSee( ent ) )
                 end )
                 if #extinguishTargets > 0 then
-                    local target = extinguishTargets[ random( #extinguishTargets ) ]
+                    local target = extinguishTargets[ LambdaRNG( #extinguishTargets ) ]
                     self:LookTo( target, 0.5 )
                     self:SimpleWeaponTimer( 0.33, function() self:UseWeapon( target ) end )
                 end
@@ -115,7 +114,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             self:SimpleWeaponTimer( 0.25, function()
                 local spawnPos = self:GetAttachmentPoint( "eyes" ).Pos
                 throwPos = ( isvector( target ) and target or ( IsValid( target ) and target:GetPos() or ( self:GetPos() + self:GetForward() * 500 ) ) )
-                throwPos = ( throwPos + vector_up * ( spawnPos:Distance( throwPos ) / random( 20, 25 ) ) )
+                throwPos = ( throwPos + vector_up * ( spawnPos:Distance( throwPos ) / LambdaRNG( 20, 25 ) ) )
                 throwAng = ( throwPos - spawnPos ):Angle()
 
                 self:ClientSideNoDraw( wepent, true )
@@ -138,7 +137,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
                 milkjar:SetElasticity( 0.45 )
                 milkjar:SetCollisionGroup( COLLISION_GROUP_PROJECTILE )
 
-                milkjar:SetLocalVelocity( throwAng:Forward() * 1000 + throwAng:Up() * ( 200 + Rand( -10, 10 ) ) + throwAng:Right() * Rand( -10, 10 ) )
+                milkjar:SetLocalVelocity( throwAng:Forward() * 1000 + throwAng:Up() * ( 200 + LambdaRNG( -10, 10, true ) ) + throwAng:Right() * LambdaRNG( -10, 10, true ) )
                 milkjar:SetLocalAngularVelocity( angularImpulse )
 
                 milkjar.l_TF_Detonated = false

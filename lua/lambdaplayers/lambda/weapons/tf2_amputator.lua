@@ -5,6 +5,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         prettyname = "Amputator",
         holdtype = "knife",
         bonemerge = true,
+        tfclass = 7,
 
         killicon = "lambdaplayers/killicons/icon_tf2_amputator",
         keepdistance = 10,

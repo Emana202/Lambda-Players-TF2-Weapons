@@ -15,6 +15,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         },
         bonemerge = true,
         killicon = "lambdaplayers/killicons/icon_tf2_smg",
+        tfclass = 8,
 
         clip = 25,
         islethal = true,

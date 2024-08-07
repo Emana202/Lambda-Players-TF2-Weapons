@@ -1,4 +1,3 @@
-local random = math.random
 
 table.Merge( _LAMBDAPLAYERSWEAPONS, {
     tf2_caber = {
@@ -7,6 +6,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         prettyname = "Ullapool Caber",
         holdtype = "melee",
         bonemerge = true,
+        tfclass = 4,
 
         killicon = "lambdaplayers/killicons/icon_tf2_caber_exploded",
         keepdistance = 10,
@@ -58,7 +58,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
 
             local wepPos = wepent:GetPos()
             ParticleEffect( "ExplosionCore_MidAir", wepPos, ( ( wepPos + vector_up * 1 ) - wepPos ):Angle() )
-            wepent:EmitSound( ")lambdaplayers/tf2/explode" .. random( 1, 3 ) .. ".mp3", 85, nil, nil, CHAN_WEAPON )
+            wepent:EmitSound( ")lambdaplayers/tf2/explode" .. LambdaRNG( 1, 3 ) .. ".mp3", 85, nil, nil, CHAN_WEAPON )
 
             local explodeinfo = DamageInfo()
             explodeinfo:SetDamage( 45 )

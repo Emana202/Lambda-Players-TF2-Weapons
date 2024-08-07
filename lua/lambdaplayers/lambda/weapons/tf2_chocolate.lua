@@ -1,4 +1,3 @@
-local random = math.random
 local min = math.min
 local ceil = math.ceil
 local floor = math.floor
@@ -10,6 +9,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         prettyname = "Dalokohs Bar",
         holdtype = "slam",
         bonemerge = true,
+        tfclass = 5,
   
 		islethal = false,
         isedible = true,

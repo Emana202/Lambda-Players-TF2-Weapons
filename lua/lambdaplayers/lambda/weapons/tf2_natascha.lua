@@ -1,4 +1,3 @@
-local random = math.random
 
 table.Merge( _LAMBDAPLAYERSWEAPONS, {
     tf2_natascha = {
@@ -8,6 +7,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         holdtype = "crossbow",
         bonemerge = true,
         killicon = "lambdaplayers/killicons/icon_tf2_natascha",
+        tfclass = 5,
 
         clip = 200,
         islethal = true,
@@ -72,8 +72,8 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             dmginfo:ScaleDamage( 0.8 )
             if ( CurTime() - self.l_TF_LastDamageResistSoundTime ) > 0.1 then
                 self.l_TF_LastDamageResistSoundTime = CurTime()
-                local resistSnd = ")player/resistance_light" .. random( 4 ) .. ".wav"
-                self:EmitSound( resistSnd, 70, random( 90, 110 ), LAMBDA_TF2:RemapClamped( startDamage, 1, 70, 0.7, 1 ), CHAN_STATIC )
+                local resistSnd = ")player/resistance_light" .. LambdaRNG( 4 ) .. ".wav"
+                self:EmitSound( resistSnd, 70, LambdaRNG( 90, 110 ), LAMBDA_TF2:RemapClamped( startDamage, 1, 70, 0.7, 1 ), CHAN_STATIC )
             end
         end
     }

@@ -1,6 +1,5 @@
 local CurTime = CurTime
 local IsValid = IsValid
-local Rand = math.Rand
 local SafeRemoveEntityDelayed = SafeRemoveEntityDelayed
 local ents_Create = ents.Create
 local IsFirstTimePredicted = IsFirstTimePredicted
@@ -82,6 +81,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         holdtype = "crossbow",
         bonemerge = true,
         killicon = "lambdaplayers/killicons/icon_tf2_blutsauger",
+        tfclass = 7,
 
         clip = 40,
         islethal = true,
@@ -113,11 +113,11 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
             local spawnPos = wepent:GetAttachment( wepent:LookupAttachment( "muzzle" ) ).Pos
             local targetPos = target:WorldSpaceCenter()
             local dist = spawnPos:Distance( targetPos )
-            targetPos = LAMBDA_TF2:CalculateEntityMovePosition( target, dist, 1000, Rand( 0.5, 1.1 ), targetPos )
+            targetPos = LAMBDA_TF2:CalculateEntityMovePosition( target, dist, 1000, LambdaRNG( 0.5, 1.1, true ), targetPos )
 
             local spawnAng = ( targetPos - spawnPos ):Angle()
-            spawnAng.x = ( spawnAng.x + Rand( -1.5, 1.5 ) - ( dist / 128 ) )
-            spawnAng.y = ( spawnAng.y + Rand( -1.5, 1.5 ) )
+            spawnAng.x = ( spawnAng.x + LambdaRNG( -1.5, 1.5, true ) - ( dist / 128 ) )
+            spawnAng.y = ( spawnAng.y + LambdaRNG( -1.5, 1.5, true ) )
             if self:GetForward():Dot( spawnAng:Forward() ) <= 0.5 then self.l_WeaponUseCooldown = ( CurTime() + 0.1 ) return true end
 
             local isCrit = wepent:CalcIsAttackCriticalHelper()

@@ -1,4 +1,3 @@
-local random = math.random
 
 table.Merge( _LAMBDAPLAYERSWEAPONS, {
     tf2_reserveshooter = {
@@ -8,6 +7,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
         holdtype = "shotgun",
         bonemerge = true,
         killicon = "lambdaplayers/killicons/icon_tf2_reserveshooter",
+        tfclass = { [ 2 ] = true, [ 3 ] = true },
         
         clip = 6,
         islethal = true,
@@ -52,7 +52,7 @@ table.Merge( _LAMBDAPLAYERSWEAPONS, {
                 LAMBDA_TF2:GetCritType( dmginfo, TF_CRIT_MINI )
             end ) 
 
-            wepent:EmitSound( random( 1, 2 ) == 1 and "weapons/draw_secondary.wav" or "weapons/draw_shotgun_pyro.wav", nil, nil, 0.5 )
+            wepent:EmitSound( LambdaRNG( 1, 2 ) == 1 and "weapons/draw_secondary.wav" or "weapons/draw_shotgun_pyro.wav", nil, nil, 0.5 )
         end,
 
         OnAttack = function( self, wepent, target )
