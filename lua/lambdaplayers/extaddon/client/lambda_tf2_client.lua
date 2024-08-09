@@ -218,6 +218,30 @@ net.Receive( "lambda_tf2_decapitate_csragdoll", function()
     LAMBDA_TF2:DecapitateHead( net.ReadEntity(), net.ReadBool(), net.ReadVector() )
 end )
 
+local function DissolveRagdoll( ragdoll )
+    ragdoll:SetRenderMode( RENDERMODE_TRANSCOLOR )
+    local removeT = ( CurTime() + 0.5 )
+
+    LambdaCreateThread( function()
+        while ( IsValid( ragdoll ) and CurTime() < removeT ) do
+            local ragColor = ragdoll:GetColor()
+            ragColor.a = LAMBDA_TF2:RemapClamped( ( removeT - CurTime() ), 0, 0.5, 0, 255 )
+
+            ragdoll:SetColor( ragColor )
+            coroutine.yield()
+        end
+        if IsValid( ragdoll ) then 
+            if ragdoll:GetClass() == "class C_HL2MPRagdoll" then
+                net.Start( "lambda_tf2_removempragdoll" )
+                    net.WriteEntity( ragdoll )
+                net.SendToServer()
+            else
+                ragdoll:Remove()
+            end
+        end
+    end )
+end
+
 net.Receive( "lambda_tf2_ignite_csragdoll", function()
     local lambda = net.ReadEntity()
     if !IsValid( lambda ) then return end
@@ -231,28 +255,8 @@ net.Receive( "lambda_tf2_ignite_csragdoll", function()
 
     local turnIntoAshes = net.ReadBool()
     if turnIntoAshes then
-        ragdoll:SetRenderMode( RENDERMODE_TRANSCOLOR )
+        DissolveRagdoll( ragdoll )
         ParticleEffectAttach( "drg_fiery_death", PATTACH_ABSORIGIN_FOLLOW, ragdoll, 0 )
-
-        local removeT = ( CurTime() + 0.5 )
-        LambdaCreateThread( function()
-            while ( IsValid( ragdoll ) and CurTime() < removeT ) do
-                local ragColor = ragdoll:GetColor()
-                ragColor.a = LAMBDA_TF2:RemapClamped( ( removeT - CurTime() ), 0, 0.5, 0, 255 )
-
-                ragdoll:SetColor( ragColor )
-                coroutine.yield()
-            end
-            if IsValid( ragdoll ) then 
-                if ragdoll:GetClass() == "class C_HL2MPRagdoll" then
-                    net.Start( "lambda_tf2_removempragdoll" )
-                        net.WriteEntity( ragdoll )
-                    net.SendToServer()
-                else
-                    ragdoll:Remove()
-                end
-            end
-        end )
     end
 end )
 
@@ -425,20 +429,8 @@ local function OnCreateClientsideRagdoll( owner, ragdoll )
             end
 
             if owner:GetNW2Bool( "lambda_tf2_turnintoashes", false ) then
-                ragdoll:SetRenderMode( RENDERMODE_TRANSCOLOR )
+                DissolveRagdoll( ragdoll )
                 ParticleEffectAttach( "drg_fiery_death", PATTACH_ABSORIGIN_FOLLOW, ragdoll, 0 )
-
-                local removeT = ( CurTime() + 0.5 )
-                LambdaCreateThread( function()
-                    while ( IsValid( ragdoll ) and CurTime() < removeT ) do
-                        local ragColor = ragdoll:GetColor()
-                        ragColor.a = LAMBDA_TF2:RemapClamped( ( removeT - CurTime() ), 0, 0.5, 0, 255 )
-        
-                        ragdoll:SetColor( ragColor )
-                        coroutine.yield()
-                    end
-                    if IsValid( ragdoll ) then ragdoll:Remove() end
-                end )
             end
         end
 

@@ -176,7 +176,6 @@ LAMBDA_TF2.InventoryItems = {
         IsWeapon = false,
         PrettyName = "Chargin' Targe",
         WorldModel = "models/lambdaplayers/tf2/weapons/w_targe.mdl",
-        IsDemoShield = true,
         Initialize = function( lambda, mdlEnt ) 
             if lambda.l_TF_Shield_Type then return true end
             mdlEnt.IsLambdaWeapon = true
@@ -194,7 +193,6 @@ LAMBDA_TF2.InventoryItems = {
         IsWeapon = false,
         PrettyName = "Splendid Screen",
         WorldModel = "models/lambdaplayers/tf2/weapons/w_persian_shield.mdl",
-        IsDemoShield = true,
         Initialize = function( lambda, mdlEnt ) 
             if lambda.l_TF_Shield_Type then return true end
             mdlEnt.IsLambdaWeapon = true
@@ -212,7 +210,6 @@ LAMBDA_TF2.InventoryItems = {
         IsWeapon = false,
         PrettyName = "Tide Turner",
         WorldModel = "models/lambdaplayers/tf2/weapons/w_wheel_shield.mdl",
-        IsDemoShield = true,
         Initialize = function( lambda, mdlEnt ) 
             if lambda.l_TF_Shield_Type then return true end
             mdlEnt.IsLambdaWeapon = true

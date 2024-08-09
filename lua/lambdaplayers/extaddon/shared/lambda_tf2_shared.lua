@@ -547,11 +547,6 @@ local function OnEntityCreated( ent )
     end
 end
 
-local function OnLambdaUseWeapon( lambda, target )
-    if lambda.l_TF_AtomicPunched then return end
-    lambda:l_TF_OldUseWeapon( target ) 
-end
-
 local function TFState_HealWithMedigun( lambda )
     LAMBDA_TF2:LambdaMedigunAI( lambda )
 end
@@ -681,9 +676,6 @@ local function OnLambdaInitialize( lambda, weapon )
         lambda.TauntName = NULL
         lambda.TauntPartner = NULL
         lambda.TauntData = vector_origin
-
-        lambda.l_TF_OldUseWeapon = lambda.UseWeapon
-        lambda.UseWeapon = OnLambdaUseWeapon
         
         lambda.l_TF_CrikeyMeter = 0
         lambda.l_TF_CrikeyMeterFull = false

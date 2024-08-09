@@ -701,15 +701,16 @@ local function OnLambdaThink( lambda, weapon, isdead )
 
         if lambda:l_GetIsShieldCharging() then
             if !isdead then
-                if CurTime() >= lambda.l_WeaponUseCooldown then
-                    lambda.l_WeaponUseCooldown = CurTime() + 0.1
+                local blockFireT = ( CurTime() + 0.1 )
+                if blockFireT > lambda.l_WeaponUseCooldown then
+                    lambda.l_WeaponUseCooldown = blockFireT
                 end
 
                 local curVel = lambda.loco:GetVelocity()
                 curVel.x = 0
                 curVel.y = 0
 
-                lambda.loco:SetVelocity( curVel + lambda:GetForward() * min( lambda:GetRunSpeed() * 2 ) )
+                lambda.loco:SetVelocity( curVel + lambda:GetForward() * ( lambda:GetRunSpeed() * 2 ) )
 
                 if lambda:l_GetShieldChargeMeter() <= 75 then
                     if !lambda.l_TF_Shield_CritBoosted then
@@ -995,24 +996,31 @@ local function OnLambdaThink( lambda, weapon, isdead )
             lambda.l_TF_NextInventoryCheckT = ( CurTime() + LambdaRNG( 0.1, 1.0, true ) )
         end
 
-        if lambda.l_TF_AtomicPunched and CurTime() >= lambda.l_TF_AtomicPunched then
-            lambda.l_TF_AtomicPunched = false
-
-            local damageTook = lambda.l_TF_AtomicPunched_DamageTaken
-            if damageTook > 0 then
-                lambda:EmitSound( "player/pl_scout_dodge_tired.wav", 60, lambda:GetVoicePitch(), nil, CHAN_VOICE )
-                lambda.l_TF_AtomicPunched_SlowdownScale = LAMBDA_TF2:RemapClamped( damageTook, 0, 200, 0.75, 0.5 )
-                lambda.l_TF_AtomicPunched_SlowdownTime = ( CurTime() + 5 )
-                lambda.l_nextspeedupdate = 0
-            else
-                lambda.l_TF_AtomicPunched_SlowdownScale = false
+        if lambda.l_TF_AtomicPunched then
+            local blockFireT = ( CurTime() + FrameTime() * 2 )
+            if blockFireT > lambda.l_WeaponUseCooldown then
+                lambda.l_WeaponUseCooldown = blockFireT
             end
-            lambda.l_TF_AtomicPunched_DamageTaken = 0
 
-            local trail = lambda.l_TF_AtomicPunched_Trail
-            if IsValid( trail ) then
-                trail:SetParent( NULL )
-                SafeRemoveEntityDelayed( trail, 1 )
+            if CurTime() >= lambda.l_TF_AtomicPunched then
+                lambda.l_TF_AtomicPunched = false
+
+                local damageTook = lambda.l_TF_AtomicPunched_DamageTaken
+                if damageTook > 0 then
+                    lambda:EmitSound( "player/pl_scout_dodge_tired.wav", 60, lambda:GetVoicePitch(), nil, CHAN_VOICE )
+                    lambda.l_TF_AtomicPunched_SlowdownScale = LAMBDA_TF2:RemapClamped( damageTook, 0, 200, 0.75, 0.5 )
+                    lambda.l_TF_AtomicPunched_SlowdownTime = ( CurTime() + 5 )
+                    lambda.l_nextspeedupdate = 0
+                else
+                    lambda.l_TF_AtomicPunched_SlowdownScale = false
+                end
+                lambda.l_TF_AtomicPunched_DamageTaken = 0
+
+                local trail = lambda.l_TF_AtomicPunched_Trail
+                if IsValid( trail ) then
+                    trail:SetParent( NULL )
+                    SafeRemoveEntityDelayed( trail, 1 )
+                end
             end
         end
 
